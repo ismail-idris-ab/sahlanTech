@@ -1,29 +1,36 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import AdminLayout from '../components/layout/AdminLayout';
 import PublicLayout from '../components/layout/PublicLayout';
 
-// Admin pages
-import Login from '../pages/admin/Login';
-import Dashboard from '../pages/admin/Dashboard';
-import AdminCourses from '../pages/admin/Courses';
-import CourseForm from '../pages/admin/CourseForm';
-import AdminPosts from '../pages/admin/Posts';
-import PostEditor from '../pages/admin/PostEditor';
-import Messages from '../pages/admin/Messages';
-import Enrollments from '../pages/admin/Enrollments';
-import TeamMembers from '../pages/admin/TeamMembers';
+// Admin pages — lazy loaded (never on public critical path)
+const Login = lazy(() => import('../pages/admin/Login'));
+const Dashboard = lazy(() => import('../pages/admin/Dashboard'));
+const AdminCourses = lazy(() => import('../pages/admin/Courses'));
+const CourseForm = lazy(() => import('../pages/admin/CourseForm'));
+const AdminPosts = lazy(() => import('../pages/admin/Posts'));
+const PostEditor = lazy(() => import('../pages/admin/PostEditor'));
+const Messages = lazy(() => import('../pages/admin/Messages'));
+const Enrollments = lazy(() => import('../pages/admin/Enrollments'));
+const TeamMembers = lazy(() => import('../pages/admin/TeamMembers'));
 
-// Public pages
-import Home from '../pages/public/Home';
-import About from '../pages/public/About';
-import CoursesPage from '../pages/public/Courses';
-import CourseDetail from '../pages/public/CourseDetail';
-import Blog from '../pages/public/Blog';
-import BlogDetail from '../pages/public/BlogDetail';
-import Contact from '../pages/public/Contact';
-import Enroll from '../pages/public/Enroll';
+// Public pages — lazy loaded (each route is a separate chunk)
+const Home = lazy(() => import('../pages/public/Home'));
+const About = lazy(() => import('../pages/public/About'));
+const CoursesPage = lazy(() => import('../pages/public/Courses'));
+const CourseDetail = lazy(() => import('../pages/public/CourseDetail'));
+const Blog = lazy(() => import('../pages/public/Blog'));
+const BlogDetail = lazy(() => import('../pages/public/BlogDetail'));
+const Contact = lazy(() => import('../pages/public/Contact'));
+const Enroll = lazy(() => import('../pages/public/Enroll'));
+
+const PageSpinner = () => (
+  <div className="flex justify-center py-24">
+    <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const NotFound = () => (
   <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
@@ -37,45 +44,47 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public pages — wrapped in Navbar + Footer + WhatsAppFAB */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/courses" element={<CoursesPage />} />
-            <Route path="/courses/:slug" element={<CourseDetail />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogDetail />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/enroll" element={<Enroll />} />
-            <Route path="/enroll/:courseSlug" element={<Enroll />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
+        <Suspense fallback={<PageSpinner />}>
+          <Routes>
+            {/* Public pages — wrapped in Navbar + Footer + WhatsAppFAB */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/courses" element={<CoursesPage />} />
+              <Route path="/courses/:slug" element={<CourseDetail />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogDetail />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/enroll" element={<Enroll />} />
+              <Route path="/enroll/:courseSlug" element={<Enroll />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
 
-          {/* Admin auth — no public layout */}
-          <Route path="/admin/login" element={<Login />} />
+            {/* Admin auth — no public layout */}
+            <Route path="/admin/login" element={<Login />} />
 
-          {/* Admin protected */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="courses" element={<AdminCourses />} />
-            <Route path="courses/new" element={<CourseForm />} />
-            <Route path="courses/:id/edit" element={<CourseForm />} />
-            <Route path="posts" element={<AdminPosts />} />
-            <Route path="posts/new" element={<PostEditor />} />
-            <Route path="posts/:id/edit" element={<PostEditor />} />
-            <Route path="messages" element={<Messages />} />
-            <Route path="enrollments" element={<Enrollments />} />
-            <Route path="team" element={<TeamMembers />} />
-          </Route>
-        </Routes>
+            {/* Admin protected */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="courses" element={<AdminCourses />} />
+              <Route path="courses/new" element={<CourseForm />} />
+              <Route path="courses/:id/edit" element={<CourseForm />} />
+              <Route path="posts" element={<AdminPosts />} />
+              <Route path="posts/new" element={<PostEditor />} />
+              <Route path="posts/:id/edit" element={<PostEditor />} />
+              <Route path="messages" element={<Messages />} />
+              <Route path="enrollments" element={<Enrollments />} />
+              <Route path="team" element={<TeamMembers />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );

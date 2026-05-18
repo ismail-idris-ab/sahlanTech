@@ -65,7 +65,14 @@ export default function CourseDetail() {
         {/* Left */}
         <div className="lg:col-span-2 space-y-8">
           {course.coverImage?.url && (
-            <img src={course.coverImage.url} alt={course.title} className="w-full rounded-xl object-cover max-h-80" />
+            <img
+              src={course.coverImage.url}
+              alt={course.title}
+              fetchpriority="high"
+              width={800}
+              height={450}
+              className="w-full rounded-xl object-cover aspect-video"
+            />
           )}
 
           <div>

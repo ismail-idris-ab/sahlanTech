@@ -4,6 +4,7 @@ import { MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { submitEnrollment } from '../../services/enrollments.service';
 import { getCourseBySlug, getCourses } from '../../services/courses.service';
+import SEO from '../../components/common/SEO';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 const MODES = ['online', 'physical', 'hybrid'];
@@ -83,6 +84,11 @@ export default function Enroll() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+      <SEO
+        title={form.courseTitleSnapshot ? `Enroll in ${form.courseTitleSnapshot}` : 'Enroll Now'}
+        description="Sign up for a Sahlearn course. Fill in your details and we'll confirm your spot within 24 hours."
+        url={courseSlug ? `/enroll/${courseSlug}` : '/enroll'}
+      />
       <h1 className="text-3xl font-bold text-ink-900 font-display mb-2">Enroll Now</h1>
       <p className="text-ink-500 mb-8">Fill in your details and we'll confirm your spot.</p>
 

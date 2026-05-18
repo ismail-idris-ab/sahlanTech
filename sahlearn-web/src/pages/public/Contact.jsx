@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { MessageCircle, Mail, Phone } from 'lucide-react';
+import { FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, GithubIcon } from '../../components/common/SocialIcons';
 import toast from 'react-hot-toast';
 import { submitContact } from '../../services/contact.service';
 import SEO from '../../components/common/SEO';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
+
+const SOCIALS = [
+  { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook', color: 'text-blue-600' },
+  { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn', color: 'text-blue-700' },
+  { icon: TwitterXIcon, href: import.meta.env.VITE_TWITTER_URL, label: 'X (Twitter)', color: 'text-ink-900' },
+  { icon: YoutubeIcon, href: import.meta.env.VITE_YOUTUBE_URL, label: 'YouTube', color: 'text-red-600' },
+  { icon: InstagramIcon, href: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram', color: 'text-pink-600' },
+  { icon: GithubIcon, href: import.meta.env.VITE_GITHUB_URL, label: 'GitHub', color: 'text-ink-900' },
+];
 
 const EMPTY = { name: '', email: '', phone: '', subject: '', message: '' };
 
@@ -135,6 +145,26 @@ export default function Contact() {
                 <p className="text-xs text-ink-500">Within 24 hours</p>
               </div>
             </div>
+
+            {SOCIALS.filter((s) => s.href).length > 0 && (
+              <div className="pt-2 border-t border-ink-300/40">
+                <p className="text-sm font-medium text-ink-900 mb-3">Follow us</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {SOCIALS.filter((s) => s.href).map(({ icon: Icon, href, label, color }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={label}
+                      className={`w-9 h-9 rounded-full bg-surface-100 border border-ink-300/40 flex items-center justify-center hover:border-brand-primary transition-colors ${color}`}
+                    >
+                      <Icon size={16} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

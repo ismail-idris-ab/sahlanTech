@@ -1,7 +1,17 @@
 import { Link } from 'react-router-dom';
 import { MessageCircle, Mail, Phone } from 'lucide-react';
+import { FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, GithubIcon } from '../common/SocialIcons';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
+
+const SOCIALS = [
+  { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook' },
+  { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn' },
+  { icon: TwitterXIcon, href: import.meta.env.VITE_TWITTER_URL, label: 'X (Twitter)' },
+  { icon: YoutubeIcon, href: import.meta.env.VITE_YOUTUBE_URL, label: 'YouTube' },
+  { icon: InstagramIcon, href: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram' },
+  { icon: GithubIcon, href: import.meta.env.VITE_GITHUB_URL, label: 'GitHub' },
+];
 
 const QUICK_LINKS = [
   { to: '/', label: 'Home' },
@@ -38,6 +48,20 @@ export default function Footer() {
             >
               <MessageCircle size={16} /> Chat on WhatsApp
             </a>
+            <div className="flex items-center gap-3 mt-5">
+              {SOCIALS.filter((s) => s.href).map(({ icon: Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-primary flex items-center justify-center text-ink-300 hover:text-white transition-colors"
+                >
+                  <Icon size={15} />
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Quick links */}

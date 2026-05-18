@@ -95,7 +95,10 @@ export default function BlogDetail() {
         <img
           src={post.coverImage.url}
           alt={post.title}
-          className="w-full rounded-xl object-cover max-h-80 mb-8"
+          fetchpriority="high"
+          width={800}
+          height={450}
+          className="w-full rounded-xl object-cover aspect-video mb-8"
         />
       )}
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   BookOpen, FileText, MessageSquare, Users,
   ArrowUpRight, TrendingUp, ChevronRight,
+  PlusCircle, Edit3, Inbox, GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -23,7 +24,7 @@ export default function Dashboard() {
   }, []);
 
   const v = (key) => {
-    if (!stats) return null;
+    if (!stats) return '—';
     if (key === 'courses') return stats.courses.published;
     if (key === 'posts') return stats.posts.published;
     if (key === 'messages') return stats.messages.new;
@@ -31,111 +32,147 @@ export default function Dashboard() {
     return 0;
   };
 
-  const Skeleton = ({ w = 'w-12', h = 'h-9' }) => (
-    <div className={`${w} ${h} rounded-lg bg-white/20 animate-pulse`} />
+  const PulseBars = () => (
+    <div className="space-y-2 mt-1">
+      {[1, 2].map((i) => (
+        <div key={i} className="space-y-1.5">
+          <div className="h-2.5 bg-white/20 rounded-full animate-pulse w-24" />
+          <div className="h-1.5 bg-white/10 rounded-full animate-pulse" />
+        </div>
+      ))}
+    </div>
   );
 
-  const WhiteSkeleton = ({ w = 'w-10', h = 'h-8' }) => (
-    <div className={`${w} ${h} rounded-lg bg-ink-300/30 animate-pulse`} />
+  const WhiteSkeleton = ({ w = 'w-16', h = 'h-9' }) => (
+    <div className={`${w} ${h} rounded-lg bg-ink-300/20 animate-pulse`} />
   );
 
   return (
-    <div className="max-w-5xl">
-      {/* Greeting */}
-      <div className="mb-7">
-        <p className="text-sm font-medium mb-0.5" style={{ color: '#068562' }}>{greeting}</p>
-        <h1 className="font-display text-3xl text-ink-900">{user?.name?.split(' ')[0] ?? 'Admin'}</h1>
-        <p className="text-sm text-ink-500 mt-1">Here's what's happening with Sahlearn today.</p>
+    <div className="max-w-5xl space-y-6">
+
+      {/* ── Greeting banner ── */}
+      <div
+        className="relative rounded-2xl overflow-hidden p-5 sm:p-6"
+        style={{ background: 'linear-gradient(135deg, #013F4A 0%, #011F28 100%)' }}
+      >
+        {/* Decorative orb */}
+        <div
+          className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-10"
+          style={{ background: 'radial-gradient(circle, #71B280, transparent)' }}
+        />
+        <div
+          className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full opacity-5"
+          style={{ background: 'radial-gradient(circle, #C9962A, transparent)' }}
+        />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#71B280' }}>
+              {greeting}
+            </p>
+            <h1 className="font-display text-2xl sm:text-3xl text-white leading-tight">
+              {user?.name?.split(' ')[0] ?? 'Admin'}
+            </h1>
+            <p className="text-sm mt-1" style={{ color: '#87BAC2' }}>
+              Here's what's happening with Sahlearn today.
+            </p>
+          </div>
+
+          {/* Quick actions — visible in banner on desktop, collapsible on mobile */}
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/admin/courses/new"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #C9962A, #E8B84B)', color: '#011F28' }}
+            >
+              <PlusCircle size={13} /> New Course
+            </Link>
+            <Link
+              to="/admin/posts/new"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:bg-white/15"
+              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}
+            >
+              <Edit3 size={13} /> New Post
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* ── Stat cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
-        {/* Hero card — Courses */}
+        {/* Courses — accent card */}
         <Link
           to="/admin/courses"
-          className="relative col-span-2 lg:col-span-1 rounded-2xl p-5 overflow-hidden group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+          className="relative col-span-2 sm:col-span-1 rounded-2xl p-4 sm:p-5 overflow-hidden group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
           style={{ background: 'linear-gradient(145deg, #068562 0%, #013F4A 100%)' }}
         >
-          <div className="absolute inset-0 opacity-10"
+          <div className="absolute inset-0 opacity-15"
             style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, #71B280 0%, transparent 60%)' }}
           />
           <div className="relative">
-            <div className="flex items-start justify-between mb-6">
-              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
-                <BookOpen size={18} className="text-white" />
+            <div className="flex items-start justify-between mb-4 sm:mb-6">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                <BookOpen size={16} className="text-white" />
               </div>
-              <ArrowUpRight size={16} className="text-white/50 group-hover:text-white transition-colors" />
+              <ArrowUpRight size={15} className="text-white/40 group-hover:text-white transition-colors" />
             </div>
-            {loading ? <Skeleton /> : (
-              <p className="text-4xl font-display text-white leading-none mb-1">{v('courses')}</p>
-            )}
-            <p className="text-sm text-white/70 font-medium">Published Courses</p>
+            {loading
+              ? <div className="h-9 w-14 rounded-lg bg-white/20 animate-pulse mb-1" />
+              : <p className="text-3xl sm:text-4xl font-display text-white leading-none mb-1">{v('courses')}</p>
+            }
+            <p className="text-xs text-white/70 font-medium">Published Courses</p>
             {stats && (
-              <p className="text-xs text-white/50 mt-1">{stats.courses.total} total</p>
+              <p className="text-[11px] text-white/40 mt-0.5">{stats.courses.total} total</p>
             )}
           </div>
         </Link>
 
         {/* Posts */}
-        <Link
+        <StatCard
           to="/admin/posts"
-          className="rounded-2xl p-5 bg-white border border-ink-300/20 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 group"
-        >
-          <div className="flex items-start justify-between mb-5">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center">
-              <FileText size={16} className="text-teal-600" />
-            </div>
-            <ArrowUpRight size={14} className="text-ink-300 group-hover:text-ink-500 transition-colors" />
-          </div>
-          {loading ? <WhiteSkeleton /> : (
-            <p className="text-3xl font-display text-ink-900 leading-none mb-1">{v('posts')}</p>
-          )}
-          <p className="text-xs font-medium text-ink-500">Blog Posts</p>
-        </Link>
+          icon={FileText}
+          iconBg="bg-teal-50"
+          iconColor="text-teal-600"
+          value={loading ? null : v('posts')}
+          label="Blog Posts"
+          sub={stats ? `${stats.posts.total} total` : null}
+        />
 
         {/* Messages */}
-        <Link
+        <StatCard
           to="/admin/messages"
-          className="rounded-2xl p-5 bg-white border border-ink-300/20 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 group"
-        >
-          <div className="flex items-start justify-between mb-5">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-              <MessageSquare size={16} className="text-blue-500" />
-            </div>
-            <ArrowUpRight size={14} className="text-ink-300 group-hover:text-ink-500 transition-colors" />
-          </div>
-          {loading ? <WhiteSkeleton /> : (
-            <p className="text-3xl font-display text-ink-900 leading-none mb-1">{v('messages')}</p>
-          )}
-          <p className="text-xs font-medium text-ink-500">New Messages</p>
-        </Link>
+          icon={MessageSquare}
+          iconBg="bg-blue-50"
+          iconColor="text-blue-500"
+          value={loading ? null : v('messages')}
+          label="New Messages"
+          sub={stats ? `${stats.messages.total} total` : null}
+          highlight={!loading && v('messages') > 0}
+          highlightColor="text-blue-600"
+        />
 
         {/* Enrollments */}
-        <Link
+        <StatCard
           to="/admin/enrollments"
-          className="rounded-2xl p-5 bg-white border border-ink-300/20 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 group"
-        >
-          <div className="flex items-start justify-between mb-5">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-              <Users size={16} className="text-amber-600" />
-            </div>
-            <ArrowUpRight size={14} className="text-ink-300 group-hover:text-ink-500 transition-colors" />
-          </div>
-          {loading ? <WhiteSkeleton /> : (
-            <p className="text-3xl font-display text-ink-900 leading-none mb-1">{v('enrollments')}</p>
-          )}
-          <p className="text-xs font-medium text-ink-500">Pending Enrollments</p>
-        </Link>
+          icon={GraduationCap}
+          iconBg="bg-amber-50"
+          iconColor="text-amber-600"
+          value={loading ? null : v('enrollments')}
+          label="Pending Enrollments"
+          sub={stats ? `${stats.enrollments.total} total` : null}
+          highlight={!loading && v('enrollments') > 0}
+          highlightColor="text-amber-600"
+        />
       </div>
 
       {/* ── Bottom panels ── */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
 
           {/* Content health */}
-          <div className="bg-white rounded-2xl p-5 border border-ink-300/20 shadow-card">
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-ink-300/20 shadow-card">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
               <div className="flex items-center gap-2">
                 <TrendingUp size={15} className="text-brand-primary" />
                 <p className="text-sm font-semibold text-ink-900">Content health</p>
@@ -144,61 +181,163 @@ export default function Dashboard() {
                 View all <ChevronRight size={11} />
               </Link>
             </div>
+
             <div className="space-y-4">
-              {[
-                { label: 'Courses', published: stats.courses.published, total: stats.courses.total, color: 'bg-brand-primary' },
-                { label: 'Blog posts', published: stats.posts.published, total: stats.posts.total, color: 'bg-teal-500' },
-              ].map(({ label, published, total, color }) => (
-                <div key={label}>
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-ink-500">{label}</span>
-                    <span className="font-medium text-ink-700">{published} <span className="text-ink-300">/ {total} published</span></span>
+              {stats && [
+                {
+                  label: 'Courses',
+                  published: stats.courses.published,
+                  draft: stats.courses.total - stats.courses.published,
+                  total: stats.courses.total,
+                  color: '#068562',
+                  link: '/admin/courses',
+                },
+                {
+                  label: 'Blog posts',
+                  published: stats.posts.published,
+                  draft: stats.posts.total - stats.posts.published,
+                  total: stats.posts.total,
+                  color: '#0d9488',
+                  link: '/admin/posts',
+                },
+              ].map(({ label, published, draft, total, color, link }) => {
+                const pct = total > 0 ? Math.round((published / total) * 100) : 0;
+                return (
+                  <div key={label}>
+                    <div className="flex justify-between items-baseline text-xs mb-2">
+                      <span className="font-medium text-ink-700">{label}</span>
+                      <div className="flex items-center gap-2 text-ink-400">
+                        <span><strong className="text-ink-700">{published}</strong> published</span>
+                        {draft > 0 && <span>{draft} draft</span>}
+                      </div>
+                    </div>
+                    <div className="w-full bg-surface-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-2 rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%`, background: color }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[11px]" style={{ color }}>{pct}% published</span>
+                      <Link to={link} className="text-[11px] text-ink-400 hover:text-brand-primary transition-colors">
+                        Manage →
+                      </Link>
+                    </div>
                   </div>
-                  <div className="w-full bg-surface-100 rounded-full h-1.5">
-                    <div
-                      className={`${color} h-1.5 rounded-full transition-all duration-500`}
-                      style={{ width: total > 0 ? `${(published / total) * 100}%` : '0%' }}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Submissions */}
-          <div className="bg-white rounded-2xl p-5 border border-ink-300/20 shadow-card">
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-ink-300/20 shadow-card">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
               <div className="flex items-center gap-2">
-                <Users size={15} className="text-brand-primary" />
+                <Inbox size={15} className="text-brand-primary" />
                 <p className="text-sm font-semibold text-ink-900">Submissions</p>
               </div>
             </div>
-            <div className="space-y-3">
-              {[
-                { label: 'Messages', total: stats.messages.total, badge: stats.messages.new, badgeLabel: 'unread', link: '/admin/messages', color: 'text-blue-600 bg-blue-50' },
-                { label: 'Enrollments', total: stats.enrollments.total, badge: stats.enrollments.pending, badgeLabel: 'pending', link: '/admin/enrollments', color: 'text-amber-600 bg-amber-50' },
-              ].map(({ label, total, badge, badgeLabel, link, color }) => (
+
+            <div className="space-y-2">
+              {stats && [
+                {
+                  label: 'Messages',
+                  icon: MessageSquare,
+                  total: stats.messages.total,
+                  badge: stats.messages.new,
+                  badgeLabel: 'unread',
+                  link: '/admin/messages',
+                  badgeColor: 'text-blue-600 bg-blue-50',
+                  iconColor: 'text-blue-500 bg-blue-50',
+                },
+                {
+                  label: 'Enrollments',
+                  icon: GraduationCap,
+                  total: stats.enrollments.total,
+                  badge: stats.enrollments.pending,
+                  badgeLabel: 'pending',
+                  link: '/admin/enrollments',
+                  badgeColor: 'text-amber-600 bg-amber-50',
+                  iconColor: 'text-amber-600 bg-amber-50',
+                },
+              ].map(({ label, icon: Icon, total, badge, badgeLabel, link, badgeColor, iconColor }) => (
                 <Link
                   key={label}
                   to={link}
-                  className="flex items-center justify-between p-3 rounded-xl hover:bg-surface-100 transition-colors group"
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-100 transition-colors group"
                 >
-                  <span className="text-sm text-ink-700 font-medium">{label}</span>
-                  <div className="flex items-center gap-2">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColor}`}>
+                    <Icon size={15} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-ink-700">{label}</p>
+                    <p className="text-xs text-ink-400">{total} total</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {badge > 0 && (
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${color}`}>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeColor}`}>
                         {badge} {badgeLabel}
                       </span>
                     )}
-                    <span className="text-sm font-bold text-ink-900">{total}</span>
                     <ChevronRight size={13} className="text-ink-300 group-hover:text-ink-500 transition-colors" />
                   </div>
                 </Link>
               ))}
             </div>
+
+            {/* Quick links footer */}
+            <div className="mt-4 pt-4 border-t border-ink-300/20">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400 mb-2">Quick actions</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: '+ Course', to: '/admin/courses/new' },
+                  { label: '+ Post', to: '/admin/posts/new' },
+                  { label: 'View team', to: '/admin/team' },
+                ].map(({ label, to }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all hover:bg-brand-primary hover:text-white"
+                    style={{
+                      background: '#EDF4F2',
+                      color: '#506860',
+                      border: '1px solid rgba(168,196,188,0.4)',
+                    }}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function StatCard({ to, icon: Icon, iconBg, iconColor, value, label, sub, highlight, highlightColor }) {
+  return (
+    <Link
+      to={to}
+      className="rounded-2xl p-4 sm:p-5 bg-white border border-ink-300/20 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 group"
+    >
+      <div className="flex items-start justify-between mb-4 sm:mb-5">
+        <div className={`w-9 h-9 rounded-xl ${iconBg} flex items-center justify-center`}>
+          <Icon size={15} className={iconColor} />
+        </div>
+        <ArrowUpRight size={14} className="text-ink-300 group-hover:text-ink-500 transition-colors" />
+      </div>
+      {value === null
+        ? <div className="h-8 w-12 rounded-lg bg-ink-300/20 animate-pulse mb-1" />
+        : (
+          <p className={`text-3xl font-display leading-none mb-1 ${highlight ? highlightColor : 'text-ink-900'}`}>
+            {value}
+          </p>
+        )
+      }
+      <p className="text-xs font-medium text-ink-500">{label}</p>
+      {sub && <p className="text-[11px] text-ink-300 mt-0.5">{sub}</p>}
+    </Link>
   );
 }
