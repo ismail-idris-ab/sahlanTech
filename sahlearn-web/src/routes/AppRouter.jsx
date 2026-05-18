@@ -13,6 +13,7 @@ import AdminPosts from '../pages/admin/Posts';
 import PostEditor from '../pages/admin/PostEditor';
 import Messages from '../pages/admin/Messages';
 import Enrollments from '../pages/admin/Enrollments';
+import TeamMembers from '../pages/admin/TeamMembers';
 
 // Public pages
 import Home from '../pages/public/Home';
@@ -72,6 +73,7 @@ export default function AppRouter() {
             <Route path="posts/:id/edit" element={<PostEditor />} />
             <Route path="messages" element={<Messages />} />
             <Route path="enrollments" element={<Enrollments />} />
+            <Route path="team" element={<TeamMembers />} />
           </Route>
         </Routes>
       </AuthProvider>

@@ -61,22 +61,25 @@ export default function AdminCourses() {
   };
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="max-w-5xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-ink-900">Courses</h1>
+        <div>
+          <p className="text-xs font-semibold text-brand-primary uppercase tracking-wider mb-1">Learning</p>
+          <h1 className="font-display text-3xl text-ink-900">Courses</h1>
+        </div>
         <Link to="/admin/courses/new">
-          <Button size="md"><Plus size={16} className="mr-1" />New Course</Button>
+          <Button icon={<Plus size={15} />}>New Course</Button>
         </Link>
       </div>
 
       {/* Filter */}
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-1.5 mb-5 p-1 bg-white rounded-xl border border-ink-300/20 w-fit shadow-card">
         {['all', 'published', 'draft'].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filter === f ? 'bg-brand-primary text-white' : 'bg-white border border-ink-300 text-ink-700 hover:bg-surface-100'
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition-all duration-150 ${
+              filter === f ? 'bg-brand-primary text-white shadow-sm' : 'text-ink-500 hover:text-ink-900'
             }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -96,43 +99,43 @@ export default function AdminCourses() {
           action={<Link to="/admin/courses/new"><Button>+ New Course</Button></Link>}
         />
       ) : (
-        <div className="bg-white rounded-xl border border-ink-300/40 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-surface-100 border-b border-ink-300/40">
+            <thead className="border-b border-ink-300/20">
               <tr>
-                <th className="text-left px-4 py-3 text-ink-500 font-medium">Title</th>
-                <th className="text-left px-4 py-3 text-ink-500 font-medium hidden md:table-cell">Category</th>
-                <th className="text-left px-4 py-3 text-ink-500 font-medium hidden lg:table-cell">Level</th>
-                <th className="text-left px-4 py-3 text-ink-500 font-medium">Status</th>
-                <th className="text-right px-4 py-3 text-ink-500 font-medium">Actions</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Title</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden md:table-cell">Category</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden lg:table-cell">Level</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Status</th>
+                <th className="text-right px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-300/30">
+            <tbody className="divide-y divide-ink-300/15">
               {courses.map((course) => (
-                <tr key={course.id} className="hover:bg-surface-100 transition-colors">
-                  <td className="px-4 py-3 font-medium text-ink-900 max-w-xs truncate">{course.title}</td>
-                  <td className="px-4 py-3 text-ink-500 hidden md:table-cell">{course.category}</td>
-                  <td className="px-4 py-3 text-ink-500 hidden lg:table-cell">{course.level}</td>
-                  <td className="px-4 py-3">
+                <tr key={course.id} className="hover:bg-surface-100/60 transition-colors">
+                  <td className="px-5 py-3.5 font-medium text-ink-900 max-w-xs truncate">{course.title}</td>
+                  <td className="px-5 py-3.5 text-ink-600 hidden md:table-cell">{course.category}</td>
+                  <td className="px-5 py-3.5 text-ink-600 hidden lg:table-cell capitalize">{course.level}</td>
+                  <td className="px-5 py-3.5">
                     <button
                       onClick={() => handleTogglePublish(course)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_BADGE[course.isPublished]}`}
+                      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer transition-all ${STATUS_BADGE[course.isPublished]}`}
                     >
                       {course.isPublished ? 'Published' : 'Draft'}
                     </button>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center justify-end gap-1">
                       <Link to={`/admin/courses/${course.id}/edit`}>
-                        <button className="p-1.5 text-ink-500 hover:text-brand-primary transition-colors">
-                          <Pencil size={16} />
+                        <button className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-primary hover:bg-brand-primary/8 transition-all">
+                          <Pencil size={14} />
                         </button>
                       </Link>
                       <button
                         onClick={() => setDeleteTarget(course)}
-                        className="p-1.5 text-ink-500 hover:text-brand-danger transition-colors"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-danger hover:bg-red-50 transition-all"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>

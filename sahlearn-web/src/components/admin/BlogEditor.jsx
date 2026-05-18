@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Quill from 'quill';
-import 'react-quill/dist/quill.snow.css';
+import 'quill/dist/quill.snow.css';
 
 const TOOLBAR = [
   [{ header: [2, 3, false] }],
