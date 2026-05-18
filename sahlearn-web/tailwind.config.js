@@ -5,54 +5,55 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: '#16A34A',
-          primaryDark: '#15803D',
-          primaryLight: '#22C55E',
-          accent: '#D97706',
-          success: '#16A34A',
+          primary: '#068562',       // Royal Ember emerald
+          primaryDark: '#056B4E',
+          primaryLight: '#71B280',  // Emerald Dusk sage
+          accent: '#C9962A',        // Gold from image 2
+          success: '#068562',
           warning: '#D97706',
           danger: '#DC2626',
         },
         ink: {
-          900: '#111916',
-          700: '#2D3B33',
-          500: '#5C7268',
-          300: '#B8CCBF',
+          900: '#0B1C18',
+          700: '#253530',
+          500: '#506860',
+          300: '#A8C4BC',
         },
         surface: {
-          100: '#F4F7F2',
-          50: '#FAFCF8',
+          100: '#EDF4F2',
+          50: '#F5FAF8',
           white: '#FFFFFF',
         },
         forest: {
-          950: '#071410',
-          900: '#0D2018',
-          800: '#122B20',
-          700: '#1A3D2C',
-          600: '#225038',
-          accent: '#4ADE80',
-          muted: '#A3C4A8',
-          border: 'rgba(255,255,255,0.08)',
+          950: '#011F28',
+          900: '#013F4A',   // Royal Ember deep teal — sidebar
+          800: '#0A4A56',
+          700: '#134E5E',   // Emerald Dusk dark
+          600: '#1A6070',
+          sage: '#71B280',  // Emerald Dusk light
+          gold: '#C9962A',  // Image 2 gold
+          muted: '#87BAC2',
+          border: 'rgba(255,255,255,0.07)',
         },
         sidebar: {
-          bg: '#0D2018',
-          text: '#C4D9C9',
-          active: '#4ADE80',
+          bg: '#013F4A',
+          text: '#87BAC2',
+          active: '#71B280',
         },
       },
       fontFamily: {
         sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
         display: ['"DM Serif Display"', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
       },
       borderRadius: {
         xl: '12px',
         '2xl': '16px',
       },
       boxShadow: {
-        card: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)',
-        'card-hover': '0 4px 16px rgba(0,0,0,0.10)',
-        green: '0 4px 20px rgba(22,163,74,0.25)',
+        card: '0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04)',
+        'card-hover': '0 6px 20px rgba(0,0,0,0.10)',
+        emerald: '0 4px 20px rgba(6,133,98,0.30)',
+        gold: '0 4px 20px rgba(201,150,42,0.30)',
       },
     },
   },

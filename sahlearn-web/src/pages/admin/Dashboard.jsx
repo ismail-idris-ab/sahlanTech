@@ -43,7 +43,7 @@ export default function Dashboard() {
     <div className="max-w-5xl">
       {/* Greeting */}
       <div className="mb-7">
-        <p className="text-sm text-brand-primary font-medium mb-0.5">{greeting}</p>
+        <p className="text-sm font-medium mb-0.5" style={{ color: '#068562' }}>{greeting}</p>
         <h1 className="font-display text-3xl text-ink-900">{user?.name?.split(' ')[0] ?? 'Admin'}</h1>
         <p className="text-sm text-ink-500 mt-1">Here's what's happening with Sahlearn today.</p>
       </div>
@@ -55,10 +55,10 @@ export default function Dashboard() {
         <Link
           to="/admin/courses"
           className="relative col-span-2 lg:col-span-1 rounded-2xl p-5 overflow-hidden group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
-          style={{ background: 'linear-gradient(145deg, #16A34A 0%, #0D2018 100%)' }}
+          style={{ background: 'linear-gradient(145deg, #068562 0%, #013F4A 100%)' }}
         >
           <div className="absolute inset-0 opacity-10"
-            style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, #4ADE80 0%, transparent 60%)' }}
+            style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, #71B280 0%, transparent 60%)' }}
           />
           <div className="relative">
             <div className="flex items-start justify-between mb-6">

@@ -4,39 +4,62 @@
 @tailwind components;
 @tailwind utilities;
 
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
   font-family: 'DM Sans', system-ui, sans-serif;
-  background-color: #F4F7F2;
-  color: #111916;
+  background-color: #EDF4F2;
+  color: #0B1C18;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Sidebar forest grain texture */
-.sidebar-grain {
+/* Diagonal stripe texture — from image 2 */
+.sidebar-stripe {
   position: relative;
+  overflow: hidden;
 }
-.sidebar-grain::before {
+.sidebar-stripe::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255,255,255,0.025) 0px,
+    rgba(255,255,255,0.025) 1px,
+    transparent 1px,
+    transparent 8px
+  );
   pointer-events: none;
   z-index: 0;
 }
 
-/* Smooth nav transitions */
-.nav-link-active {
-  background: linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(74, 222, 128, 0.08));
+/* Gold separator wave — inspired by image 2 */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9962A 40%, #E8B84B 60%, transparent);
+  opacity: 0.6;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* Active nav glow */
+.nav-active-glow {
+  background: linear-gradient(135deg, rgba(113,178,128,0.18), rgba(113,178,128,0.06));
+  box-shadow: inset 1px 0 0 #71B280;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #B8CCBF; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #5C7268; }
+::-webkit-scrollbar-thumb { background: #A8C4BC; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #506860; }
+
+/* Button shimmer on primary */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.btn-shimmer:hover {
+  background-size: 200% auto;
+  animation: shimmer 1.5s linear infinite;
+}

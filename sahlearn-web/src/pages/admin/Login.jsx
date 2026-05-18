@@ -33,25 +33,32 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'linear-gradient(135deg, #0D2018 0%, #0A1C14 60%, #112518 100%)' }}>
-      {/* Left panel — decorative */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12">
+    <div className="min-h-screen flex sidebar-stripe" style={{ background: 'linear-gradient(160deg, #013F4A 0%, #011F28 100%)' }}>
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-forest-accent to-brand-primary flex items-center justify-center">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #C9962A, #E8B84B)', boxShadow: '0 4px 12px rgba(201,150,42,0.4)' }}
+          >
             <Sprout size={18} className="text-forest-950" />
           </div>
           <span className="text-2xl font-display text-white">sahlearn</span>
         </div>
+
+        {/* Gold accent line — inspired by image 2 */}
+        <div className="my-8 gold-divider" />
+
         <div>
           <p className="font-display text-4xl text-white leading-tight mb-4">
             Manage your courses,<br />
-            <span className="text-forest-accent">grow your students.</span>
+            <span style={{ color: '#71B280' }}>grow your students.</span>
           </p>
-          <p className="text-forest-muted text-sm leading-relaxed max-w-sm">
+          <p className="text-sm leading-relaxed max-w-sm" style={{ color: '#87BAC2' }}>
             Your complete dashboard for courses, blog posts, enrollments, and messages — all in one place.
           </p>
         </div>
-        <div className="text-xs text-forest-muted">
+        <div className="text-xs" style={{ color: '#87BAC2' }}>
           © {new Date().getFullYear()} Sahlearn. All rights reserved.
         </div>
       </div>
@@ -61,7 +68,7 @@ export default function Login() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-forest-accent to-brand-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #C9962A, #E8B84B)' }}>
               <Sprout size={15} className="text-forest-950" />
             </div>
             <span className="text-xl font-display text-white">sahlearn</span>
@@ -116,7 +123,8 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-brand-primary text-white font-semibold py-3 rounded-xl hover:bg-brand-primaryDark transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-green mt-2 active:scale-[0.98]"
+                className="w-full text-white font-semibold py-3 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-2 active:scale-[0.97] btn-shimmer"
+              style={{ background: 'linear-gradient(135deg, #068562, #0AA070, #068562)', backgroundSize: '200% auto', boxShadow: '0 4px 16px rgba(6,133,98,0.35)' }}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
