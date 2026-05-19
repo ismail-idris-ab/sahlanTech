@@ -22,6 +22,11 @@ const corsOrigins = process.env.CORS_ORIGIN
 app.use(helmet());
 app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(compression());
+
+// Paystack webhook needs raw body for signature verification — mount before json()
+const { paystackWebhook } = require('./controllers/enrollments.controller');
+app.post('/api/enrollments/webhook/paystack', express.raw({ type: 'application/json' }), paystackWebhook);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

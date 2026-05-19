@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, Mail, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminGetMessages, updateMessageStatus, deleteMessage } from '../../services/contact.service';
 import Modal from '../../components/common/Modal';
@@ -112,26 +112,36 @@ export default function Messages() {
             </thead>
             <tbody className="divide-y divide-ink-300/15">
               {messages.map((msg) => (
-                <tr key={msg.id} className="hover:bg-surface-100/60 transition-colors">
-                  <td className="px-5 py-3.5">
+                <tr
+                  key={msg.id}
+                  onClick={() => setSelected(msg)}
+                  className="hover:bg-surface-100/60 transition-colors cursor-pointer"
+                >
+                  <td className="px-5 py-4">
                     <p className="font-medium text-ink-900">{msg.name}</p>
                     <p className="text-ink-400 text-xs">{msg.email}</p>
                   </td>
-                  <td className="px-5 py-3.5 text-ink-600 hidden md:table-cell line-clamp-1">{msg.subject}</td>
-                  <td className="px-5 py-3.5 hidden sm:table-cell">
+                  <td className="px-5 py-4 text-ink-600 hidden md:table-cell line-clamp-1">{msg.subject}</td>
+                  <td className="px-5 py-4 hidden sm:table-cell">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${STATUS_BADGE[msg.status]}`}>
                       {msg.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-ink-400 text-xs hidden lg:table-cell">
+                  <td className="px-5 py-4 text-ink-400 text-xs hidden lg:table-cell">
                     {new Date(msg.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setSelected(msg)} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-primary hover:bg-brand-primary/8 transition-all">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelected(msg); }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-primary hover:bg-brand-primary/8 transition-all"
+                      >
                         <Eye size={14} />
                       </button>
-                      <button onClick={() => setDeleteTarget({ id: msg.id, name: msg.name })} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-danger hover:bg-red-50 transition-all">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: msg.id, name: msg.name }); }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-danger hover:bg-red-50 transition-all"
+                      >
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -155,6 +165,30 @@ export default function Messages() {
             </div>
             <div><p className="text-ink-500 text-xs mb-0.5">Subject</p><p className="font-medium text-ink-900">{selected.subject}</p></div>
             <div><p className="text-ink-500 text-xs mb-1">Message</p><p className="text-ink-700 whitespace-pre-wrap bg-surface-100 rounded-lg p-3">{selected.message}</p></div>
+            {/* Reply actions */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-ink-300/40">
+              <a
+                href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject)}&body=${encodeURIComponent(`Hi ${selected.name},\n\n`)}`}
+                onClick={() => selected.status === 'new' && handleStatusChange(selected.id, 'replied')}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #068562, #056B4E)' }}
+              >
+                <Mail size={14} /> Reply via Email
+              </a>
+              {selected.phone && (
+                <a
+                  href={`https://wa.me/${selected.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selected.name}, thanks for reaching out to Sahlearn. `)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => selected.status === 'new' && handleStatusChange(selected.id, 'replied')}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                  style={{ background: '#25D366' }}
+                >
+                  <MessageCircle size={14} /> Reply via WhatsApp
+                </a>
+              )}
+            </div>
+
             <div className="flex items-center gap-3 pt-2 border-t border-ink-300/40">
               <label className="text-xs font-medium text-ink-700">Status:</label>
               <select

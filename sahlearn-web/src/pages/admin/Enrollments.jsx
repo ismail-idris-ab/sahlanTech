@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, CreditCard, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminGetEnrollments, updateEnrollmentStatus, deleteEnrollment } from '../../services/enrollments.service';
 import Modal from '../../components/common/Modal';
@@ -14,6 +14,14 @@ const STATUS_BADGE = {
   enrolled: 'bg-green-100 text-green-700',
   rejected: 'bg-red-100 text-red-700',
 };
+
+const PAYMENT_BADGE = {
+  paid: 'bg-green-100 text-green-700',
+  pending: 'bg-amber-100 text-amber-700',
+  failed: 'bg-red-100 text-red-700',
+};
+
+const PAYMENT_STATUS_OPTIONS = ['pending', 'paid', 'failed'];
 
 const STATUS_OPTIONS = ['pending', 'contacted', 'enrolled', 'rejected'];
 
@@ -42,12 +50,12 @@ export default function Enrollments() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleStatusChange = async (id, status) => {
+  const handleStatusChange = async (id, updates) => {
     try {
-      await updateEnrollmentStatus(id, status);
+      await updateEnrollmentStatus(id, updates);
       toast.success('Status updated.');
       load();
-      if (selected?.id === id) setSelected((e) => ({ ...e, status }));
+      if (selected?.id === id) setSelected((e) => ({ ...e, ...updates }));
     } catch {
       toast.error('Update failed.');
     }
@@ -113,27 +121,43 @@ export default function Enrollments() {
             </thead>
             <tbody className="divide-y divide-ink-300/15">
               {enrollments.map((enr) => (
-                <tr key={enr.id} className="hover:bg-surface-100/60 transition-colors">
-                  <td className="px-5 py-3.5">
+                <tr
+                  key={enr.id}
+                  onClick={() => setSelected(enr)}
+                  className="hover:bg-surface-100/60 transition-colors cursor-pointer"
+                >
+                  <td className="px-5 py-4">
                     <p className="font-medium text-ink-900">{enr.fullName}</p>
                     <p className="text-ink-400 text-xs">{enr.email}</p>
                   </td>
-                  <td className="px-5 py-3.5 text-ink-600 hidden md:table-cell line-clamp-1">{enr.courseTitleSnapshot}</td>
-                  <td className="px-5 py-3.5 text-ink-600 capitalize hidden sm:table-cell">{enr.mode}</td>
-                  <td className="px-5 py-3.5 hidden sm:table-cell">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${STATUS_BADGE[enr.status]}`}>
-                      {enr.status}
-                    </span>
+                  <td className="px-5 py-4 text-ink-600 hidden md:table-cell line-clamp-1">{enr.courseTitleSnapshot}</td>
+                  <td className="px-5 py-4 hidden sm:table-cell">
+                    <div className="flex flex-col gap-1">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize w-fit ${STATUS_BADGE[enr.status]}`}>
+                        {enr.status}
+                      </span>
+                      {enr.paymentStatus && (
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize w-fit ${PAYMENT_BADGE[enr.paymentStatus]}`}>
+                          {enr.paymentMethod === 'paystack' ? '💳' : '🏦'} {enr.paymentStatus}
+                        </span>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-5 py-3.5 text-ink-400 text-xs hidden lg:table-cell">
+                  <td className="px-5 py-4 text-ink-400 text-xs hidden lg:table-cell">
                     {new Date(enr.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setSelected(enr)} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-primary hover:bg-brand-primary/8 transition-all">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelected(enr); }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-primary hover:bg-brand-primary/8 transition-all"
+                      >
                         <Eye size={14} />
                       </button>
-                      <button onClick={() => setDeleteTarget({ id: enr.id, name: enr.fullName })} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-danger hover:bg-red-50 transition-all">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: enr.id, name: enr.fullName }); }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-danger hover:bg-red-50 transition-all"
+                      >
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -163,15 +187,54 @@ export default function Enrollments() {
             {selected.notes && (
               <div><p className="text-ink-500 text-xs mb-1">Notes</p><p className="text-ink-700 whitespace-pre-wrap bg-surface-100 rounded-lg p-3">{selected.notes}</p></div>
             )}
-            <div className="flex items-center gap-3 pt-2 border-t border-ink-300/40">
-              <label className="text-xs font-medium text-ink-700">Status:</label>
-              <select
-                value={selected.status}
-                onChange={(e) => handleStatusChange(selected.id, e.target.value)}
-                className="border border-ink-300 rounded-lg px-3 py-1.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              >
-                {STATUS_OPTIONS.map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}
-              </select>
+
+            {/* Payment info */}
+            <div className="bg-surface-100 rounded-xl p-4 space-y-2 text-sm border border-ink-300/20">
+              <p className="text-xs font-semibold text-ink-400 uppercase tracking-wider mb-2">Payment</p>
+              <div className="flex justify-between">
+                <span className="text-ink-500">Method</span>
+                <span className="font-medium text-ink-900 flex items-center gap-1.5 capitalize">
+                  {selected.paymentMethod === 'paystack'
+                    ? <><CreditCard size={13} className="text-brand-primary" /> Paystack</>
+                    : <><Building2 size={13} className="text-ink-500" /> Bank Transfer</>
+                  }
+                </span>
+              </div>
+              {selected.amountPaid > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-ink-500">Amount</span>
+                  <span className="font-bold text-brand-primary">₦{selected.amountPaid.toLocaleString()}</span>
+                </div>
+              )}
+              {selected.paymentRef && (
+                <div className="flex justify-between">
+                  <span className="text-ink-500">Reference</span>
+                  <span className="font-mono text-xs text-ink-700">{selected.paymentRef}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-ink-300/40">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-ink-700">Status:</label>
+                <select
+                  value={selected.status}
+                  onChange={(e) => handleStatusChange(selected.id, { status: e.target.value })}
+                  className="border border-ink-300 rounded-lg px-3 py-1.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                >
+                  {STATUS_OPTIONS.map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-ink-700">Payment:</label>
+                <select
+                  value={selected.paymentStatus || 'pending'}
+                  onChange={(e) => handleStatusChange(selected.id, { paymentStatus: e.target.value })}
+                  className="border border-ink-300 rounded-lg px-3 py-1.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                >
+                  {PAYMENT_STATUS_OPTIONS.map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}
+                </select>
+              </div>
             </div>
           </div>
         )}
