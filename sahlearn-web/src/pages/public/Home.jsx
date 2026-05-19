@@ -17,11 +17,11 @@ const WHY = [
 ];
 
 export default function Home() {
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState(null);
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    getCourses({ featured: true, limit: 6 }).then((r) => setCourses(r.data)).catch(() => {});
+    getCourses({ limit: 6 }).then((r) => setCourses(r.data)).catch(() => setCourses([]));
     getPosts({ limit: 3 }).then((r) => setPosts(r.data)).catch(() => {});
   }, []);
 
@@ -76,12 +76,14 @@ export default function Home() {
             </Link>
           </div>
 
-          {courses.length === 0 ? (
+          {courses === null ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="bg-white rounded-xl h-72 animate-pulse border border-ink-300/40" />
               ))}
             </div>
+          ) : courses.length === 0 ? (
+            <p className="text-ink-500 text-sm">No courses available yet. Check back soon.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((c) => <CourseCard key={c.id} course={c} />)}
