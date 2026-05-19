@@ -14,6 +14,7 @@ const EMPTY = {
   category: 'Design', level: 'Beginner', duration: '', price: '',
   whatYouLearn: [''], prerequisites: [],
   isPublished: false, isFeatured: false,
+  videoUrl: '',
   seoTitle: '', seoDescription: '',
   coverImage: null,
 };
@@ -193,6 +194,20 @@ export default function CourseForm() {
                 </button>
               </div>
             </Field>
+
+            {/* Preview video */}
+            <div className="border-t border-ink-300/40 pt-5 space-y-4">
+              <p className="text-sm font-semibold text-ink-700">Preview Video</p>
+              <Field label="YouTube or Vimeo URL">
+                <input
+                  value={form.videoUrl}
+                  onChange={(e) => set('videoUrl', e.target.value)}
+                  className={inputCls}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
+                <p className="text-xs text-ink-500 mt-1">Paste a YouTube or Vimeo link. Shown on the course page.</p>
+              </Field>
+            </div>
 
             {/* SEO */}
             <div className="border-t border-ink-300/40 pt-5 space-y-4">

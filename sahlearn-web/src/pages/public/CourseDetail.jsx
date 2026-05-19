@@ -6,6 +6,17 @@ import SEO from '../../components/common/SEO';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
+function toEmbedUrl(url) {
+  if (!url) return null;
+  // YouTube: watch?v=ID or youtu.be/ID or youtube.com/shorts/ID
+  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  // Vimeo: vimeo.com/ID
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  return null;
+}
+
 export default function CourseDetail() {
   const { slug } = useParams();
   const [course, setCourse] = useState(null);
@@ -64,7 +75,17 @@ export default function CourseDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Left */}
         <div className="lg:col-span-2 space-y-8">
-          {course.coverImage?.url && (
+          {toEmbedUrl(course.videoUrl) ? (
+            <div className="aspect-video rounded-xl overflow-hidden bg-black">
+              <iframe
+                src={toEmbedUrl(course.videoUrl)}
+                title={course.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          ) : course.coverImage?.url ? (
             <img
               src={course.coverImage.url}
               alt={course.title}
@@ -73,7 +94,7 @@ export default function CourseDetail() {
               height={450}
               className="w-full rounded-xl object-cover aspect-video"
             />
-          )}
+          ) : null}
 
           <div>
             <div className="flex flex-wrap gap-2 mb-3">
