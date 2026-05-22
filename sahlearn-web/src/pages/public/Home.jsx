@@ -20,7 +20,6 @@ import { getPosts } from "../../services/posts.service";
 import CourseCard from "../../components/courses/CourseCard";
 import BlogCard from "../../components/blog/BlogCard";
 import SEO from "../../components/common/SEO";
-import DottedSurface from "../../components/common/DottedSurface";
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
@@ -135,8 +134,7 @@ export default function Home() {
       <SEO url="/" />
       {/* Hero */}
       <section className="relative overflow-hidden bg-white border-b border-ink-300/30">
-        <DottedSurface />
-        {/* Glow blobs */}
+{/* Glow blobs */}
         <div className="pointer-events-none absolute -top-20 -left-20 w-96 h-96 rounded-full bg-brand-primary/6 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 right-1/3 w-80 h-80 rounded-full bg-brand-accent/6 blur-3xl" />
 
@@ -148,9 +146,11 @@ export default function Home() {
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
                 Now Enrolling
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-ink-900 font-display leading-tight tracking-tight">
+              <h1 className="text-4xl leading-loose md:text-5xl lg:text-[3.5rem] font-bold text-ink-900 font-display tracking-normal">
                 Learn Practical{" "}
-                <span className="italic text-brand-primary">Digital</span>
+                <span className="italic leading-relaxed text-brand-primary tracking-wider">
+                  Digital
+                </span>
                 <br />
                 <span className="text-brand-primary">Skills</span> with
                 Confidence

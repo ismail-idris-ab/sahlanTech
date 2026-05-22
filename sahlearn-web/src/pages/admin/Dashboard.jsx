@@ -17,8 +17,15 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   useEffect(() => {
+    const cached = sessionStorage.getItem('admin_stats');
+    if (cached) {
+      try { setStats(JSON.parse(cached)); setLoading(false); } catch (_) {}
+    }
     api.get('/api/admin/stats')
-      .then((r) => setStats(r.data.data))
+      .then((r) => {
+        setStats(r.data.data);
+        sessionStorage.setItem('admin_stats', JSON.stringify(r.data.data));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
