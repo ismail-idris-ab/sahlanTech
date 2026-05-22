@@ -141,7 +141,8 @@ export default function Dashboard() {
           icon={FileText}
           iconBg="bg-teal-50"
           iconColor="text-teal-600"
-          value={loading ? null : v('posts')}
+          value={v('posts')}
+          loading={loading && !stats}
           label="Blog Posts"
           sub={stats ? `${stats.posts.total} total` : null}
         />
@@ -152,7 +153,8 @@ export default function Dashboard() {
           icon={MessageSquare}
           iconBg="bg-blue-50"
           iconColor="text-blue-500"
-          value={loading ? null : v('messages')}
+          value={v('messages')}
+          loading={loading && !stats}
           label="New Messages"
           sub={stats ? `${stats.messages.total} total` : null}
           highlight={!loading && v('messages') > 0}
@@ -165,7 +167,8 @@ export default function Dashboard() {
           icon={GraduationCap}
           iconBg="bg-amber-50"
           iconColor="text-amber-600"
-          value={loading ? null : v('enrollments')}
+          value={v('enrollments')}
+          loading={loading && !stats}
           label="Pending Enrollments"
           sub={stats ? `${stats.enrollments.total} total` : null}
           highlight={!loading && v('enrollments') > 0}
@@ -323,7 +326,7 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ to, icon: Icon, iconBg, iconColor, value, label, sub, highlight, highlightColor }) {
+function StatCard({ to, icon: Icon, iconBg, iconColor, value, loading, label, sub, highlight, highlightColor }) {
   return (
     <Link
       to={to}
@@ -335,8 +338,8 @@ function StatCard({ to, icon: Icon, iconBg, iconColor, value, label, sub, highli
         </div>
         <ArrowUpRight size={14} className="text-ink-300 group-hover:text-ink-500 transition-colors" />
       </div>
-      {value === null
-        ? <div className="h-8 w-12 rounded-lg bg-ink-300/20 animate-pulse mb-1" />
+      {loading
+        ? <div className="h-8 w-12 rounded-lg bg-ink-300/40 animate-pulse mb-1" />
         : (
           <p className={`text-3xl font-display leading-none mb-1 ${highlight ? highlightColor : 'text-ink-900'}`}>
             {value}
@@ -344,7 +347,10 @@ function StatCard({ to, icon: Icon, iconBg, iconColor, value, label, sub, highli
         )
       }
       <p className="text-xs font-medium text-ink-500">{label}</p>
-      {sub && <p className="text-[11px] text-ink-300 mt-0.5">{sub}</p>}
+      {sub
+        ? <p className="text-[11px] text-ink-300 mt-0.5">{sub}</p>
+        : loading && <div className="h-2.5 w-16 rounded-full bg-ink-300/30 animate-pulse mt-1" />
+      }
     </Link>
   );
 }
