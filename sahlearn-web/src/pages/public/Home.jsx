@@ -6,6 +6,7 @@ import { getPosts } from '../../services/posts.service';
 import CourseCard from '../../components/courses/CourseCard';
 import BlogCard from '../../components/blog/BlogCard';
 import SEO from '../../components/common/SEO';
+import DottedSurface from '../../components/common/DottedSurface';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
@@ -31,8 +32,9 @@ export default function Home() {
     <>
       <SEO url="/" />
       {/* Hero */}
-      <section className="bg-white border-b border-ink-300/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+      <section className="relative overflow-hidden bg-white border-b border-ink-300/30">
+        <DottedSurface />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
           <div className="max-w-2xl">
             <span className="inline-block bg-brand-accent/15 text-brand-accent text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">
               Digital Skills Training
