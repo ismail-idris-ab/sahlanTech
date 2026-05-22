@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import teacherPhoto from "../../assets/ceo sahlan.png";
 import { Award, Users, BookOpen, MessageCircle } from "lucide-react";
 import {
   FacebookIcon,
@@ -102,14 +101,7 @@ export default function About() {
       {/* Teacher bio */}
       <section className="py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="rounded-2xl overflow-hidden h-80 lg:h-[420px] border border-ink-300/40 shadow-card">
-              <img
-                src={teacherPhoto}
-                alt="Sahlearn instructor"
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
+          <div className="max-w-2xl">
             <div>
               <span className="text-xs font-semibold text-brand-primary uppercase tracking-wider">
                 Our Instructor
