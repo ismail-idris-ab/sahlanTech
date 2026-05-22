@@ -146,7 +146,7 @@ export default function Home() {
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
                 Now Enrolling
               </div>
-              <h1 className="text-4xl leading-loose md:text-5xl lg:text-[3.5rem] font-bold text-ink-900 font-display tracking-normal">
+              <h1 className="text-3xl leading-tight sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-ink-900 font-display tracking-normal">
                 Learn Practical{" "}
                 <span className="italic leading-relaxed text-brand-primary tracking-wider">
                   Digital
@@ -211,8 +211,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right — course category cards */}
-            <div>
+            {/* Right — course category cards (desktop only) */}
+            <div className="hidden lg:block">
               <p className="text-xs font-semibold text-ink-500 uppercase tracking-widest mb-4">
                 What You'll Learn
               </p>
