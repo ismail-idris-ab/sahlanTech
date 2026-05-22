@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MessageCircle, CreditCard, Building2, CheckCircle2, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import PaystackPop from '@paystack/inline-js';
 import { submitEnrollment } from '../../services/enrollments.service';
 import { getCourseBySlug, getCourses } from '../../services/courses.service';
 import SEO from '../../components/common/SEO';
@@ -88,6 +87,7 @@ export default function Enroll() {
       const amount = parsePrice(selectedCourse?.price);
       const ref = `SAH-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
+      const { default: PaystackPop } = await import('@paystack/inline-js');
       const popup = new PaystackPop();
       popup.newTransaction({
         key: PAYSTACK_KEY,
