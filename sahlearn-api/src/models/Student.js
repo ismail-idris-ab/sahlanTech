@@ -22,7 +22,11 @@ const studentSchema = new mongoose.Schema(
       trim: true,
       match: [/^[\w.+-]+@[\w-]+(\.[\w-]+)+$/, 'Invalid email'],
     },
-    phone: { type: String, trim: true },
+    phone: {
+      type: String,
+      trim: true,
+      match: [/^(\+234|0)[789][01]\d{8}$/, 'Invalid Nigerian phone number'],
+    },
     password: { type: String, required: true, minlength: 8, select: false },
     avatar: { url: String, public_id: String },
     dateOfBirth: Date,
@@ -37,8 +41,6 @@ const studentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-studentSchema.index({ email: 1 });
-studentSchema.index({ studentId: 1 });
 
 studentSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
@@ -55,6 +57,8 @@ studentSchema.set('toJSON', {
     delete ret._id;
     delete ret.__v;
     delete ret.password;
+    delete ret.passwordResetToken;
+    delete ret.passwordResetExpires;
     return ret;
   },
 });
