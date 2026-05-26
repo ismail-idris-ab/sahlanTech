@@ -7,7 +7,59 @@ const {
   enrollmentPaystackConfirmed,
   enrollmentBankTransferConfirmed,
   enrollmentBankTransferReceived,
+  studentWelcomeTemplate,
 } = require('../utils/emailTemplates');
+const Student = require('../models/Student');
+
+async function createStudentAccount(enrollment) {
+  let student = await Student.findOne({ email: enrollment.email });
+
+  if (student) {
+    // Re-enrollment: add course to existing account if not already linked
+    const alreadyLinked = student.enrolledCourses.some(
+      (e) => e.enrollmentId?.toString() === enrollment._id.toString()
+    );
+    if (!alreadyLinked && enrollment.course) {
+      student.enrolledCourses.push({
+        course: enrollment.course,
+        enrollmentId: enrollment._id,
+        enrolledAt: new Date(),
+      });
+      await student.save();
+    }
+    return student;
+  }
+
+  const count = await Student.countDocuments();
+  const studentId = `STU-${String(count + 1).padStart(4, '0')}`;
+  const tempPassword = crypto.randomBytes(8).toString('hex'); // 16-char hex
+
+  student = await Student.create({
+    studentId,
+    fullName: enrollment.fullName,
+    email: enrollment.email,
+    phone: enrollment.phone,
+    password: tempPassword,
+    enrolledCourses: enrollment.course
+      ? [{ course: enrollment.course, enrollmentId: enrollment._id, enrolledAt: new Date() }]
+      : [],
+  });
+
+  const clientUrl = (process.env.CORS_ORIGIN || '').split(',')[0].trim();
+  sendMail({
+    to: student.email,
+    subject: 'Welcome to Sahlearn — Your Student Account is Ready',
+    html: studentWelcomeTemplate({
+      fullName: student.fullName,
+      studentId: student.studentId,
+      email: student.email,
+      tempPassword,
+      loginUrl: `${clientUrl}/student/login`,
+    }),
+  });
+
+  return student;
+}
 
 const parsePagination = (query) => {
   const page = Math.max(1, parseInt(query.page) || 1);
@@ -102,7 +154,7 @@ const update = async (req, res) => {
   if (req.body.paymentStatus) updates.paymentStatus = req.body.paymentStatus;
 
   // Fetch before update so we can detect payment status transition
-  const before = await Enrollment.findById(req.params.id).select('paymentStatus paymentMethod email fullName courseTitleSnapshot amountPaid');
+  const before = await Enrollment.findById(req.params.id).select('status paymentStatus paymentMethod email fullName courseTitleSnapshot amountPaid');
   if (!before) return notFound(res, 'Enrollment not found');
 
   const enrollment = await Enrollment.findByIdAndUpdate(
@@ -127,6 +179,20 @@ const update = async (req, res) => {
         amountPaid: enrollment.amountPaid,
       }),
     });
+  }
+
+  // Auto-create student account when enrollment is marked as enrolled
+  const wasJustEnrolled =
+    updates.status === 'enrolled' && before.status !== 'enrolled';
+
+  if (wasJustEnrolled) {
+    try {
+      const student = await createStudentAccount(enrollment);
+      await enrollment.updateOne({ studentAccount: student._id });
+    } catch (err) {
+      console.error('[enrollment] student account creation failed:', err.message);
+      // Non-blocking — enrollment update still succeeds
+    }
   }
 
   success(res, enrollment);
