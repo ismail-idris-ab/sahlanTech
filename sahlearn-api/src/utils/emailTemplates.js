@@ -1,4 +1,5 @@
 const BRAND_COLOR = '#B8860B'; // Royal Ember gold
+const ACTION_COLOR = '#068562'; // brand-primary green — used for CTA buttons
 const DARK_BG = '#011F28';
 
 function baseLayout(content) {
@@ -136,7 +137,7 @@ function studentWelcomeTemplate({ fullName, studentId, email, tempPassword, logi
       Please log in and <strong>change your password</strong> immediately.
     </p>
     <p style="text-align:center;margin:0 0 24px;">
-      <a href="${loginUrl}" style="display:inline-block;background:#068562;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Log In to Student Portal</a>
+      <a href="${loginUrl}" style="display:inline-block;background:${ACTION_COLOR};color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Log In to Student Portal</a>
     </p>
     <p style="margin:0;color:#9ca3af;font-size:12px;">If you did not expect this email, please contact us immediately.</p>
   `;
@@ -152,7 +153,7 @@ function passwordResetTemplate({ fullName, resetUrl }) {
     <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Hi ${fullName}, click the button below to reset your Sahlearn password. This link expires in <strong>1 hour</strong>.</p>
 
     <p style="text-align:center;margin:0 0 24px;">
-      <a href="${resetUrl}" style="display:inline-block;background:#068562;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Reset Password</a>
+      <a href="${resetUrl}" style="display:inline-block;background:${ACTION_COLOR};color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Reset Password</a>
     </p>
 
     <p style="margin:0;color:#9ca3af;font-size:12px;">
