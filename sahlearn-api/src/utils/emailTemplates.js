@@ -115,8 +115,58 @@ function enrollmentBankTransferReceived({ fullName, courseTitleSnapshot, bankNam
   return baseLayout(content);
 }
 
+/**
+ * Sent to a student when their account is auto-created after enrollment is approved.
+ */
+function studentWelcomeTemplate({ fullName, studentId, email, tempPassword, loginUrl }) {
+  const content = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">Welcome to Sahlearn!</h2>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Hi ${fullName}, your student account is ready. Use the credentials below to log in.</p>
+
+    <table width="100%" style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:24px;border:1px solid #e5e7eb;">
+      <tr><td style="font-size:13px;color:#6b7280;padding:4px 0;">Student ID</td>
+          <td style="font-size:13px;color:#111827;font-weight:600;font-family:monospace;text-align:right;">${studentId}</td></tr>
+      <tr><td style="font-size:13px;color:#6b7280;padding:4px 0;">Email</td>
+          <td style="font-size:13px;color:#111827;text-align:right;">${email}</td></tr>
+      <tr><td style="font-size:13px;color:#6b7280;padding:4px 0;">Temp Password</td>
+          <td style="font-size:13px;color:#111827;font-weight:700;font-family:monospace;text-align:right;">${tempPassword}</td></tr>
+    </table>
+
+    <p style="margin:0 0 16px;color:#374151;font-size:14px;">
+      Please log in and <strong>change your password</strong> immediately.
+    </p>
+    <p style="text-align:center;margin:0 0 24px;">
+      <a href="${loginUrl}" style="display:inline-block;background:#068562;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Log In to Student Portal</a>
+    </p>
+    <p style="margin:0;color:#9ca3af;font-size:12px;">If you did not expect this email, please contact us immediately.</p>
+  `;
+  return baseLayout(content);
+}
+
+/**
+ * Sent when a student requests a password reset (or admin triggers one).
+ */
+function passwordResetTemplate({ fullName, resetUrl }) {
+  const content = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">Reset Your Password</h2>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Hi ${fullName}, click the button below to reset your Sahlearn password. This link expires in <strong>1 hour</strong>.</p>
+
+    <p style="text-align:center;margin:0 0 24px;">
+      <a href="${resetUrl}" style="display:inline-block;background:#068562;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Reset Password</a>
+    </p>
+
+    <p style="margin:0;color:#9ca3af;font-size:12px;">
+      If you did not request a password reset, ignore this email — your password will not change.
+      If you are concerned, contact us immediately.
+    </p>
+  `;
+  return baseLayout(content);
+}
+
 module.exports = {
   enrollmentPaystackConfirmed,
   enrollmentBankTransferConfirmed,
   enrollmentBankTransferReceived,
+  studentWelcomeTemplate,
+  passwordResetTemplate,
 };

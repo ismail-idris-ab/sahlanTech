@@ -42,6 +42,7 @@ const enrollmentSchema = new mongoose.Schema(
     amountPaid: { type: Number, default: 0 },
     ipAddress: String,
     userAgent: String,
+    studentAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
   },
   { timestamps: true }
 );
