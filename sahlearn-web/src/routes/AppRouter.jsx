@@ -24,6 +24,9 @@ const AdminStudents = lazy(() => import('../pages/admin/Students'));
 const AdminStudentDetail = lazy(() => import('../pages/admin/StudentDetail'));
 const AdminStudentConversations = lazy(() => import('../pages/admin/StudentConversations'));
 const AdminStudentConversation = lazy(() => import('../pages/admin/StudentConversation'));
+const AdminAssignments = lazy(() => import('../pages/admin/Assignments'));
+const AdminAssignmentForm = lazy(() => import('../pages/admin/AssignmentForm'));
+const AdminAssignmentDetail = lazy(() => import('../pages/admin/AssignmentDetail'));
 
 // Student pages — lazy loaded
 const StudentLogin = lazy(() => import('../pages/student/Login'));
@@ -33,6 +36,8 @@ const StudentDashboard = lazy(() => import('../pages/student/Dashboard'));
 const StudentProfile = lazy(() => import('../pages/student/Profile'));
 const StudentMyCourses = lazy(() => import('../pages/student/MyCourses'));
 const StudentMessages = lazy(() => import('../pages/student/Messages'));
+const StudentAssignments = lazy(() => import('../pages/student/Assignments'));
+const StudentAssignmentDetail = lazy(() => import('../pages/student/AssignmentDetail'));
 
 // Public pages — lazy loaded (each route is a separate chunk)
 const Home = lazy(() => import('../pages/public/Home'));
@@ -105,6 +110,10 @@ export default function AppRouter() {
               <Route path="students/:id" element={<AdminStudentDetail />} />
               <Route path="student-messages" element={<AdminStudentConversations />} />
               <Route path="student-messages/:studentId" element={<AdminStudentConversation />} />
+              <Route path="assignments" element={<AdminAssignments />} />
+              <Route path="assignments/new" element={<AdminAssignmentForm />} />
+              <Route path="assignments/:id" element={<AdminAssignmentDetail />} />
+              <Route path="assignments/:id/edit" element={<AdminAssignmentForm />} />
             </Route>
 
             {/* Student auth — no layout */}
@@ -126,6 +135,8 @@ export default function AppRouter() {
               <Route path="profile" element={<StudentProfile />} />
               <Route path="courses" element={<StudentMyCourses />} />
               <Route path="messages" element={<StudentMessages />} />
+              <Route path="assignments" element={<StudentAssignments />} />
+              <Route path="assignments/:id" element={<StudentAssignmentDetail />} />
             </Route>
           </Routes>
         </Suspense>

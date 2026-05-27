@@ -16,6 +16,7 @@ const SIDEBAR_MAIN = [
 const SIDEBAR_MANAGE = [
   { to: '/admin/messages', label: 'Messages', icon: MessageSquare },
   { to: '/admin/enrollments', label: 'Enrollments', icon: Users },
+  { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
   { to: '/admin/students', label: 'Students', icon: GraduationCap },
   { to: '/admin/student-messages', label: 'Student Messages', icon: MessageCircle },
   { to: '/admin/team', label: 'Team', icon: UserCog },
@@ -33,6 +34,7 @@ const PAGE_TITLES = {
   '/admin/posts': 'Blog Posts',
   '/admin/messages': 'Messages',
   '/admin/enrollments': 'Enrollments',
+  '/admin/assignments': 'Assignments',
   '/admin/students': 'Students',
   '/admin/student-messages': 'Student Messages',
   '/admin/team': 'Team',

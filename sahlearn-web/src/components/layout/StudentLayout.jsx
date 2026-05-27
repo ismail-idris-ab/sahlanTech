@@ -1,11 +1,12 @@
 // sahlearn-web/src/components/layout/StudentLayout.jsx
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../../context/StudentAuthContext';
-import { LayoutDashboard, BookOpen, User, LogOut, Sprout, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, BookOpen, User, LogOut, Sprout, MessageCircle, ClipboardList } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/student/courses', label: 'My Courses', icon: BookOpen },
+  { to: '/student/assignments', label: 'Assignments', icon: ClipboardList },
   { to: '/student/messages', label: 'Messages', icon: MessageCircle },
   { to: '/student/profile', label: 'Profile', icon: User },
 ];
