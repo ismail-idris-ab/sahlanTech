@@ -12,6 +12,9 @@ const contactRoutes = require('./routes/contact.routes');
 const enrollmentsRoutes = require('./routes/enrollments.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const adminRoutes = require('./routes/admin.routes');
+const studentAuthRoutes = require('./routes/student.auth.routes');
+const studentRoutes = require('./routes/student.routes');
+const adminStudentsRoutes = require('./routes/admin.students.routes');
 
 const app = express();
 
@@ -89,6 +92,9 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/enrollments', enrollmentsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/student/auth', studentAuthRoutes);
+app.use('/api/student', studentRoutes);
+app.use('/api/admin/students', adminStudentsRoutes);
 
 // 404
 app.use((_req, res) => {
