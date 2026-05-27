@@ -22,6 +22,8 @@ const TeamMembers = lazy(() => import('../pages/admin/TeamMembers'));
 // Admin student pages
 const AdminStudents = lazy(() => import('../pages/admin/Students'));
 const AdminStudentDetail = lazy(() => import('../pages/admin/StudentDetail'));
+const AdminStudentConversations = lazy(() => import('../pages/admin/StudentConversations'));
+const AdminStudentConversation = lazy(() => import('../pages/admin/StudentConversation'));
 
 // Student pages — lazy loaded
 const StudentLogin = lazy(() => import('../pages/student/Login'));
@@ -30,6 +32,7 @@ const StudentResetPassword = lazy(() => import('../pages/student/ResetPassword')
 const StudentDashboard = lazy(() => import('../pages/student/Dashboard'));
 const StudentProfile = lazy(() => import('../pages/student/Profile'));
 const StudentMyCourses = lazy(() => import('../pages/student/MyCourses'));
+const StudentMessages = lazy(() => import('../pages/student/Messages'));
 
 // Public pages — lazy loaded (each route is a separate chunk)
 const Home = lazy(() => import('../pages/public/Home'));
@@ -100,6 +103,8 @@ export default function AppRouter() {
               <Route path="team" element={<TeamMembers />} />
               <Route path="students" element={<AdminStudents />} />
               <Route path="students/:id" element={<AdminStudentDetail />} />
+              <Route path="student-messages" element={<AdminStudentConversations />} />
+              <Route path="student-messages/:studentId" element={<AdminStudentConversation />} />
             </Route>
 
             {/* Student auth — no layout */}
@@ -120,6 +125,7 @@ export default function AppRouter() {
               <Route path="dashboard" element={<StudentDashboard />} />
               <Route path="profile" element={<StudentProfile />} />
               <Route path="courses" element={<StudentMyCourses />} />
+              <Route path="messages" element={<StudentMessages />} />
             </Route>
           </Routes>
         </Suspense>

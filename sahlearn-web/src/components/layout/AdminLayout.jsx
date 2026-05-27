@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, BookOpen, FileText,
   MessageSquare, Users, UserCog,
-  LogOut, Sprout, Bell, GraduationCap,
+  LogOut, Sprout, Bell, GraduationCap, MessageCircle,
 } from 'lucide-react';
 
 /* ── Nav config ── */
@@ -17,6 +17,7 @@ const SIDEBAR_MANAGE = [
   { to: '/admin/messages', label: 'Messages', icon: MessageSquare },
   { to: '/admin/enrollments', label: 'Enrollments', icon: Users },
   { to: '/admin/students', label: 'Students', icon: GraduationCap },
+  { to: '/admin/student-messages', label: 'Student Messages', icon: MessageCircle },
   { to: '/admin/team', label: 'Team', icon: UserCog },
 ];
 const BOTTOM_TABS = [
@@ -33,6 +34,7 @@ const PAGE_TITLES = {
   '/admin/messages': 'Messages',
   '/admin/enrollments': 'Enrollments',
   '/admin/students': 'Students',
+  '/admin/student-messages': 'Student Messages',
   '/admin/team': 'Team',
 };
 
