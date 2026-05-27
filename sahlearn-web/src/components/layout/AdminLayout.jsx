@@ -16,6 +16,7 @@ const SIDEBAR_MAIN = [
 const SIDEBAR_MANAGE = [
   { to: '/admin/messages', label: 'Messages', icon: MessageSquare },
   { to: '/admin/enrollments', label: 'Enrollments', icon: Users },
+  { to: '/admin/students', label: 'Students', icon: GraduationCap },
   { to: '/admin/team', label: 'Team', icon: UserCog },
 ];
 const BOTTOM_TABS = [
@@ -31,6 +32,7 @@ const PAGE_TITLES = {
   '/admin/posts': 'Blog Posts',
   '/admin/messages': 'Messages',
   '/admin/enrollments': 'Enrollments',
+  '/admin/students': 'Students',
   '/admin/team': 'Team',
 };
 

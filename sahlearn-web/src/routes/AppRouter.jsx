@@ -1,8 +1,11 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
+import { StudentAuthProvider } from '../context/StudentAuthContext';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
+import StudentRoute from '../components/layout/StudentRoute';
 import AdminLayout from '../components/layout/AdminLayout';
+import StudentLayout from '../components/layout/StudentLayout';
 import PublicLayout from '../components/layout/PublicLayout';
 
 // Admin pages — lazy loaded (never on public critical path)
@@ -15,6 +18,18 @@ const PostEditor = lazy(() => import('../pages/admin/PostEditor'));
 const Messages = lazy(() => import('../pages/admin/Messages'));
 const Enrollments = lazy(() => import('../pages/admin/Enrollments'));
 const TeamMembers = lazy(() => import('../pages/admin/TeamMembers'));
+
+// Admin student pages
+const AdminStudents = lazy(() => import('../pages/admin/Students'));
+const AdminStudentDetail = lazy(() => import('../pages/admin/StudentDetail'));
+
+// Student pages — lazy loaded
+const StudentLogin = lazy(() => import('../pages/student/Login'));
+const StudentForgotPassword = lazy(() => import('../pages/student/ForgotPassword'));
+const StudentResetPassword = lazy(() => import('../pages/student/ResetPassword'));
+const StudentDashboard = lazy(() => import('../pages/student/Dashboard'));
+const StudentProfile = lazy(() => import('../pages/student/Profile'));
+const StudentMyCourses = lazy(() => import('../pages/student/MyCourses'));
 
 // Public pages — lazy loaded (each route is a separate chunk)
 const Home = lazy(() => import('../pages/public/Home'));
@@ -44,6 +59,7 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <StudentAuthProvider>
         <Suspense fallback={<PageSpinner />}>
           <Routes>
             {/* Public pages — wrapped in Navbar + Footer + WhatsAppFAB */}
@@ -82,9 +98,32 @@ export default function AppRouter() {
               <Route path="messages" element={<Messages />} />
               <Route path="enrollments" element={<Enrollments />} />
               <Route path="team" element={<TeamMembers />} />
+              <Route path="students" element={<AdminStudents />} />
+              <Route path="students/:id" element={<AdminStudentDetail />} />
+            </Route>
+
+            {/* Student auth — no layout */}
+            <Route path="/student/login" element={<StudentLogin />} />
+            <Route path="/student/forgot-password" element={<StudentForgotPassword />} />
+            <Route path="/student/reset-password" element={<StudentResetPassword />} />
+
+            {/* Student portal — protected */}
+            <Route
+              path="/student"
+              element={
+                <StudentRoute>
+                  <StudentLayout />
+                </StudentRoute>
+              }
+            >
+              <Route index element={<Navigate to="/student/dashboard" replace />} />
+              <Route path="dashboard" element={<StudentDashboard />} />
+              <Route path="profile" element={<StudentProfile />} />
+              <Route path="courses" element={<StudentMyCourses />} />
             </Route>
           </Routes>
         </Suspense>
+        </StudentAuthProvider>
       </AuthProvider>
     </BrowserRouter>
   );
