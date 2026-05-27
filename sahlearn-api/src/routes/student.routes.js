@@ -4,7 +4,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const studentAuth = require('../middleware/studentAuth');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 const { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword } = require('../controllers/student.controller');
 
 router.use(studentAuth);

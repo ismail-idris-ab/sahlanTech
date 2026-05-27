@@ -33,4 +33,37 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-module.exports = upload;
+// Assignment file upload — accepts documents + images up to 10MB
+const ASSIGNMENT_MIMES = [
+  'image/jpeg', 'image/png', 'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/zip',
+  'application/x-zip-compressed',
+];
+
+const assignmentStorage = new CloudinaryStorage({
+  cloudinary,
+  params: (_req, file) => ({
+    folder: 'sahlearn/assignments',
+    resource_type: 'auto',
+    public_id: `${Date.now()}-${file.originalname.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '')}`,
+  }),
+});
+
+const assignmentFileFilter = (_req, file, cb) => {
+  if (ASSIGNMENT_MIMES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Unsupported file type. Allowed: PDF, Word, ZIP, JPEG, PNG, WebP'), false);
+  }
+};
+
+const uploadAssignment = multer({
+  storage: assignmentStorage,
+  fileFilter: assignmentFileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+module.exports = { upload, uploadAssignment };
