@@ -4,6 +4,7 @@ import {
   BookOpen, FileText, MessageSquare, Users,
   ArrowUpRight, TrendingUp, ChevronRight,
   PlusCircle, Edit3, Inbox, GraduationCap,
+  ClipboardList, ClipboardCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -176,6 +177,44 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* ── Student + assignment stat row ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <StatCard
+          to="/admin/students"
+          icon={Users}
+          iconBg="bg-green-50"
+          iconColor="text-green-600"
+          value={loading || !stats ? '—' : stats.students?.active ?? '—'}
+          loading={loading && !stats}
+          label="Active Students"
+          sub={stats?.students ? `${stats.students.total} total` : null}
+        />
+        <StatCard
+          to="/admin/assignments"
+          icon={ClipboardList}
+          iconBg="bg-purple-50"
+          iconColor="text-purple-600"
+          value={loading || !stats ? '—' : stats.assignments?.ungraded ?? '—'}
+          loading={loading && !stats}
+          label="Ungraded Submissions"
+          sub={stats?.assignments ? `${stats.assignments.submissions} total submissions` : null}
+          highlight={!loading && stats?.assignments?.ungraded > 0}
+          highlightColor="text-purple-600"
+        />
+        <StatCard
+          to="/admin/exams"
+          icon={ClipboardCheck}
+          iconBg="bg-indigo-50"
+          iconColor="text-indigo-600"
+          value={loading || !stats ? '—' : stats.exams?.pendingReview ?? '—'}
+          loading={loading && !stats}
+          label="Exam Attempts to Review"
+          sub={stats?.exams ? `${stats.exams.attempts} total attempts` : null}
+          highlight={!loading && stats?.exams?.pendingReview > 0}
+          highlightColor="text-indigo-600"
+        />
+      </div>
+
       {/* ── Bottom panels ── */}
       {!loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
@@ -269,6 +308,26 @@ export default function Dashboard() {
                   link: '/admin/enrollments',
                   badgeColor: 'text-amber-600 bg-amber-50',
                   iconColor: 'text-amber-600 bg-amber-50',
+                },
+                {
+                  label: 'Assignments',
+                  icon: ClipboardList,
+                  total: stats.assignments?.submissions ?? 0,
+                  badge: stats.assignments?.ungraded ?? 0,
+                  badgeLabel: 'ungraded',
+                  link: '/admin/assignments',
+                  badgeColor: 'text-purple-600 bg-purple-50',
+                  iconColor: 'text-purple-600 bg-purple-50',
+                },
+                {
+                  label: 'Exams',
+                  icon: ClipboardCheck,
+                  total: stats.exams?.attempts ?? 0,
+                  badge: stats.exams?.pendingReview ?? 0,
+                  badgeLabel: 'pending review',
+                  link: '/admin/exams',
+                  badgeColor: 'text-indigo-600 bg-indigo-50',
+                  iconColor: 'text-indigo-600 bg-indigo-50',
                 },
               ].map(({ label, icon: Icon, total, badge, badgeLabel, link, badgeColor, iconColor }) => (
                 <Link
