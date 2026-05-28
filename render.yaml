@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: sahlearn-api
+    runtime: node
+    rootDir: sahlearn-api
+    buildCommand: npm install --production=false
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Set these in the Render dashboard (mark as secret):
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false   # set to your Vercel URL e.g. https://sahlearn.vercel.app
+      - key: ADMIN_SEED_EMAIL
+        sync: false
+      - key: ADMIN_SEED_PASSWORD
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: BANK_NAME
+        sync: false
+      - key: BANK_ACCOUNT
+        sync: false
+      - key: BANK_ACCOUNT_NAME
+        sync: false
