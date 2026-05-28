@@ -28,8 +28,8 @@ export default function Navbar() {
       <header className={`sticky top-0 z-40 bg-white transition-shadow ${scrolled ? 'shadow-sm' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="text-xl font-bold text-brand-primary font-display tracking-tight" onClick={close}>
-            sahlearn.
+          <Link to="/" className="flex items-center flex-shrink-0" onClick={close} aria-label="Sahlearn home">
+            <img src="/sahlearn-logo.svg" alt="Sahlearn" className="h-8 w-auto" />
           </Link>
 
           {/* Desktop nav */}
@@ -84,7 +84,7 @@ export default function Navbar() {
         }`}
       >
         <div className="flex items-center justify-between px-5 h-16 border-b border-ink-300/40">
-          <span className="text-lg font-bold text-brand-primary font-display">sahlearn.</span>
+          <img src="/sahlearn-logo.svg" alt="Sahlearn" className="h-7 w-auto" />
           <button onClick={close} className="p-2 text-ink-700" aria-label="Close menu">
             <X size={20} />
           </button>

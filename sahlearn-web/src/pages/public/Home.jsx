@@ -6,13 +6,13 @@ import {
   Clock,
   ShieldCheck,
   Headphones,
-  Play,
   Palette,
   Cpu,
   LayoutDashboard,
   TrendingUp,
   Pencil,
   Monitor,
+  Globe,
   ChevronDown,
 } from "lucide-react";
 import { getCourses } from "../../services/courses.service";
@@ -20,6 +20,7 @@ import { getPosts } from "../../services/posts.service";
 import CourseCard from "../../components/courses/CourseCard";
 import BlogCard from "../../components/blog/BlogCard";
 import SEO from "../../components/common/SEO";
+import HeroBg from "../../components/common/HeroBg";
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
@@ -49,8 +50,8 @@ const CATEGORIES = [
     popular: false,
   },
   {
-    icon: TrendingUp,
-    title: "Web development",
+    icon: Globe,
+    title: "Web Development",
     desc: "HTML, CSS, JavaScript, React, WordPress",
     popular: false,
   },
@@ -61,6 +62,7 @@ const TAGS = [
   { label: "AI Tools", icon: Cpu },
   { label: "Office", icon: Monitor },
   { label: "Marketing", icon: TrendingUp },
+  { label: "Web Development", icon: Globe },
 ];
 
 const FAQS = [
@@ -134,11 +136,12 @@ export default function Home() {
       <SEO url="/" />
       {/* Hero */}
       <section className="relative overflow-hidden bg-white border-b border-ink-300/30">
-{/* Glow blobs */}
-        <div className="pointer-events-none absolute -top-20 -left-20 w-96 h-96 rounded-full bg-brand-primary/6 blur-3xl" />
+        <HeroBg />
+        {/* Glow blobs */}
+        <div className="pointer-events-none absolute -top-16 -left-20 w-96 h-96 rounded-full bg-brand-primary/6 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 right-1/3 w-80 h-80 rounded-full bg-brand-accent/6 blur-3xl" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left — copy + CTAs */}
             <div>
@@ -198,14 +201,7 @@ export default function Home() {
                     border: "1.5px solid transparent",
                   }}
                 >
-                  <span
-                    className="flex items-center justify-center w-6 h-6 rounded-full"
-                    style={{
-                      background: "linear-gradient(135deg, #068562, #013F4A)",
-                    }}
-                  >
-                    <Play size={10} className="text-white fill-white ml-0.5" />
-                  </span>
+                  <MessageCircle size={16} />
                   Talk on WhatsApp
                 </a>
               </div>
@@ -299,8 +295,12 @@ export default function Home() {
       <section className="bg-white py-16 md:py-20 border-y border-ink-300/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="rounded-2xl overflow-hidden bg-surface-100 h-72 lg:h-96 flex items-center justify-center">
-              <span className="text-ink-400 text-sm">Teacher photo</span>
+            <div
+              className="rounded-2xl overflow-hidden h-72 lg:h-96 flex flex-col items-center justify-center gap-4"
+              style={{ background: 'linear-gradient(145deg, #013F4A 0%, #011F28 100%)' }}
+            >
+              <img src="/sahlearn-icon.svg" alt="Sahlearn" className="w-24 h-24 opacity-90" />
+              <p className="text-sm font-medium" style={{ color: '#71B280' }}>sahlearn</p>
             </div>
             <div>
               <span className="text-xs font-semibold text-brand-primary uppercase tracking-wider">
