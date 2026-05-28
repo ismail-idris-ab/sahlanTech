@@ -27,6 +27,9 @@ const AdminStudentConversation = lazy(() => import('../pages/admin/StudentConver
 const AdminAssignments = lazy(() => import('../pages/admin/Assignments'));
 const AdminAssignmentForm = lazy(() => import('../pages/admin/AssignmentForm'));
 const AdminAssignmentDetail = lazy(() => import('../pages/admin/AssignmentDetail'));
+const AdminExams = lazy(() => import('../pages/admin/Exams'));
+const AdminExamForm = lazy(() => import('../pages/admin/ExamForm'));
+const AdminExamDetail = lazy(() => import('../pages/admin/ExamDetail'));
 
 // Student pages — lazy loaded
 const StudentLogin = lazy(() => import('../pages/student/Login'));
@@ -38,6 +41,8 @@ const StudentMyCourses = lazy(() => import('../pages/student/MyCourses'));
 const StudentMessages = lazy(() => import('../pages/student/Messages'));
 const StudentAssignments = lazy(() => import('../pages/student/Assignments'));
 const StudentAssignmentDetail = lazy(() => import('../pages/student/AssignmentDetail'));
+const StudentExams = lazy(() => import('../pages/student/Exams'));
+const StudentExamTake = lazy(() => import('../pages/student/ExamTake'));
 
 // Public pages — lazy loaded (each route is a separate chunk)
 const Home = lazy(() => import('../pages/public/Home'));
@@ -114,6 +119,10 @@ export default function AppRouter() {
               <Route path="assignments/new" element={<AdminAssignmentForm />} />
               <Route path="assignments/:id" element={<AdminAssignmentDetail />} />
               <Route path="assignments/:id/edit" element={<AdminAssignmentForm />} />
+              <Route path="exams" element={<AdminExams />} />
+              <Route path="exams/new" element={<AdminExamForm />} />
+              <Route path="exams/:id" element={<AdminExamDetail />} />
+              <Route path="exams/:id/edit" element={<AdminExamForm />} />
             </Route>
 
             {/* Student auth — no layout */}
@@ -137,6 +146,8 @@ export default function AppRouter() {
               <Route path="messages" element={<StudentMessages />} />
               <Route path="assignments" element={<StudentAssignments />} />
               <Route path="assignments/:id" element={<StudentAssignmentDetail />} />
+              <Route path="exams" element={<StudentExams />} />
+              <Route path="exams/:id" element={<StudentExamTake />} />
             </Route>
           </Routes>
         </Suspense>
