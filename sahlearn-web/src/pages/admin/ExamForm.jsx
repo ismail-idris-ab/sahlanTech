@@ -154,7 +154,7 @@ export default function ExamForm() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get('/admin/courses?limit=100').then(({ data }) => setCourses(data.data || []));
+    api.get('/api/admin/courses?limit=100').then(({ data }) => setCourses(data.data || []));
     if (isEdit) {
       getExam(id).then((exam) => {
         setForm({

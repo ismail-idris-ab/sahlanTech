@@ -21,7 +21,7 @@ export default function AssignmentForm() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get('/admin/courses?limit=100').then(({ data }) => setCourses(data.data || [])).catch(() => {});
+    api.get('/api/admin/courses?limit=100').then(({ data }) => setCourses(data.data || [])).catch(() => {});
 
     if (isEdit) {
       getAssignment(id)
