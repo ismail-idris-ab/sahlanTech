@@ -19,6 +19,7 @@ const studentMessagesRoutes = require('./routes/student.messages.routes');
 const adminStudentMessagesRoutes = require('./routes/admin.studentMessages.routes');
 const adminAssignmentsRoutes = require('./routes/admin.assignments.routes');
 const studentAssignmentsRoutes = require('./routes/student.assignments.routes');
+const studentExamsRoutes = require('./routes/student.exams.routes');
 const adminExamsRoutes = require('./routes/admin.exams.routes');
 
 const app = express();
@@ -103,6 +104,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/admin/students', adminStudentsRoutes);
 app.use('/api/admin/student-messages', adminStudentMessagesRoutes);
 app.use('/api/student/assignments', studentAssignmentsRoutes);
+app.use('/api/student/exams', studentExamsRoutes);
 app.use('/api/admin/assignments', adminAssignmentsRoutes);
 app.use('/api/admin/exams', adminExamsRoutes);
 
