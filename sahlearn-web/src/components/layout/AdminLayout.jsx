@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, BookOpen, FileText,
@@ -7,6 +7,7 @@ import {
   LogOut, Sprout, Bell, GraduationCap, MessageCircle,
   ClipboardList, ClipboardCheck,
 } from 'lucide-react';
+import api from '../../services/api';
 
 /* ── Nav config ── */
 const SIDEBAR_MAIN = [
@@ -281,6 +282,16 @@ function AvatarDropdown({ initials }) {
 export default function AdminLayout() {
   const { user } = useAuth();
   const location = useLocation();
+  const [notifCount, setNotifCount] = useState(0);
+
+  useEffect(() => {
+    api.get('/api/admin/stats')
+      .then(({ data }) => {
+        const s = data.data;
+        setNotifCount((s.messages?.new ?? 0) + (s.enrollments?.pending ?? 0));
+      })
+      .catch(() => {});
+  }, []);
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -321,14 +332,22 @@ export default function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <button
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+            <Link
+              to="/admin/messages"
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-surface-200"
               style={{ background: '#fff', border: '1px solid rgba(168,196,188,0.4)', color: '#506860' }}
-              aria-label="Notifications"
+              aria-label={notifCount > 0 ? `${notifCount} notifications` : 'Notifications'}
             >
               <Bell size={15} />
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background: '#068562' }} />
-            </button>
+              {notifCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+                  style={{ background: '#068562' }}
+                >
+                  {notifCount > 9 ? '9+' : notifCount}
+                </span>
+              )}
+            </Link>
 
             {/* Desktop: plain avatar. Mobile: avatar with dropdown */}
             <div className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center text-xs font-bold flex-shrink-0"
