@@ -1,0 +1,216 @@
+// sahlearn-web/src/pages/admin/ExamDetail.jsx
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { listAttempts, reviewAttempt } from '../../services/adminExams.service';
+import { ArrowLeft, Pencil, CheckCircle2, Clock } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+function ReviewForm({ attempt, examQuestions, onReviewed }) {
+  const [note, setNote] = useState(attempt.adminNote || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updated = await reviewAttempt(attempt.id, {
+        adminNote: note,
+        status: 'reviewed',
+      });
+      onReviewed(updated);
+      toast.success('Review saved');
+    } catch {
+      toast.error('Failed to save review');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const answersMap = Object.fromEntries(
+    (attempt.answers || []).map((a) => [a.questionIndex, a])
+  );
+
+  return (
+    <div className="space-y-4 mt-4">
+      <div className="space-y-3">
+        {examQuestions.map((q, i) => {
+          const answer = answersMap[i];
+          return (
+            <div key={i} className="bg-surface-50 rounded-xl p-4">
+              <p className="text-xs text-ink-400 mb-1">Q{i + 1} · {q.type.toUpperCase()} · {q.points}pt</p>
+              <p className="text-sm font-medium text-ink-900 mb-2">{q.text}</p>
+
+              {q.type === 'mcq' && (
+                <div className="space-y-1">
+                  {q.options.map((opt, oi) => {
+                    const isSelected = answer?.selectedIndex === oi;
+                    const isCorrect = q.correctIndex === oi;
+                    let cls = 'px-2.5 py-1.5 rounded-lg text-xs border ';
+                    if (isCorrect) cls += 'bg-green-50 border-green-200 text-green-800';
+                    else if (isSelected) cls += 'bg-red-50 border-red-200 text-red-700';
+                    else cls += 'border-surface-200 text-ink-500';
+                    return (
+                      <div key={oi} className={cls}>
+                        {opt}
+                        {isSelected && <span className="ml-1.5 font-medium">(student)</span>}
+                        {isCorrect && <span className="ml-1.5 font-medium">(correct)</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {q.type === 'short' && (
+                <div className="p-2.5 bg-white rounded-lg border border-surface-200 text-sm text-ink-700">
+                  {answer?.textAnswer || <span className="text-ink-300 italic">No answer</span>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-ink-600 mb-1">Admin Note (optional)</label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={3}
+          placeholder="Add feedback or notes for this student..."
+          className="w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary resize-none"
+        />
+      </div>
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white text-sm font-semibold rounded-xl hover:bg-brand-primary/90 transition disabled:opacity-60"
+      >
+        {saving ? 'Saving...' : attempt.status === 'reviewed' ? 'Update Review' : 'Mark as Reviewed'}
+      </button>
+    </div>
+  );
+}
+
+export default function AdminExamDetail() {
+  const { id } = useParams();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [expandedAttempt, setExpandedAttempt] = useState(null);
+
+  useEffect(() => {
+    listAttempts(id)
+      .then(setData)
+      .catch(() => toast.error('Failed to load attempts'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const handleReviewed = (updated) => {
+    setData((prev) => ({
+      ...prev,
+      attempts: prev.attempts.map((a) => a.id === updated.id ? { ...a, ...updated } : a),
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-24">
+        <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!data?.exam) {
+    return (
+      <div className="text-center py-12 text-ink-500">
+        Exam not found.{' '}
+        <Link to="/admin/exams" className="text-brand-primary hover:underline">Back to list</Link>
+      </div>
+    );
+  }
+
+  const { exam, attempts } = data;
+
+  return (
+    <div className="max-w-4xl space-y-6">
+      <div className="flex items-center gap-3">
+        <Link to="/admin/exams" className="inline-flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-900 transition">
+          <ArrowLeft size={14} /> Exams
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-surface-200 p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-display text-ink-900">{exam.title}</h1>
+            <p className="text-sm text-ink-400 mt-0.5">{exam.course?.title}</p>
+            <div className="flex items-center gap-3 mt-2 text-xs text-ink-400">
+              <span>{exam.questions?.length || 0} questions</span>
+              <span>{exam.totalPoints} points total</span>
+              <span>{attempts.length} attempt{attempts.length !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <Link
+            to={`/admin/exams/${id}/edit`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-xl hover:bg-surface-100 transition"
+          >
+            <Pencil size={12} /> Edit
+          </Link>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="font-semibold text-ink-900">Attempts ({attempts.length})</h2>
+
+        {attempts.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-surface-200 p-8 text-center text-ink-400 text-sm">
+            No submissions yet.
+          </div>
+        ) : (
+          attempts.map((attempt) => {
+            const isExpanded = expandedAttempt === attempt.id;
+            const initials = attempt.student?.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
+
+            return (
+              <div key={attempt.id} className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
+                <div
+                  className="flex items-center gap-4 p-5 cursor-pointer hover:bg-surface-50 transition"
+                  onClick={() => setExpandedAttempt(isExpanded ? null : attempt.id)}
+                >
+                  {attempt.student?.avatar?.url ? (
+                    <img src={attempt.student.avatar.url} alt={attempt.student.fullName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      {initials}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-ink-900">{attempt.student?.fullName}</p>
+                    <p className="text-xs text-ink-400 font-mono">{attempt.student?.studentId}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-ink-900">{attempt.score} / {attempt.maxScore}</p>
+                    <p className="text-xs text-ink-400">{new Date(attempt.submittedAt).toLocaleDateString('en-NG')}</p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full flex-shrink-0 ${
+                    attempt.status === 'reviewed' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+                  }`}>
+                    {attempt.status === 'reviewed' ? <><CheckCircle2 size={11} /> Reviewed</> : <><Clock size={11} /> Pending</>}
+                  </span>
+                </div>
+
+                {isExpanded && (
+                  <div className="px-5 pb-5 border-t border-surface-100">
+                    <ReviewForm
+                      attempt={attempt}
+                      examQuestions={exam.questions || []}
+                      onReviewed={handleReviewed}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
