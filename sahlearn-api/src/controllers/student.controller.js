@@ -60,6 +60,7 @@ const changePassword = async (req, res) => {
   }
 
   student.password = newPassword;
+  student.tempPassword = undefined;
   await student.save();
 
   success(res, { message: 'Password changed successfully' });

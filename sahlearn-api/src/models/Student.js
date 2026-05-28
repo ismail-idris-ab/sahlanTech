@@ -35,6 +35,7 @@ const studentSchema = new mongoose.Schema(
     enrolledCourses: [enrolledCourseSchema],
     passwordResetToken: { type: String, select: false },
     passwordResetExpires: { type: Date, select: false },
+    tempPassword: { type: String },
     isActive: { type: Boolean, default: true },
     lastLoginAt: Date,
   },

@@ -40,6 +40,7 @@ async function createStudentAccount(enrollment) {
     email: enrollment.email,
     phone: enrollment.phone,
     password: tempPassword,
+    tempPassword,
     enrolledCourses: enrollment.course
       ? [{ course: enrollment.course, enrollmentId: enrollment._id, enrolledAt: new Date() }]
       : [],

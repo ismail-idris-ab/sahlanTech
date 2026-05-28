@@ -56,7 +56,8 @@ export default function AdminStudents() {
               <tr className="border-b border-surface-200 text-left">
                 <th className="px-4 py-3 font-medium text-ink-500">Student</th>
                 <th className="px-4 py-3 font-medium text-ink-500 hidden sm:table-cell">ID</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden md:table-cell">Courses</th>
+                <th className="px-4 py-3 font-medium text-ink-500 hidden md:table-cell">Temp Password</th>
+                <th className="px-4 py-3 font-medium text-ink-500 hidden lg:table-cell">Courses</th>
                 <th className="px-4 py-3 font-medium text-ink-500 hidden lg:table-cell">Status</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -69,7 +70,12 @@ export default function AdminStudents() {
                     <div className="text-xs text-ink-400">{s.email}</div>
                   </td>
                   <td className="px-4 py-3 text-ink-500 hidden sm:table-cell font-mono text-xs">{s.studentId}</td>
-                  <td className="px-4 py-3 text-ink-500 hidden md:table-cell">{s.enrolledCourses?.length || 0}</td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {s.tempPassword
+                      ? <span className="font-mono text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded">{s.tempPassword}</span>
+                      : <span className="text-xs text-ink-300">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-ink-500 hidden lg:table-cell">{s.enrolledCourses?.length || 0}</td>
                   <td className="px-4 py-3 hidden lg:table-cell">
                     <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full ${s.isActive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                       {s.isActive ? <><UserCheck size={11} /> Active</> : <><UserX size={11} /> Inactive</>}
