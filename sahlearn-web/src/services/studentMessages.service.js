@@ -5,7 +5,7 @@ const authHeader = () => ({
 });
 
 export const getMessages = async ({ page = 1, limit = 30 } = {}) => {
-  const { data } = await api.get('/student/messages', {
+  const { data } = await api.get('/api/student/messages', {
     params: { page, limit },
     headers: authHeader(),
   });
@@ -13,11 +13,11 @@ export const getMessages = async ({ page = 1, limit = 30 } = {}) => {
 };
 
 export const sendMessage = async (content) => {
-  const { data } = await api.post('/student/messages', { content }, { headers: authHeader() });
+  const { data } = await api.post('/api/student/messages', { content }, { headers: authHeader() });
   return data.data;
 };
 
 export const getUnreadCount = async () => {
-  const { data } = await api.get('/student/messages/unread-count', { headers: authHeader() });
+  const { data } = await api.get('/api/student/messages/unread-count', { headers: authHeader() });
   return data.data.count;
 };

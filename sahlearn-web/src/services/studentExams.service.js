@@ -5,12 +5,12 @@ const authHeader = () => ({
 });
 
 export const getExams = async () => {
-  const { data } = await api.get('/student/exams', { headers: authHeader() });
+  const { data } = await api.get('/api/student/exams', { headers: authHeader() });
   return data; // full envelope: { status, data[], meta }
 };
 
 export const getExam = async (id) => {
-  const { data } = await api.get(`/student/exams/${id}`, { headers: authHeader() });
+  const { data } = await api.get(`/api/student/exams/${id}`, { headers: authHeader() });
   return data.data; // { exam, myAttempt }
 };
 
@@ -24,6 +24,6 @@ export const submitExam = async (id, answers) => {
 };
 
 export const getMyAttempts = async () => {
-  const { data } = await api.get('/student/exams/my-attempts', { headers: authHeader() });
+  const { data } = await api.get('/api/student/exams/my-attempts', { headers: authHeader() });
   return data.data;
 };

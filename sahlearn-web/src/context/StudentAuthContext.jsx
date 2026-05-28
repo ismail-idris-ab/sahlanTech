@@ -14,7 +14,7 @@ export function StudentAuthProvider({ children }) {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) { setLoading(false); return; }
 
-    api.get('/student/me', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/api/student/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(({ data }) => setStudent(data.data))
       .catch(() => localStorage.removeItem(TOKEN_KEY))
       .finally(() => setLoading(false));
