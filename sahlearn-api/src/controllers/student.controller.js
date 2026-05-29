@@ -1,6 +1,9 @@
 // sahlearn-api/src/controllers/student.controller.js
 const cloudinary = require('../config/cloudinary');
 const Student = require('../models/Student');
+const Submission = require('../models/Submission');
+const ExamAttempt = require('../models/ExamAttempt');
+const Assignment = require('../models/Assignment');
 const { success } = require('../utils/apiResponse');
 
 const getMe = async (req, res) => {
@@ -66,4 +69,38 @@ const changePassword = async (req, res) => {
   success(res, { message: 'Password changed successfully' });
 };
 
-module.exports = { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword };
+const getStats = async (req, res) => {
+  const studentId = req.student._id;
+  const courseIds = req.student.enrolledCourses.map((ec) => ec.course);
+
+  const [totalAssignments, submittedCount, examsTaken, avgScoreResult] = await Promise.all([
+    Assignment.countDocuments({ course: { $in: courseIds }, isPublished: true }),
+    Submission.countDocuments({ student: studentId }),
+    ExamAttempt.countDocuments({ student: studentId }),
+    ExamAttempt.aggregate([
+      { $match: { student: studentId, maxScore: { $gt: 0 } } },
+      {
+        $group: {
+          _id: null,
+          avg: { $avg: { $multiply: [{ $divide: ['$score', '$maxScore'] }, 100] } },
+        },
+      },
+    ]),
+  ]);
+
+  const avgScore = avgScoreResult[0] ? Math.round(avgScoreResult[0].avg) : null;
+
+  success(res, {
+    assignments: {
+      total: totalAssignments,
+      submitted: submittedCount,
+      pending: Math.max(0, totalAssignments - submittedCount),
+    },
+    exams: {
+      taken: examsTaken,
+      avgScore,
+    },
+  });
+};
+
+module.exports = { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats };
