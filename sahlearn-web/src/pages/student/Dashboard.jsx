@@ -38,7 +38,7 @@ export default function StudentDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-display text-ink-900">Welcome back, {student?.fullName?.split(' ')[0]}</h1>
+        <h1 className="text-2xl font-display text-ink-900">Welcome back, {student?.fullName?.split(' ')?.[0] ?? 'there'}</h1>
         <p className="text-sm text-ink-400 mt-0.5">Student ID: {student?.studentId}</p>
       </div>
 
@@ -110,7 +110,7 @@ export default function StudentDashboard() {
           </div>
           <div className="space-y-3">
             {student.enrolledCourses.slice(0, 3).map((ec) => (
-              <div key={ec.enrollmentId || ec.course?._id} className="flex items-center gap-3">
+              <div key={String(ec.enrollmentId || ec.course?._id || ec.course)} className="flex items-center gap-3">
                 {ec.course?.coverImage?.url ? (
                   <img src={ec.course.coverImage.url} alt={ec.course.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                 ) : (
