@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { listConversations } from '../../services/adminStudentMessages.service';
 import { MessageCircle } from 'lucide-react';
@@ -7,13 +7,25 @@ import toast from 'react-hot-toast';
 export default function StudentConversations() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const pollingRef = useRef(null);
+
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const data = await listConversations();
+      setConversations(data);
+    } catch {
+      if (!silent) toast.error('Failed to load conversations');
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    listConversations()
-      .then(setConversations)
-      .catch(() => toast.error('Failed to load conversations'))
-      .finally(() => setLoading(false));
-  }, []);
+    load();
+    pollingRef.current = setInterval(() => load(true), 10000);
+    return () => clearInterval(pollingRef.current);
+  }, [load]);
 
   const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
