@@ -1,5 +1,5 @@
 // sahlearn-web/src/pages/student/ExamTake.jsx
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getExam, submitExam } from '../../services/studentExams.service';
 import { ArrowLeft, CheckCircle2, XCircle, Timer } from 'lucide-react';
@@ -118,7 +118,7 @@ export default function ExamTake() {
   useEffect(() => { answersRef.current = answers; }, [answers]);
 
   // Core submit logic — shared by manual submit and auto-submit
-  const doSubmit = async (answersArray) => {
+  const doSubmit = useCallback(async (answersArray) => {
     setSubmitting(true);
     try {
       const result = await submitExam(id, answersArray);
@@ -133,7 +133,7 @@ export default function ExamTake() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [id, timerKey]);
 
   // Load exam
   useEffect(() => {
