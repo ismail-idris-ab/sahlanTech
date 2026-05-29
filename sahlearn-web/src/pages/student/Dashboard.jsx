@@ -1,21 +1,36 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStudentAuth } from '../../context/StudentAuthContext';
-import { getMe } from '../../services/student.service';
-import { BookOpen, User } from 'lucide-react';
+import { getMe, getStats } from '../../services/student.service';
+import { BookOpen, User, ClipboardList, FileText, TrendingUp } from 'lucide-react';
 
 export default function StudentDashboard() {
   const { student, setStudent } = useStudentAuth();
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(!student?.enrolledCourses);
 
   useEffect(() => {
-    if (!student?.enrolledCourses) {
-      getMe().then((data) => { setStudent(data); setLoading(false); }).catch(() => setLoading(false));
-    }
+    const fetchAll = async () => {
+      try {
+        const [me, s] = await Promise.all([
+          student?.enrolledCourses ? Promise.resolve(student) : getMe(),
+          getStats(),
+        ]);
+        setStudent(me);
+        setStats(s);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
   }, []);
 
   if (loading) {
-    return <div className="flex justify-center py-24"><div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" /></div>;
+    return (
+      <div className="flex justify-center py-24">
+        <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   const courseCount = student?.enrolledCourses?.length || 0;
@@ -27,9 +42,11 @@ export default function StudentDashboard() {
         <p className="text-sm text-ink-400 mt-0.5">Student ID: {student?.studentId}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Enrolled courses */}
         <div className="bg-white rounded-2xl border border-surface-200 p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
             <BookOpen size={22} className="text-brand-primary" />
           </div>
           <div>
@@ -37,8 +54,44 @@ export default function StudentDashboard() {
             <p className="text-sm text-ink-400">Enrolled Course{courseCount !== 1 ? 's' : ''}</p>
           </div>
         </div>
+
+        {/* Assignments */}
+        <div className="bg-white rounded-2xl border border-surface-200 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <ClipboardList size={22} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-ink-900">
+              {stats ? `${stats.assignments.submitted} / ${stats.assignments.total}` : '—'}
+            </p>
+            <p className="text-sm text-ink-400">Assignments Submitted</p>
+            {stats && stats.assignments.pending > 0 && (
+              <p className="text-xs text-amber-600 font-medium mt-0.5">{stats.assignments.pending} pending</p>
+            )}
+          </div>
+        </div>
+
+        {/* Exams */}
+        <div className="bg-white rounded-2xl border border-surface-200 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
+            <FileText size={22} className="text-purple-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-ink-900">
+              {stats ? stats.exams.taken : '—'}
+            </p>
+            <p className="text-sm text-ink-400">Exams Taken</p>
+            {stats?.exams.avgScore !== null && stats?.exams.avgScore !== undefined && (
+              <p className="text-xs text-green-600 font-medium mt-0.5 flex items-center gap-1">
+                <TrendingUp size={11} /> Avg {stats.exams.avgScore}%
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Profile link */}
         <Link to="/student/profile" className="bg-white rounded-2xl border border-surface-200 p-5 flex items-center gap-4 hover:border-brand-primary/30 transition">
-          <div className="w-12 h-12 rounded-xl bg-ink-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-ink-100 flex items-center justify-center flex-shrink-0">
             <User size={22} className="text-ink-500" />
           </div>
           <div>
@@ -48,6 +101,7 @@ export default function StudentDashboard() {
         </Link>
       </div>
 
+      {/* Recent courses */}
       {courseCount > 0 && (
         <div className="bg-white rounded-2xl border border-surface-200 p-5">
           <div className="flex items-center justify-between mb-4">

@@ -32,3 +32,8 @@ export const changePassword = async ({ currentPassword, newPassword }) => {
   const { data } = await api.patch('/api/student/me/password', { currentPassword, newPassword }, { headers: authHeader() });
   return data.data;
 };
+
+export const getStats = async () => {
+  const { data } = await api.get('/api/student/stats', { headers: authHeader() });
+  return data.data;
+};
