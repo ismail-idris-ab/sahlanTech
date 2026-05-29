@@ -9,8 +9,8 @@ const { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats } 
 
 router.use(studentAuth);
 
-router.get('/me', getMe);
 router.get('/stats', getStats);
+router.get('/me', getMe);
 
 router.patch(
   '/me',
