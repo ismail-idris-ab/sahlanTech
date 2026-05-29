@@ -1,9 +1,32 @@
 // sahlearn-web/src/pages/student/ExamTake.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getExam, submitExam } from '../../services/studentExams.service';
-import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, Timer } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const formatTime = (seconds) => {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
+
+function TimerBadge({ timeLeft }) {
+  if (timeLeft === null) return null;
+  const isRed = timeLeft < 60;
+  const isAmber = timeLeft < 300 && timeLeft >= 60;
+  const cls = isRed
+    ? 'bg-red-50 border border-red-200 text-red-700'
+    : isAmber
+    ? 'bg-amber-50 border border-amber-200 text-amber-700'
+    : 'bg-green-50 border border-green-200 text-green-700';
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-mono font-semibold ${cls}`}>
+      <Timer size={14} />
+      {formatTime(timeLeft)}
+    </span>
+  );
+}
 
 function ResultsView({ exam, attempt }) {
   const answersMap = Object.fromEntries(
@@ -32,7 +55,6 @@ function ResultsView({ exam, attempt }) {
         {exam.questions.map((q, i) => {
           const answer = answersMap[i];
           const isCorrect = q.type === 'mcq' && answer?.selectedIndex === q.correctIndex;
-          const isWrong = q.type === 'mcq' && answer !== undefined && !isCorrect;
 
           return (
             <div key={i} className="bg-white rounded-2xl border border-surface-200 p-5">
@@ -55,7 +77,6 @@ function ResultsView({ exam, attempt }) {
                     if (isCorrectOption) cls += 'bg-green-50 border-green-200 text-green-800';
                     else if (isSelected && !isCorrectOption) cls += 'bg-red-50 border-red-200 text-red-700';
                     else cls += 'border-surface-200 text-ink-600';
-
                     return (
                       <div key={oi} className={cls}>
                         {opt}
@@ -82,40 +103,26 @@ function ResultsView({ exam, attempt }) {
 
 export default function ExamTake() {
   const { id } = useParams();
+  const timerKey = `sahlearn_exam_start_${id}`;
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [attempt, setAttempt] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(null);
 
-  useEffect(() => {
-    getExam(id)
-      .then((res) => {
-        setData(res);
-        if (res.myAttempt) {
-          setAttempt(res.myAttempt);
-          setSubmitted(true);
-        }
-      })
-      .catch(() => toast.error('Failed to load exam'))
-      .finally(() => setLoading(false));
-  }, [id]);
+  // Keep a ref to answers so the timer interval can read the latest value
+  const answersRef = useRef({});
+  useEffect(() => { answersRef.current = answers; }, [answers]);
 
-  const handleSelect = (qIndex, selectedIndex) => {
-    setAnswers((prev) => ({ ...prev, [qIndex]: { ...prev[qIndex], questionIndex: qIndex, selectedIndex } }));
-  };
-
-  const handleText = (qIndex, textAnswer) => {
-    setAnswers((prev) => ({ ...prev, [qIndex]: { ...prev[qIndex], questionIndex: qIndex, textAnswer } }));
-  };
-
-  const handleSubmit = async () => {
-    const answersArray = Object.values(answers);
-    if (!window.confirm('Submit your exam? You cannot change answers after submission.')) return;
+  // Core submit logic — shared by manual submit and auto-submit
+  const doSubmit = async (answersArray) => {
     setSubmitting(true);
     try {
       const result = await submitExam(id, answersArray);
+      localStorage.removeItem(timerKey);
       setAttempt(result);
       setSubmitted(true);
       const updated = await getExam(id);
@@ -126,6 +133,73 @@ export default function ExamTake() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Load exam
+  useEffect(() => {
+    getExam(id)
+      .then((res) => {
+        setData(res);
+        if (res.myAttempt) {
+          setAttempt(res.myAttempt);
+          setSubmitted(true);
+          localStorage.removeItem(`sahlearn_exam_start_${id}`);
+        }
+      })
+      .catch(() => toast.error('Failed to load exam'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  // Start timer once exam data is loaded and not yet submitted
+  useEffect(() => {
+    if (!data?.exam || submitted || !data.exam.duration) return;
+
+    const duration = data.exam.duration * 60; // convert minutes to seconds
+
+    let startedAt = parseInt(localStorage.getItem(timerKey), 10);
+    if (!startedAt) {
+      startedAt = Date.now();
+      localStorage.setItem(timerKey, String(startedAt));
+    }
+
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const remaining = duration - elapsed;
+
+    if (remaining <= 0) {
+      // Expired before page loaded — auto-submit immediately
+      toast('Time is up! Auto-submitting...', { icon: '⏱' });
+      doSubmit(Object.values(answersRef.current));
+      return;
+    }
+
+    setTimeLeft(remaining);
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          toast('Time is up! Auto-submitting...', { icon: '⏱' });
+          doSubmit(Object.values(answersRef.current));
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [data, submitted]);
+
+  const handleSubmit = async () => {
+    if (!window.confirm('Submit your exam? You cannot change answers after submission.')) return;
+    await doSubmit(Object.values(answers));
+  };
+
+  const handleSelect = (qIndex, selectedIndex) => {
+    setAnswers((prev) => ({ ...prev, [qIndex]: { ...prev[qIndex], questionIndex: qIndex, selectedIndex } }));
+  };
+
+  const handleText = (qIndex, textAnswer) => {
+    setAnswers((prev) => ({ ...prev, [qIndex]: { ...prev[qIndex], questionIndex: qIndex, textAnswer } }));
   };
 
   if (loading) {
@@ -154,18 +228,35 @@ export default function ExamTake() {
       </Link>
 
       <div className="bg-white rounded-2xl border border-surface-200 p-6">
-        <h1 className="text-xl font-display text-ink-900">{exam.title}</h1>
-        <p className="text-sm text-ink-400 mt-0.5">{exam.course?.title}</p>
-        {exam.description && <p className="text-sm text-ink-600 mt-3">{exam.description}</p>}
-        <div className="flex items-center gap-4 mt-3 text-xs text-ink-400">
-          <span>{exam.questions?.length || 0} questions</span>
-          <span>{exam.totalPoints} points total</span>
-          {exam.duration && <span>{exam.duration} min suggested</span>}
-          {exam.dueDate && (
-            <span>Due {new Date(exam.dueDate).toLocaleDateString('en-NG')}</span>
-          )}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-display text-ink-900">{exam.title}</h1>
+            <p className="text-sm text-ink-400 mt-0.5">{exam.course?.title}</p>
+            {exam.description && <p className="text-sm text-ink-600 mt-3">{exam.description}</p>}
+            <div className="flex items-center gap-4 mt-3 text-xs text-ink-400">
+              <span>{exam.questions?.length || 0} questions</span>
+              <span>{exam.totalPoints} points total</span>
+              {exam.duration && <span>{exam.duration} min</span>}
+              {exam.dueDate && (
+                <span>Due {new Date(exam.dueDate).toLocaleDateString('en-NG')}</span>
+              )}
+            </div>
+          </div>
+          {!submitted && <TimerBadge timeLeft={timeLeft} />}
         </div>
       </div>
+
+      {/* Warning banner at 5 minutes */}
+      {!submitted && timeLeft !== null && timeLeft <= 300 && timeLeft > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
+          <Timer size={15} className="flex-shrink-0" />
+          <span>
+            {timeLeft <= 60
+              ? 'Less than 1 minute remaining — your exam will auto-submit soon.'
+              : 'Less than 5 minutes remaining — your exam will auto-submit when time runs out.'}
+          </span>
+        </div>
+      )}
 
       {submitted && attempt ? (
         <ResultsView exam={exam} attempt={attempt} />
