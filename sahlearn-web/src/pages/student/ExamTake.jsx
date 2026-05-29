@@ -187,7 +187,7 @@ export default function ExamTake() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [data, submitted]);
+  }, [data, submitted, doSubmit]);
 
   const handleSubmit = async () => {
     if (!window.confirm('Submit your exam? You cannot change answers after submission.')) return;
