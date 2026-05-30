@@ -22,8 +22,7 @@ const TeamMembers = lazy(() => import('../pages/admin/TeamMembers'));
 // Admin student pages
 const AdminStudents = lazy(() => import('../pages/admin/Students'));
 const AdminStudentDetail = lazy(() => import('../pages/admin/StudentDetail'));
-const AdminStudentConversations = lazy(() => import('../pages/admin/StudentConversations'));
-const AdminStudentConversation = lazy(() => import('../pages/admin/StudentConversation'));
+const AdminStudentMessages = lazy(() => import('../pages/admin/StudentMessages'));
 const AdminAssignments = lazy(() => import('../pages/admin/Assignments'));
 const AdminAssignmentForm = lazy(() => import('../pages/admin/AssignmentForm'));
 const AdminAssignmentDetail = lazy(() => import('../pages/admin/AssignmentDetail'));
@@ -43,6 +42,7 @@ const StudentAssignments = lazy(() => import('../pages/student/Assignments'));
 const StudentAssignmentDetail = lazy(() => import('../pages/student/AssignmentDetail'));
 const StudentExams = lazy(() => import('../pages/student/Exams'));
 const StudentExamTake = lazy(() => import('../pages/student/ExamTake'));
+const StudentProgress = lazy(() => import('../pages/student/Progress'));
 
 // Public pages — lazy loaded (each route is a separate chunk)
 const Home = lazy(() => import('../pages/public/Home'));
@@ -113,8 +113,8 @@ export default function AppRouter() {
               <Route path="team" element={<TeamMembers />} />
               <Route path="students" element={<AdminStudents />} />
               <Route path="students/:id" element={<AdminStudentDetail />} />
-              <Route path="student-messages" element={<AdminStudentConversations />} />
-              <Route path="student-messages/:studentId" element={<AdminStudentConversation />} />
+              <Route path="student-messages" element={<AdminStudentMessages />} />
+              <Route path="student-messages/:studentId" element={<AdminStudentMessages />} />
               <Route path="assignments" element={<AdminAssignments />} />
               <Route path="assignments/new" element={<AdminAssignmentForm />} />
               <Route path="assignments/:id" element={<AdminAssignmentDetail />} />
@@ -148,6 +148,7 @@ export default function AppRouter() {
               <Route path="assignments/:id" element={<StudentAssignmentDetail />} />
               <Route path="exams" element={<StudentExams />} />
               <Route path="exams/:id" element={<StudentExamTake />} />
+              <Route path="progress" element={<StudentProgress />} />
             </Route>
           </Routes>
         </Suspense>

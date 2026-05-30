@@ -5,11 +5,12 @@ const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const studentAuth = require('../middleware/studentAuth');
 const { upload } = require('../middleware/upload');
-const { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats } = require('../controllers/student.controller');
+const { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats, getProgress } = require('../controllers/student.controller');
 
 router.use(studentAuth);
 
 router.get('/stats', getStats);
+router.get('/progress', getProgress);
 router.get('/me', getMe);
 
 router.patch(
@@ -17,7 +18,8 @@ router.patch(
   [
     body('fullName').optional().isLength({ min: 2, max: 100 }),
     body('bio').optional().isLength({ max: 300 }),
-    body('dateOfBirth').optional().isISO8601(),
+    body('dateOfBirth').optional({ checkFalsy: true }).isISO8601(),
+    body('academicLevel').optional({ checkFalsy: true }).isIn(['ND1', 'ND2', 'HND1', 'HND2']),
   ],
   validate,
   updateMe

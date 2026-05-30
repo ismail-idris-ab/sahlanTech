@@ -12,10 +12,10 @@ const getMe = async (req, res) => {
 };
 
 const updateMe = async (req, res) => {
-  const allowed = ['fullName', 'phone', 'dateOfBirth', 'address', 'bio'];
+  const allowed = ['fullName', 'phone', 'dateOfBirth', 'address', 'bio', 'academicLevel'];
   const updates = {};
   for (const key of allowed) {
-    if (req.body[key] !== undefined) updates[key] = req.body[key];
+    if (req.body[key] !== undefined && req.body[key] !== '') updates[key] = req.body[key];
   }
 
   const student = await Student.findByIdAndUpdate(req.student._id, updates, { new: true, runValidators: true });
@@ -103,4 +103,73 @@ const getStats = async (req, res) => {
   });
 };
 
-module.exports = { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats };
+const getProgress = async (req, res) => {
+  const studentId = req.student._id;
+  const enrolledCourses = req.student.enrolledCourses.filter((ec) => ec.course);
+  const courseIds = enrolledCourses.map((ec) => ec.course);
+
+  const [attempts, submissions] = await Promise.all([
+    ExamAttempt.find({ student: studentId })
+      .populate({ path: 'exam', select: 'title totalPoints course', populate: { path: 'course', select: 'title _id' } })
+      .lean(),
+    Submission.find({ student: studentId })
+      .populate({ path: 'assignment', select: 'title totalPoints course', populate: { path: 'course', select: 'title _id' } })
+      .lean(),
+  ]);
+
+  // Group by course
+  const courseMap = {};
+
+  const ensureCourse = (courseDoc) => {
+    if (!courseDoc) return;
+    const id = courseDoc._id.toString();
+    if (!courseMap[id]) {
+      courseMap[id] = { courseId: id, courseTitle: courseDoc.title, exams: [], assignments: [] };
+    }
+    return id;
+  };
+
+  for (const attempt of attempts) {
+    const courseDoc = attempt.exam?.course;
+    const id = ensureCourse(courseDoc);
+    if (!id) continue;
+    courseMap[id].exams.push({
+      examId: attempt.exam?._id,
+      title: attempt.exam?.title,
+      score: attempt.score,
+      maxScore: attempt.maxScore,
+      mcqScore: attempt.mcqScore,
+      status: attempt.status,
+      isPendingEssayReview: attempt.status === 'submitted',
+      submittedAt: attempt.submittedAt,
+    });
+  }
+
+  for (const sub of submissions) {
+    const courseDoc = sub.assignment?.course;
+    const id = ensureCourse(courseDoc);
+    if (!id) continue;
+    courseMap[id].assignments.push({
+      assignmentId: sub.assignment?._id,
+      title: sub.assignment?.title,
+      score: sub.score,
+      maxScore: sub.maxScore || sub.assignment?.totalPoints || 100,
+      status: sub.status,
+      feedback: sub.feedback,
+      submittedAt: sub.submittedAt,
+    });
+  }
+
+  // Ensure enrolled courses with no activity still appear
+  for (const ec of enrolledCourses) {
+    const id = ec.course.toString();
+    if (!courseMap[id]) {
+      courseMap[id] = { courseId: id, courseTitle: null, exams: [], assignments: [] };
+    }
+  }
+
+  const data = Object.values(courseMap);
+  success(res, data);
+};
+
+module.exports = { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats, getProgress };

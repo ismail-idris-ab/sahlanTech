@@ -33,19 +33,35 @@ function ResultsView({ exam, attempt }) {
     (attempt.answers || []).map((a) => [a.questionIndex, a])
   );
 
+  const isPending = attempt.isPendingEssayReview;
+
   return (
     <div className="space-y-6">
+      {isPending && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+          <span className="font-semibold block mb-0.5">Essay answers pending review</span>
+          Your written answers are being reviewed by the instructor. Your score will update once graded.
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-surface-200 p-6">
         <h2 className="font-semibold text-ink-900 text-lg mb-1">Your Results</h2>
         <p className="text-3xl font-bold text-brand-primary">
           {attempt.score} <span className="text-lg font-normal text-ink-400">/ {attempt.maxScore}</span>
         </p>
+        {isPending && attempt.mcqScore != null && (
+          <p className="text-sm text-ink-400 mt-1">
+            MCQ score: <span className="font-medium text-ink-700">{attempt.mcqScore}</span> · Essay score pending
+          </p>
+        )}
         <p className="text-sm text-ink-400 mt-1">
-          Status: <span className="capitalize font-medium text-ink-700">{attempt.status}</span>
+          Status: <span className="capitalize font-medium text-ink-700">
+            {isPending ? 'Awaiting essay review' : attempt.status}
+          </span>
         </p>
         {attempt.adminNote && (
           <div className="mt-4 p-3 bg-surface-100 rounded-xl text-sm text-ink-700">
-            <span className="font-medium text-ink-500 block text-xs uppercase tracking-wide mb-1">Admin Note</span>
+            <span className="font-medium text-ink-500 block text-xs uppercase tracking-wide mb-1">Instructor Feedback</span>
             {attempt.adminNote}
           </div>
         )}
@@ -55,6 +71,7 @@ function ResultsView({ exam, attempt }) {
         {exam.questions.map((q, i) => {
           const answer = answersMap[i];
           const isCorrect = q.type === 'mcq' && answer?.selectedIndex === q.correctIndex;
+          const essayGraded = q.type === 'short' && answer?.essayScore != null;
 
           return (
             <div key={i} className="bg-white rounded-2xl border border-surface-200 p-5">
@@ -66,6 +83,12 @@ function ResultsView({ exam, attempt }) {
                     ? <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" />
                     : <XCircle size={16} className="text-red-500 flex-shrink-0" />
                 )}
+                {q.type === 'short' && essayGraded && (
+                  <span className="text-xs font-semibold text-brand-primary flex-shrink-0">{answer.essayScore}/{q.points}</span>
+                )}
+                {q.type === 'short' && !essayGraded && (
+                  <span className="text-xs text-amber-600 flex-shrink-0 font-medium">Pending</span>
+                )}
               </div>
 
               {q.type === 'mcq' && (
@@ -73,24 +96,26 @@ function ResultsView({ exam, attempt }) {
                   {q.options.map((opt, oi) => {
                     const isSelected = answer?.selectedIndex === oi;
                     const isCorrectOption = q.correctIndex === oi;
-                    let cls = 'px-3 py-2 rounded-xl text-sm border ';
+                    const letter = ['A', 'B', 'C', 'D'][oi];
+                    let cls = 'flex items-center gap-3 px-3 py-2 rounded-xl text-sm border ';
                     if (isCorrectOption) cls += 'bg-green-50 border-green-200 text-green-800';
                     else if (isSelected && !isCorrectOption) cls += 'bg-red-50 border-red-200 text-red-700';
                     else cls += 'border-surface-200 text-ink-600';
                     return (
                       <div key={oi} className={cls}>
-                        {opt}
-                        {isCorrectOption && <span className="ml-2 text-xs font-medium">(correct)</span>}
+                        <span className="font-bold text-xs w-4 flex-shrink-0">{letter}.</span>
+                        <span className="flex-1">{opt}</span>
+                        {isCorrectOption && <span className="text-xs font-semibold flex-shrink-0">(correct)</span>}
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              {q.type === 'short' && answer?.textAnswer && (
+              {q.type === 'short' && (
                 <div className="mt-2 p-3 bg-surface-100 rounded-xl text-sm text-ink-700">
                   <span className="text-xs text-ink-400 block mb-1">Your answer:</span>
-                  {answer.textAnswer}
+                  {answer?.textAnswer || <span className="italic text-ink-300">No answer provided</span>}
                 </div>
               )}
             </div>
@@ -122,11 +147,11 @@ export default function ExamTake() {
     setSubmitting(true);
     try {
       const result = await submitExam(id, answersArray);
+      const updated = await getExam(id); // now includes correctIndex since attempt exists
       localStorage.removeItem(timerKey);
       setAttempt(result);
-      setSubmitted(true);
-      const updated = await getExam(id);
       setData(updated);
+      setSubmitted(true);
       toast.success('Exam submitted!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Submission failed');
@@ -175,15 +200,14 @@ export default function ExamTake() {
     setTimeLeft(remaining);
 
     const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          toast('Time is up! Auto-submitting...', { icon: '⏱' });
-          doSubmit(Object.values(answersRef.current));
-          return 0;
-        }
-        return prev - 1;
-      });
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const left = Math.max(0, duration - elapsed);
+      setTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(interval);
+        toast('Time is up! Auto-submitting...', { icon: '⏱' });
+        doSubmit(Object.values(answersRef.current));
+      }
     }, 1000);
 
     return () => clearInterval(interval);
@@ -274,17 +298,19 @@ export default function ExamTake() {
                   <div className="space-y-2">
                     {q.options.map((opt, oi) => {
                       const selected = answers[i]?.selectedIndex === oi;
+                      const letter = ['A', 'B', 'C', 'D'][oi];
                       return (
                         <button
                           key={oi}
                           onClick={() => handleSelect(i, oi)}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-sm border transition ${
+                          className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-xl text-sm border transition ${
                             selected
                               ? 'bg-brand-primary/10 border-brand-primary text-brand-primary font-medium'
                               : 'border-surface-200 text-ink-700 hover:bg-surface-50'
                           }`}
                         >
-                          {opt}
+                          <span className="font-bold text-xs w-4 flex-shrink-0">{letter}.</span>
+                          <span>{opt}</span>
                         </button>
                       );
                     })}

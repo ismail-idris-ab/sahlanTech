@@ -41,6 +41,7 @@ const listExams = async (req, res) => {
 
   const data = exams.map((e) => ({
     ...e,
+    id: e._id,
     attemptCount: countMap[e._id.toString()] || 0,
   }));
 
@@ -87,21 +88,53 @@ const listAttempts = async (req, res) => {
     .populate('student', 'fullName studentId email avatar')
     .lean();
 
-  success(res, { exam, attempts });
+  success(res, { exam, attempts: attempts.map((a) => ({ ...a, id: a._id })) });
 };
 
 const reviewAttempt = async (req, res) => {
-  const { adminNote, status } = req.body;
-  const attempt = await ExamAttempt.findById(req.params.attemptId);
+  const { adminNote, essayScores } = req.body;
+  // essayScores: [{ questionIndex: number, points: number }]
+
+  const attempt = await ExamAttempt.findById(req.params.attemptId).populate({
+    path: 'exam',
+    select: 'questions',
+  });
   if (!attempt) return notFound(res, 'Attempt not found');
 
   if (adminNote !== undefined) attempt.adminNote = adminNote;
-  if (status === 'reviewed') {
-    attempt.status = 'reviewed';
-    attempt.reviewedAt = new Date();
-  }
-  await attempt.save();
 
+  if (Array.isArray(essayScores) && essayScores.length > 0) {
+    const exam = attempt.exam;
+    for (const { questionIndex, points } of essayScores) {
+      const question = exam?.questions?.[questionIndex];
+      if (!question || question.type !== 'short') continue;
+
+      const maxPoints = question.points || 1;
+      const clamped = Math.min(Math.max(0, Number(points) || 0), maxPoints);
+
+      const answer = attempt.answers.find((a) => a.questionIndex === questionIndex);
+      if (answer) {
+        answer.essayScore = clamped;
+      }
+    }
+
+    // Always recalculate mcqScore from answers + exam questions so attempts
+    // submitted before the mcqScore field was added are handled correctly.
+    const mcqScore = attempt.answers.reduce((sum, a) => {
+      const q = exam?.questions?.[a.questionIndex];
+      if (!q || q.type !== 'mcq') return sum;
+      return a.selectedIndex === q.correctIndex ? sum + (q.points || 1) : sum;
+    }, 0);
+    attempt.mcqScore = mcqScore;
+
+    const essayTotal = attempt.answers.reduce((sum, a) => sum + (a.essayScore || 0), 0);
+    attempt.score = mcqScore + essayTotal;
+  }
+
+  attempt.status = 'reviewed';
+  attempt.reviewedAt = new Date();
+
+  await attempt.save();
   success(res, attempt);
 };
 

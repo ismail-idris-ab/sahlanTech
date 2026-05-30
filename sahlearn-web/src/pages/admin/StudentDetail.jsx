@@ -1,8 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getStudentById, triggerPasswordReset, toggleStudentStatus } from '../../services/adminStudents.service';
-import { ArrowLeft, Mail, RefreshCw, UserCheck, UserX } from 'lucide-react';
+import { getStudentById, triggerPasswordReset, toggleStudentStatus, getStudentProgress } from '../../services/adminStudents.service';
+import { ArrowLeft, Mail, RefreshCw, UserCheck, UserX, MessageCircle, ClipboardCheck, ClipboardList, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const pct = (score, max) => (max > 0 ? Math.round((score / max) * 100) : 0);
+
+const ScoreBar = ({ score, max }) => {
+  const percent = pct(score, max);
+  const color = percent >= 70 ? 'bg-green-500' : percent >= 50 ? 'bg-amber-400' : 'bg-red-400';
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <div className="flex-1 h-1.5 bg-surface-200 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${percent}%` }} />
+      </div>
+      <span className="text-[11px] font-mono text-ink-400 w-9 text-right">{percent}%</span>
+    </div>
+  );
+};
 
 export default function StudentDetail() {
   const { id } = useParams();
@@ -10,9 +25,12 @@ export default function StudentDetail() {
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [progress, setProgress] = useState([]);
+  const [progressLoading, setProgressLoading] = useState(true);
 
   useEffect(() => {
     getStudentById(id).then(setStudent).catch(() => toast.error('Student not found')).finally(() => setLoading(false));
+    getStudentProgress(id).then(setProgress).catch(() => {}).finally(() => setProgressLoading(false));
   }, [id]);
 
   const handleResetPassword = async () => {
@@ -77,7 +95,13 @@ export default function StudentDetail() {
             <p className="text-sm text-ink-500 mt-0.5 flex items-center gap-1"><Mail size={13} /> {student.email}</p>
           </div>
 
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 flex-shrink-0 flex-wrap">
+            <Link
+              to={`/admin/student-messages/${student.id}`}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 rounded-xl transition"
+            >
+              <MessageCircle size={12} /> Message
+            </Link>
             <button
               onClick={handleResetPassword}
               disabled={resetting}
@@ -100,6 +124,7 @@ export default function StudentDetail() {
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
           {student.phone && <div><p className="text-xs text-ink-400">Phone</p><p className="text-ink-700">{student.phone}</p></div>}
           {student.dateOfBirth && <div><p className="text-xs text-ink-400">Date of Birth</p><p className="text-ink-700">{new Date(student.dateOfBirth).toLocaleDateString('en-NG')}</p></div>}
+          {student.academicLevel && <div><p className="text-xs text-ink-400">Academic Level</p><p className="text-ink-700">{student.academicLevel}</p></div>}
           {student.address && <div><p className="text-xs text-ink-400">Address</p><p className="text-ink-700">{student.address}</p></div>}
           <div><p className="text-xs text-ink-400">Joined</p><p className="text-ink-700">{new Date(student.createdAt).toLocaleDateString('en-NG')}</p></div>
         </div>
@@ -127,6 +152,105 @@ export default function StudentDetail() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Academic performance */}
+      <div className="bg-white rounded-2xl border border-surface-200 p-6">
+        <h2 className="font-semibold text-ink-900 mb-4">Academic Performance</h2>
+
+        {progressLoading ? (
+          <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" /></div>
+        ) : progress.length === 0 ? (
+          <p className="text-sm text-ink-400">No exam or assignment activity yet.</p>
+        ) : (
+          <div className="space-y-6">
+            {progress.map((group) => {
+              const gradedExams = group.exams.filter((e) => e.maxScore > 0);
+              const examAvg = gradedExams.length
+                ? Math.round(gradedExams.reduce((s, e) => s + pct(e.score, e.maxScore), 0) / gradedExams.length)
+                : null;
+              const gradedAssignments = group.assignments.filter((a) => a.score != null);
+              const assignAvg = gradedAssignments.length
+                ? Math.round(gradedAssignments.reduce((s, a) => s + pct(a.score, a.maxScore), 0) / gradedAssignments.length)
+                : null;
+
+              return (
+                <div key={group.courseId}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-ink-800">{group.courseTitle}</h3>
+                    <div className="flex gap-3 text-xs text-ink-400">
+                      {examAvg != null && <span>Exam avg: <span className="font-semibold text-ink-700">{examAvg}%</span></span>}
+                      {assignAvg != null && <span>Assignment avg: <span className="font-semibold text-ink-700">{assignAvg}%</span></span>}
+                    </div>
+                  </div>
+
+                  {group.exams.length > 0 && (
+                    <div className="mb-3">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <ClipboardCheck size={12} className="text-ink-400" />
+                        <span className="text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Exams</span>
+                      </div>
+                      <div className="space-y-3">
+                        {group.exams.map((e) => (
+                          <div key={e.examId}>
+                            <div className="flex items-center justify-between gap-2">
+                              <Link to={`/admin/exams/${e.examId}`} className="text-sm text-ink-700 hover:text-brand-primary transition truncate">
+                                {e.title}
+                              </Link>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {e.status === 'submitted' && (
+                                  <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">
+                                    <Clock size={9} /> Pending
+                                  </span>
+                                )}
+                                <span className="text-sm font-bold font-mono text-ink-900">
+                                  {e.score}<span className="text-ink-400 font-normal text-xs">/{e.maxScore}</span>
+                                </span>
+                              </div>
+                            </div>
+                            <ScoreBar score={e.score} max={e.maxScore} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {group.assignments.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <ClipboardList size={12} className="text-ink-400" />
+                        <span className="text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Assignments</span>
+                      </div>
+                      <div className="space-y-3">
+                        {group.assignments.map((a) => (
+                          <div key={a.assignmentId}>
+                            <div className="flex items-center justify-between gap-2">
+                              <Link to={`/admin/assignments/${a.assignmentId}`} className="text-sm text-ink-700 hover:text-brand-primary transition truncate">
+                                {a.title}
+                              </Link>
+                              {a.score != null ? (
+                                <span className="text-sm font-bold font-mono text-ink-900 flex-shrink-0">
+                                  {a.score}<span className="text-ink-400 font-normal text-xs">/{a.maxScore}</span>
+                                </span>
+                              ) : (
+                                <span className="text-xs text-ink-400 flex-shrink-0 italic">Not graded</span>
+                              )}
+                            </div>
+                            {a.score != null && <ScoreBar score={a.score} max={a.maxScore} />}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {group.exams.length === 0 && group.assignments.length === 0 && (
+                    <p className="text-xs text-ink-400 italic">No activity for this course.</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

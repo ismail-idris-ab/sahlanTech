@@ -5,9 +5,10 @@ import { listSubmissions, gradeSubmission } from '../../services/adminAssignment
 import { ArrowLeft, Pencil, ExternalLink, FileText, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-function GradeForm({ submission, onGraded }) {
+function GradeForm({ submission, assignmentTotalPoints, onGraded }) {
+  const maxPoints = assignmentTotalPoints || 100;
   const [form, setForm] = useState({
-    grade: submission.grade || '',
+    score: submission.score != null ? String(submission.score) : '',
     feedback: submission.feedback || '',
     status: submission.status || 'submitted',
   });
@@ -17,11 +18,16 @@ function GradeForm({ submission, onGraded }) {
     e.preventDefault();
     setSaving(true);
     try {
-      const updated = await gradeSubmission(submission._id, form);
+      const payload = {
+        feedback: form.feedback,
+        status: form.status,
+        ...(form.score !== '' && { score: Number(form.score) }),
+      };
+      const updated = await gradeSubmission(submission._id, payload);
       onGraded(updated);
-      toast.success('Feedback saved');
+      toast.success('Grade saved');
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to save feedback');
+      toast.error(err?.response?.data?.message || 'Failed to save grade');
     } finally {
       setSaving(false);
     }
@@ -31,13 +37,14 @@ function GradeForm({ submission, onGraded }) {
     <form onSubmit={handleSave} className="mt-3 pt-3 border-t border-surface-100 space-y-2">
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-[10px] font-medium text-ink-500 mb-0.5">Grade</label>
+          <label className="block text-[10px] font-medium text-ink-500 mb-0.5">Score / {maxPoints}</label>
           <input
-            type="text"
-            value={form.grade}
-            onChange={(e) => setForm({ ...form, grade: e.target.value })}
-            placeholder="e.g. A, 85/100, Pass"
-            maxLength={20}
+            type="number"
+            min={0}
+            max={maxPoints}
+            value={form.score}
+            onChange={(e) => setForm({ ...form, score: e.target.value })}
+            placeholder={`0–${maxPoints}`}
             className="w-full px-2.5 py-1.5 border border-surface-300 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand-primary/30 focus:border-brand-primary"
           />
         </div>
@@ -164,7 +171,7 @@ export default function AdminAssignmentDetail() {
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${s.status === 'graded' || s.status === 'returned' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
                         {s.status}
                       </span>
-                      {s.grade && <span className="text-xs font-bold text-brand-primary">{s.grade}</span>}
+                      {s.score != null && <span className="text-xs font-bold text-brand-primary">{s.score}/{s.maxScore || assignment.totalPoints || 100}</span>}
                     </div>
                   </div>
 
@@ -179,7 +186,7 @@ export default function AdminAssignmentDetail() {
 
                   {s.note && <p className="mt-1 text-xs text-ink-500 italic">"{s.note}"</p>}
 
-                  <GradeForm submission={s} onGraded={(updated) => handleGraded(s._id, updated)} />
+                  <GradeForm submission={s} assignmentTotalPoints={assignment.totalPoints} onGraded={(updated) => handleGraded(s._id, updated)} />
                 </div>
               );
             })}

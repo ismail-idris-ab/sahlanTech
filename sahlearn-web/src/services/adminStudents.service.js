@@ -22,3 +22,8 @@ export const toggleStudentStatus = async (id, isActive) => {
   const { data } = await api.patch(`/api/admin/students/${id}/status`, { isActive });
   return data.data;
 };
+
+export const getStudentProgress = async (id) => {
+  const { data } = await api.get(`/api/admin/students/${id}/progress`);
+  return data.data; // CourseGroup[]
+};

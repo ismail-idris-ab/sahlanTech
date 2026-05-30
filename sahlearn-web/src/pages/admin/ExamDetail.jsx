@@ -9,12 +9,27 @@ function ReviewForm({ attempt, examQuestions, onReviewed }) {
   const [note, setNote] = useState(attempt.adminNote || '');
   const [saving, setSaving] = useState(false);
 
+  // Build initial essay scores from existing attempt answers
+  const initEssayScores = () => {
+    const map = {};
+    for (const a of attempt.answers || []) {
+      if (a.essayScore != null) map[a.questionIndex] = String(a.essayScore);
+    }
+    return map;
+  };
+  const [essayScores, setEssayScores] = useState(initEssayScores);
+
+  const hasShortQuestions = examQuestions.some((q) => q.type === 'short');
+
   const handleSave = async () => {
     setSaving(true);
     try {
+      const essayPayload = Object.entries(essayScores)
+        .map(([qi, pts]) => ({ questionIndex: Number(qi), points: Number(pts) || 0 }));
+
       const updated = await reviewAttempt(attempt.id, {
         adminNote: note,
-        status: 'reviewed',
+        ...(hasShortQuestions && { essayScores: essayPayload }),
       });
       onReviewed(updated);
       toast.success('Review saved');
@@ -46,7 +61,7 @@ function ReviewForm({ attempt, examQuestions, onReviewed }) {
                     const isCorrect = q.correctIndex === oi;
                     let cls = 'px-2.5 py-1.5 rounded-lg text-xs border ';
                     if (isCorrect) cls += 'bg-green-50 border-green-200 text-green-800';
-                    else if (isSelected) cls += 'bg-red-50 border-red-200 text-red-700';
+                    else if (isSelected && !isCorrect) cls += 'bg-red-50 border-red-200 text-red-700';
                     else cls += 'border-surface-200 text-ink-500';
                     return (
                       <div key={oi} className={cls}>
@@ -60,8 +75,23 @@ function ReviewForm({ attempt, examQuestions, onReviewed }) {
               )}
 
               {q.type === 'short' && (
-                <div className="p-2.5 bg-white rounded-lg border border-surface-200 text-sm text-ink-700">
-                  {answer?.textAnswer || <span className="text-ink-300 italic">No answer</span>}
+                <div className="space-y-2">
+                  <div className="p-2.5 bg-white rounded-lg border border-surface-200 text-sm text-ink-700 min-h-[3rem]">
+                    {answer?.textAnswer || <span className="text-ink-300 italic">No answer provided</span>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-ink-500 shrink-0">Score:</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={q.points}
+                      value={essayScores[i] ?? ''}
+                      onChange={(e) => setEssayScores((prev) => ({ ...prev, [i]: e.target.value }))}
+                      placeholder="0"
+                      className="w-20 px-2 py-1 border border-surface-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
+                    />
+                    <span className="text-xs text-ink-400">/ {q.points}</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -84,7 +114,7 @@ function ReviewForm({ attempt, examQuestions, onReviewed }) {
         disabled={saving}
         className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white text-sm font-semibold rounded-xl hover:bg-brand-primary/90 transition disabled:opacity-60"
       >
-        {saving ? 'Saving...' : attempt.status === 'reviewed' ? 'Update Review' : 'Mark as Reviewed'}
+        {saving ? 'Saving...' : attempt.status === 'reviewed' ? 'Update Review' : 'Save Grade'}
       </button>
     </div>
   );

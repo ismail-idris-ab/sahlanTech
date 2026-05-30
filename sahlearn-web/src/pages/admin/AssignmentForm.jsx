@@ -16,6 +16,7 @@ export default function AssignmentForm() {
     description: '',
     dueDate: '',
     isPublished: true,
+    totalPoints: 100,
   });
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -27,11 +28,12 @@ export default function AssignmentForm() {
       getAssignment(id)
         .then((a) => {
           setForm({
-            course: a.course?._id || a.course || '',
+            course: a.course?.id || a.course?._id || a.course || '',
             title: a.title,
             description: a.description || '',
             dueDate: a.dueDate ? new Date(a.dueDate).toISOString().slice(0, 16) : '',
             isPublished: a.isPublished,
+            totalPoints: a.totalPoints || 100,
           });
         })
         .catch(() => toast.error('Failed to load assignment'))
@@ -86,7 +88,7 @@ export default function AssignmentForm() {
             >
               <option value="">Select a course...</option>
               {courses.map((c) => (
-                <option key={c._id} value={c._id}>{c.title}</option>
+                <option key={c.id} value={c.id}>{c.title}</option>
               ))}
             </select>
           </div>
@@ -100,6 +102,19 @@ export default function AssignmentForm() {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="e.g. Week 3 Assignment"
+              className="w-full px-3 py-2.5 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-ink-600 mb-1">Total Points <span className="text-red-500">*</span></label>
+            <input
+              type="number"
+              required
+              min={1}
+              max={1000}
+              value={form.totalPoints}
+              onChange={(e) => setForm({ ...form, totalPoints: Number(e.target.value) || 100 })}
               className="w-full px-3 py-2.5 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
             />
           </div>

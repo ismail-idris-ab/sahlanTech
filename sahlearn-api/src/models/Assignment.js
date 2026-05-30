@@ -8,6 +8,7 @@ const assignmentSchema = new mongoose.Schema(
     description: { type: String, trim: true, maxlength: 3000 },
     dueDate: { type: Date },
     isPublished: { type: Boolean, default: true },
+    totalPoints: { type: Number, default: 100, min: 1 },
   },
   { timestamps: true }
 );

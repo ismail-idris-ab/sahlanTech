@@ -1,6 +1,8 @@
 // sahlearn-api/src/controllers/admin.students.controller.js
 const crypto = require('crypto');
 const Student = require('../models/Student');
+const ExamAttempt = require('../models/ExamAttempt');
+const Submission = require('../models/Submission');
 const { success, successList, notFound } = require('../utils/apiResponse');
 const { sendMail } = require('../utils/mailer');
 const { passwordResetTemplate } = require('../utils/emailTemplates');
@@ -73,4 +75,66 @@ const updateStatus = async (req, res) => {
   success(res, student);
 };
 
-module.exports = { list, getById, resetPassword, updateStatus };
+const getStudentProgress = async (req, res) => {
+  const student = await Student.findById(req.params.id).select('enrolledCourses').populate('enrolledCourses.course', 'title');
+  if (!student) return notFound(res, 'Student not found');
+
+  const studentId = student._id;
+
+  const [attempts, submissions] = await Promise.all([
+    ExamAttempt.find({ student: studentId })
+      .populate({ path: 'exam', select: 'title totalPoints course', populate: { path: 'course', select: 'title _id' } })
+      .lean(),
+    Submission.find({ student: studentId })
+      .populate({ path: 'assignment', select: 'title totalPoints course', populate: { path: 'course', select: 'title _id' } })
+      .lean(),
+  ]);
+
+  const courseMap = {};
+
+  const ensureCourse = (courseDoc) => {
+    if (!courseDoc) return null;
+    const id = courseDoc._id.toString();
+    if (!courseMap[id]) courseMap[id] = { courseId: id, courseTitle: courseDoc.title, exams: [], assignments: [] };
+    return id;
+  };
+
+  for (const attempt of attempts) {
+    const id = ensureCourse(attempt.exam?.course);
+    if (!id) continue;
+    courseMap[id].exams.push({
+      examId: attempt.exam?._id,
+      title: attempt.exam?.title,
+      score: attempt.score,
+      mcqScore: attempt.mcqScore,
+      maxScore: attempt.maxScore,
+      status: attempt.status,
+      submittedAt: attempt.submittedAt,
+    });
+  }
+
+  for (const sub of submissions) {
+    const id = ensureCourse(sub.assignment?.course);
+    if (!id) continue;
+    courseMap[id].assignments.push({
+      assignmentId: sub.assignment?._id,
+      title: sub.assignment?.title,
+      score: sub.score,
+      maxScore: sub.maxScore || sub.assignment?.totalPoints || 100,
+      status: sub.status,
+      feedback: sub.feedback,
+      submittedAt: sub.submittedAt,
+    });
+  }
+
+  // Include enrolled courses even with no activity
+  for (const ec of student.enrolledCourses) {
+    if (!ec.course) continue;
+    const id = ec.course._id.toString();
+    if (!courseMap[id]) courseMap[id] = { courseId: id, courseTitle: ec.course.title, exams: [], assignments: [] };
+  }
+
+  success(res, Object.values(courseMap));
+};
+
+module.exports = { list, getById, resetPassword, updateStatus, getStudentProgress };

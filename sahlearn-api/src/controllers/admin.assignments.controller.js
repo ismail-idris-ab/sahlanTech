@@ -5,7 +5,7 @@ const cloudinary = require('../config/cloudinary');
 const { success, successList, notFound } = require('../utils/apiResponse');
 
 const createAssignment = async (req, res) => {
-  const { course, title, description, dueDate, isPublished } = req.body;
+  const { course, title, description, dueDate, isPublished, totalPoints } = req.body;
 
   const assignment = await Assignment.create({
     course,
@@ -13,6 +13,7 @@ const createAssignment = async (req, res) => {
     description,
     dueDate: dueDate || undefined,
     isPublished: isPublished !== undefined ? isPublished : true,
+    totalPoints: totalPoints || 100,
   });
 
   success(res, assignment, 201);
@@ -56,7 +57,7 @@ const getAssignment = async (req, res) => {
 };
 
 const updateAssignment = async (req, res) => {
-  const allowed = ['title', 'description', 'dueDate', 'isPublished'];
+  const allowed = ['title', 'description', 'dueDate', 'isPublished', 'totalPoints'];
   const updates = {};
   for (const key of allowed) {
     if (req.body[key] !== undefined) updates[key] = req.body[key];
@@ -97,17 +98,24 @@ const listSubmissions = async (req, res) => {
 };
 
 const gradeSubmission = async (req, res) => {
-  const { grade, feedback, status } = req.body;
-  const updates = {};
-  if (grade !== undefined) updates.grade = grade;
-  if (feedback !== undefined) updates.feedback = feedback;
-  if (status !== undefined) updates.status = status;
-  if (grade || feedback) updates.gradedAt = new Date();
+  const { score, feedback, status } = req.body;
 
-  const submission = await Submission.findByIdAndUpdate(req.params.submissionId, updates, { new: true })
-    .populate('student', 'fullName studentId email avatar')
-    .populate('assignment', 'title');
+  const submission = await Submission.findById(req.params.submissionId).populate('assignment', 'title totalPoints');
   if (!submission) return notFound(res, 'Submission not found');
+
+  if (score !== undefined) {
+    const maxPoints = submission.assignment?.totalPoints || 100;
+    submission.score = Math.min(Math.max(0, Number(score) || 0), maxPoints);
+    submission.maxScore = maxPoints;
+    submission.gradedAt = new Date();
+  }
+  if (feedback !== undefined) submission.feedback = feedback;
+  if (status !== undefined) submission.status = status;
+  if ((score !== undefined || feedback) && !submission.gradedAt) submission.gradedAt = new Date();
+
+  await submission.save();
+
+  await submission.populate('student', 'fullName studentId email avatar');
   success(res, submission);
 };
 

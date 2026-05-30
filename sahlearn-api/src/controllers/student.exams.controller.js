@@ -16,7 +16,7 @@ const stripAnswers = (exam) => {
 };
 
 const listExams = async (req, res) => {
-  const courseIds = req.student.enrolledCourses.map((ec) => ec.course);
+  const courseIds = req.student.enrolledCourses.filter((ec) => ec.course).map((ec) => ec.course);
 
   const exams = await Exam.find({ course: { $in: courseIds }, isPublished: true })
     .sort({ createdAt: -1 })
@@ -33,12 +33,15 @@ const listExams = async (req, res) => {
   const data = exams.map((e) => {
     const stripped = stripAnswers(e);
     const attempt = attemptMap[e._id.toString()];
+    const hasShortQuestions = e.questions.some((q) => q.type === 'short');
     stripped.myAttempt = attempt
       ? {
           score: attempt.score,
+          mcqScore: attempt.mcqScore,
           maxScore: attempt.maxScore,
           status: attempt.status,
           submittedAt: attempt.submittedAt,
+          isPendingEssayReview: hasShortQuestions && attempt.status === 'submitted',
         }
       : null;
     return stripped;
@@ -48,7 +51,7 @@ const listExams = async (req, res) => {
 };
 
 const getExam = async (req, res) => {
-  const courseIds = req.student.enrolledCourses.map((ec) => ec.course.toString());
+  const courseIds = req.student.enrolledCourses.filter((ec) => ec.course).map((ec) => ec.course.toString());
 
   const exam = await Exam.findById(req.params.id).populate('course', 'title slug');
   if (!exam || !exam.isPublished) return notFound(res, 'Exam not found');
@@ -62,14 +65,19 @@ const getExam = async (req, res) => {
   if (myAttempt) {
     // Reveal correct answers after submission — use toJSON shape (id already mapped)
     const obj = exam.toJSON();
-    return success(res, { exam: obj, myAttempt });
+    const hasShortQuestions = exam.questions.some((q) => q.type === 'short');
+    const attemptObj = myAttempt.toJSON();
+    attemptObj.isPendingEssayReview = hasShortQuestions && myAttempt.status === 'submitted';
+    return success(res, { exam: obj, myAttempt: attemptObj });
   }
 
   success(res, { exam: stripAnswers(exam), myAttempt: null });
 };
 
 const submitExam = async (req, res) => {
-  const courseIds = req.student.enrolledCourses.map((ec) => ec.course.toString());
+  const courseIds = req.student.enrolledCourses
+    .filter((ec) => ec.course)
+    .map((ec) => ec.course.toString());
 
   const exam = await Exam.findById(req.params.id);
   if (!exam || !exam.isPublished) return notFound(res, 'Exam not found');
@@ -85,23 +93,32 @@ const submitExam = async (req, res) => {
 
   const { answers } = req.body;
 
-  let score = 0;
+  let mcqScore = 0;
   for (const answer of answers || []) {
     const q = exam.questions[answer.questionIndex];
     if (!q) continue;
     if (q.type === 'mcq' && answer.selectedIndex === q.correctIndex) {
-      score += q.points || 1;
+      mcqScore += q.points || 1;
     }
   }
 
-  const attempt = await ExamAttempt.create({
-    exam: exam._id,
-    student: req.student._id,
-    answers: answers || [],
-    score,
-    maxScore: exam.totalPoints,
-    submittedAt: new Date(),
-  });
+  let attempt;
+  try {
+    attempt = await ExamAttempt.create({
+      exam: exam._id,
+      student: req.student._id,
+      answers: answers || [],
+      mcqScore,
+      score: mcqScore, // essay scores added later by admin
+      maxScore: exam.totalPoints,
+      submittedAt: new Date(),
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ status: 'error', message: 'You have already submitted this exam' });
+    }
+    throw err;
+  }
 
   success(res, attempt, 201);
 };
@@ -111,11 +128,18 @@ const getMyAttempts = async (req, res) => {
     .sort({ submittedAt: -1 })
     .populate({
       path: 'exam',
-      select: 'title course totalPoints',
+      select: 'title course totalPoints questions',
       populate: { path: 'course', select: 'title slug' },
     });
 
-  success(res, attempts);
+  const data = attempts.map((a) => {
+    const obj = a.toJSON();
+    const hasShortQuestions = a.exam?.questions?.some((q) => q.type === 'short');
+    obj.isPendingEssayReview = hasShortQuestions && a.status === 'submitted';
+    return obj;
+  });
+
+  success(res, data);
 };
 
 module.exports = { listExams, getExam, submitExam, getMyAttempts };

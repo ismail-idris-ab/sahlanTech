@@ -6,6 +6,8 @@ const answerSchema = new mongoose.Schema(
     questionIndex: { type: Number, required: true },
     selectedIndex: { type: Number },
     textAnswer: { type: String, trim: true, maxlength: 2000 },
+    // Points awarded by admin for short/essay answers
+    essayScore: { type: Number, min: 0, default: null },
   },
   { _id: false }
 );
@@ -15,7 +17,8 @@ const examAttemptSchema = new mongoose.Schema(
     exam: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true, index: true },
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true, index: true },
     answers: { type: [answerSchema], default: [] },
-    score: { type: Number, default: 0 },
+    mcqScore: { type: Number, default: 0 },  // auto-calculated at submission
+    score: { type: Number, default: 0 },     // mcqScore + sum of essayScores
     maxScore: { type: Number, default: 0 },
     status: { type: String, enum: ['submitted', 'reviewed'], default: 'submitted' },
     submittedAt: { type: Date, default: Date.now },
