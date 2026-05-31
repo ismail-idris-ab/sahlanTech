@@ -1,5 +1,6 @@
 // sahlearn-web/src/components/layout/StudentLayout.jsx
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useStudentAuth } from '../../context/StudentAuthContext';
 import {
@@ -21,7 +22,7 @@ const NAV_ITEMS = [
   { to: '/student/profile',      label: 'Profile',      icon: User },
 ];
 
-/* 4 core tabs shown always + "More" tab */
+/* 4 core tabs + "More" tab */
 const CORE_TABS = [
   { to: '/student/dashboard',   label: 'Home',     icon: LayoutDashboard, end: true },
   { to: '/student/courses',     label: 'Courses',  icon: BookOpen },
@@ -29,18 +30,24 @@ const CORE_TABS = [
   { to: '/student/messages',    label: 'Messages', icon: MessageCircle },
 ];
 
-/* Items surfaced inside the "More" bottom sheet */
+/* Items surfaced in the "More" sheet */
 const MORE_ITEMS = [
-  { to: '/student/announcements', label: 'Announcements', icon: Megaphone },
-  { to: '/student/attendance',    label: 'Attendance',    icon: CalendarCheck },
-  { to: '/student/progress',      label: 'My Progress',   icon: BarChart2 },
-  { to: '/student/profile',       label: 'Profile',       icon: User },
+  { to: '/student/exams',         label: 'Exams',        icon: ClipboardCheck },
+  { to: '/student/announcements', label: 'Announcements',icon: Megaphone },
+  { to: '/student/attendance',    label: 'Attendance',   icon: CalendarCheck },
+  { to: '/student/progress',      label: 'My Progress',  icon: BarChart2 },
+  { to: '/student/profile',       label: 'Profile',      icon: User },
 ];
 
-/* Leaf routes = detail pages (path depth > 2, e.g. /student/assignments/:id) */
-function useIsLeafRoute() {
-  const { pathname } = useLocation();
-  return pathname.split('/').filter(Boolean).length > 2;
+/* Resolve the back-navigation target from the current path.
+   Always navigates to the nearest list page, never relies on browser history. */
+function getParentRoute(pathname) {
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length <= 2) return null; // top-level page, no back needed
+  // Walk up until we hit a 2-segment (list) route
+  let up = segments.slice(0, -1);
+  while (up.length > 2) up = up.slice(0, -1);
+  return '/' + up.join('/');
 }
 
 /* ── Sidebar nav item (desktop) ── */
@@ -63,29 +70,30 @@ function SideNavItem({ to, label, icon: Icon, end }) {
   );
 }
 
-/* ── "More" bottom sheet ── */
+/* ── "More" bottom sheet — portaled to document.body to escape overflow-hidden ── */
 function MoreSheet({ open, onClose, onLogout }) {
   if (!open) return null;
-  return (
+
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 lg:hidden"
-        style={{ background: 'rgba(1,31,40,0.5)', backdropFilter: 'blur(2px)' }}
+        className="fixed inset-0 z-[100]"
+        style={{ background: 'rgba(1,31,40,0.55)', backdropFilter: 'blur(2px)' }}
         onClick={onClose}
       />
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 inset-x-0 z-50 lg:hidden rounded-t-2xl overflow-hidden"
-        style={{ background: '#fff', boxShadow: '0 -8px 32px rgba(0,0,0,0.15)' }}
+        className="fixed bottom-0 inset-x-0 z-[101] rounded-t-2xl overflow-hidden"
+        style={{ background: '#fff', boxShadow: '0 -8px 32px rgba(0,0,0,0.18)' }}
       >
-        {/* Handle + header */}
+        {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-surface-200">
           <p className="text-sm font-semibold text-ink-900">More</p>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-ink-400 hover:bg-surface-100 transition"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-ink-400 hover:bg-surface-100 transition-colors"
           >
             <X size={16} />
           </button>
@@ -99,7 +107,7 @@ function MoreSheet({ open, onClose, onLogout }) {
               to={to}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all ${
+                `flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-surface-100 text-brand-primary'
                     : 'text-ink-600 hover:bg-surface-100'
@@ -120,29 +128,34 @@ function MoreSheet({ open, onClose, onLogout }) {
         <div className="px-3 pb-4 pt-1 border-t border-surface-100">
           <button
             onClick={onLogout}
-            className="flex items-center gap-3 w-full px-3.5 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition"
+            className="flex items-center gap-3 w-full px-3.5 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
           >
             <LogOut size={18} />
             Sign out
           </button>
         </div>
 
-        {/* Safe area */}
         <div style={{ height: 'env(safe-area-inset-bottom)' }} />
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 
-/* ── Bottom tab bar ── */
+/* ── Bottom tab bar — portaled to document.body ── */
 function BottomTabBar({ onMoreClick, moreActive }) {
-  return (
+  return createPortal(
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 lg:hidden flex items-stretch bg-white border-t border-surface-200"
+      className="fixed bottom-0 inset-x-0 z-50 flex items-stretch bg-white border-t border-surface-200 lg:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {CORE_TABS.map(({ to, label, icon: Icon, end }) => (
-        <NavLink key={to} to={to} end={end} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5">
+        <NavLink
+          key={to}
+          to={to}
+          end={end}
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5"
+        >
           {({ isActive }) => (
             <>
               <span
@@ -161,6 +174,7 @@ function BottomTabBar({ onMoreClick, moreActive }) {
 
       {/* More tab */}
       <button
+        type="button"
         onClick={onMoreClick}
         className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5"
       >
@@ -174,7 +188,8 @@ function BottomTabBar({ onMoreClick, moreActive }) {
           More
         </span>
       </button>
-    </nav>
+    </nav>,
+    document.body
   );
 }
 
@@ -183,7 +198,6 @@ export default function StudentLayout() {
   const { student, logoutStudent } = useStudentAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const isLeaf = useIsLeafRoute();
   const [moreOpen, setMoreOpen] = useState(false);
 
   const handleLogout = () => { logoutStudent(); navigate('/student/login'); };
@@ -192,23 +206,26 @@ export default function StudentLayout() {
     ? student.fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'ST';
 
-  /* "More" tab is visually active if current route is a MORE_ITEMS route */
-  const moreActive = MORE_ITEMS.some(({ to }) => pathname.startsWith(to));
+  const parentRoute = getParentRoute(pathname);
+  const isLeaf = parentRoute !== null;
+  const moreActive = MORE_ITEMS.some(({ to }) => pathname === to || pathname.startsWith(to + '/'));
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
+
       {/* ── Top bar ── */}
       <header
         className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30"
         style={{ background: 'linear-gradient(90deg, #013F4A 0%, #068562 100%)', height: '52px' }}
       >
-        {/* Left: back button (mobile leaf pages) OR logo */}
-        <div className="flex items-center gap-2.5">
-          {/* Back button — mobile only, leaf routes only */}
+        {/* Left */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          {/* Back arrow — mobile only, detail pages only */}
           {isLeaf && (
             <button
-              onClick={() => navigate(-1)}
-              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg mr-1 transition-all"
+              type="button"
+              onClick={() => navigate(parentRoute)}
+              className="lg:hidden flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all"
               style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
               aria-label="Go back"
             >
@@ -216,23 +233,23 @@ export default function StudentLayout() {
             </button>
           )}
 
-          {/* Logo — always shown on desktop; hidden on mobile leaf pages to save space */}
+          {/* Logo */}
           <div
             className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isLeaf ? 'hidden lg:flex' : 'flex'}`}
             style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
             <Sprout size={15} className="text-white" />
           </div>
-          <span className={`text-base font-display text-white leading-none ${isLeaf ? 'hidden lg:block' : ''}`}>
+          <span className={`text-base font-display text-white leading-none truncate ${isLeaf ? 'hidden lg:block' : ''}`}>
             sahlearn
           </span>
-          <span className="hidden sm:block text-[9px] font-semibold tracking-widest uppercase" style={{ color: '#71B280' }}>
+          <span className="hidden sm:block text-[9px] font-semibold tracking-widest uppercase flex-shrink-0" style={{ color: '#71B280' }}>
             Student
           </span>
         </div>
 
-        {/* Right: bell + avatar */}
-        <div className="flex items-center gap-2">
+        {/* Right */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <NavLink
             to="/student/messages"
             className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all"
@@ -277,6 +294,7 @@ export default function StudentLayout() {
               </div>
             </div>
             <button
+              type="button"
               onClick={handleLogout}
               className="flex items-center gap-2.5 w-full px-3.5 py-2 rounded-xl text-sm text-ink-500 hover:text-ink-900 hover:bg-surface-100 transition-all"
             >
@@ -294,18 +312,9 @@ export default function StudentLayout() {
         </div>
       </div>
 
-      {/* ── Mobile bottom tab bar ── */}
-      <BottomTabBar
-        onMoreClick={() => setMoreOpen(true)}
-        moreActive={moreActive}
-      />
-
-      {/* ── "More" bottom sheet ── */}
-      <MoreSheet
-        open={moreOpen}
-        onClose={() => setMoreOpen(false)}
-        onLogout={handleLogout}
-      />
+      {/* Portaled outside overflow-hidden — safe on all mobile browsers */}
+      <BottomTabBar onMoreClick={() => setMoreOpen(true)} moreActive={moreActive} />
+      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} onLogout={handleLogout} />
     </div>
   );
 }
