@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getAssignment, submitAssignment } from '../../services/studentAssignments.service';
-import { ArrowLeft, Upload, FileText, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ACCEPTED = '.pdf,.doc,.docx,.zip,.jpg,.jpeg,.png,.webp';
