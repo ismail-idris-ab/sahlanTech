@@ -51,11 +51,13 @@ export default function AssignmentDetail() {
   const submitted = !!assignment.mySubmission;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-2">
-        <Link to="/student/assignments" className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-900 transition">
-          <ArrowLeft size={14} /> Assignments
-        </Link>
+    <div className="space-y-5 max-w-2xl">
+      <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-1">
+        <Link to="/student/assignments" className="hover:text-ink-900 transition">Assignments</Link>
+        <span>›</span>
+        <span className="font-semibold" style={{ color: '#068562' }}>
+          {assignment?.title || 'Assignment'}
+        </span>
       </div>
 
       {/* Assignment info */}
