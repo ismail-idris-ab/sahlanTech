@@ -131,7 +131,12 @@ export default function AdminStudents() {
               >
                 ← Prev
               </button>
-              {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => i + 1).map((p) => (
+              {(() => {
+                const total = meta.totalPages;
+                const start = Math.max(1, Math.min(page - 2, total - 4));
+                const end = Math.min(total, start + 4);
+                return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+              })().map((p) => (
                 <button
                   key={p}
                   onClick={() => setPage(p)}

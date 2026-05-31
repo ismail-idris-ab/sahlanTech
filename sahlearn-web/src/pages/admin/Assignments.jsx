@@ -116,7 +116,12 @@ export default function AdminAssignments() {
             <p className="text-xs text-ink-400">Page {page} of {meta.totalPages}</p>
             <div className="flex gap-1.5">
               <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 bg-white text-ink-600">← Prev</button>
-              {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => i + 1).map((p) => (
+              {(() => {
+                const total = meta.totalPages;
+                const start = Math.max(1, Math.min(page - 2, total - 4));
+                const end = Math.min(total, start + 4);
+                return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+              })().map((p) => (
                 <button
                   key={p}
                   onClick={() => setPage(p)}
