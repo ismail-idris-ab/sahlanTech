@@ -59,37 +59,56 @@ export default function StudentExams() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-display text-ink-900">Exams</h1>
+      <div>
+        <h1 className="text-2xl font-display text-ink-900">Exams</h1>
+        <p className="text-xs text-ink-400 mt-0.5">{exams.length} exam{exams.length !== 1 ? 's' : ''}</p>
+      </div>
 
       {exams.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-surface-200 p-12 text-center">
-          <ClipboardCheck size={40} className="mx-auto text-ink-300 mb-3" />
-          <p className="text-ink-500">No exams available yet.</p>
+        <div className="bg-white rounded-2xl border border-surface-200 p-16 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-surface-100 flex items-center justify-center mx-auto mb-3">
+            <ClipboardCheck size={22} className="text-ink-300" />
+          </div>
+          <p className="font-semibold text-ink-700">No exams available yet</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {exams.map((exam) => (
-            <Link
-              key={exam.id}
-              to={`/student/exams/${exam.id}`}
-              className="block bg-white rounded-2xl border border-surface-200 p-5 hover:border-brand-primary/30 transition"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="font-semibold text-ink-900 truncate">{exam.title}</h2>
-                  <p className="text-sm text-ink-400 mt-0.5">{exam.course?.title}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-ink-400">
-                    <span>{exam.questions?.length || 0} question{exam.questions?.length !== 1 ? 's' : ''}</span>
-                    <span>{exam.totalPoints} point{exam.totalPoints !== 1 ? 's' : ''}</span>
-                    {exam.duration && <span>{exam.duration} min</span>}
-                    {exam.dueDate && (
-                      <span>Due {new Date(exam.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                    )}
-                  </div>
-                </div>
+            <div key={exam._id || exam.id} className="bg-white rounded-2xl border border-surface-200 p-4 hover:shadow-card-hover transition-all duration-200">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h3 className="font-semibold text-ink-900 leading-snug">{exam.title}</h3>
                 <StatusBadge exam={exam} />
               </div>
-            </Link>
+              <p className="text-xs text-ink-400 mb-3">{exam.course?.title}</p>
+              {exam.dueDate && (
+                <p className="text-xs text-ink-500 mb-3">
+                  Due {new Date(exam.dueDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
+              )}
+              <div className="h-1.5 bg-surface-200 rounded-full overflow-hidden mb-3">
+                <div
+                  className="h-1.5 rounded-full"
+                  style={{
+                    width: exam.myAttempt ? '100%' : '0%',
+                    background: exam.myAttempt?.status === 'reviewed' ? 'linear-gradient(90deg, #8b5cf6, #6366f1)' : 'linear-gradient(90deg, #068562, #71B280)',
+                  }}
+                />
+              </div>
+              {!exam.myAttempt && !(exam.dueDate && new Date(exam.dueDate) < new Date()) && (
+                <Link
+                  to={`/student/exams/${exam._id || exam.id}/take`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #068562, #056B4E)' }}
+                >
+                  Start Exam
+                </Link>
+              )}
+              {exam.myAttempt && (
+                <p className="text-xs font-semibold text-ink-600">
+                  Score: {exam.myAttempt.score} / {exam.myAttempt.maxScore}
+                </p>
+              )}
+            </div>
           ))}
         </div>
       )}
