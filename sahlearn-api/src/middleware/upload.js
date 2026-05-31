@@ -45,11 +45,17 @@ const ASSIGNMENT_MIMES = [
 
 const assignmentStorage = new CloudinaryStorage({
   cloudinary,
-  params: (_req, file) => ({
-    folder: 'sahlearn/assignments',
-    resource_type: 'auto',
-    public_id: `${Date.now()}-${file.originalname.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '')}`,
-  }),
+  params: (_req, file) => {
+    const nameNoExt = file.originalname
+      .replace(/\.[^.]+$/, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_-]/g, '');
+    return {
+      folder: 'sahlearn/assignments',
+      resource_type: 'auto',
+      public_id: `${Date.now()}-${nameNoExt}`,
+    };
+  },
 });
 
 const assignmentFileFilter = (_req, file, cb) => {
@@ -66,4 +72,46 @@ const uploadAssignment = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-module.exports = { upload, uploadAssignment };
+// Document upload — for announcements and message attachments
+const DOC_MIMES = [
+  'image/jpeg', 'image/png', 'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/zip',
+  'application/x-zip-compressed',
+];
+
+const docStorage = new CloudinaryStorage({
+  cloudinary,
+  params: (_req, file) => {
+    // Strip extension — Cloudinary appends it automatically for raw resources
+    const nameNoExt = file.originalname
+      .replace(/\.[^.]+$/, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_-]/g, '');
+    return {
+      folder: 'sahlearn/documents',
+      resource_type: 'auto',
+      public_id: `${Date.now()}-${nameNoExt}`,
+    };
+  },
+});
+
+const docFilter = (_req, file, cb) => {
+  if (DOC_MIMES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Unsupported file type'), false);
+  }
+};
+
+const uploadDoc = multer({
+  storage: docStorage,
+  fileFilter: docFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+module.exports = { upload, uploadAssignment, uploadDoc };

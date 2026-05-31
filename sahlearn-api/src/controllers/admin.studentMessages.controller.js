@@ -83,10 +83,26 @@ const sendReply = async (req, res) => {
   const student = await Student.findById(req.params.studentId).lean();
   if (!student) return notFound(res, 'Student not found');
 
+  const content = req.body.content || '';
+  const file = req.file
+    ? {
+        url: req.file.path,
+        public_id: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+      }
+    : undefined;
+
+  if (!content && !file) {
+    return res.status(400).json({ status: 'error', message: 'Message or file required' });
+  }
+
   const message = await Message.create({
     student: req.params.studentId,
     sender: 'admin',
-    content: req.body.content,
+    content,
+    file,
     readByAdmin: true,
     readByStudent: false,
   });

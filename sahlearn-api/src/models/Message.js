@@ -5,9 +5,16 @@ const messageSchema = new mongoose.Schema(
   {
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true, index: true },
     sender: { type: String, enum: ['student', 'admin'], required: true },
-    content: { type: String, required: true, trim: true, maxlength: 2000 },
+    content: { type: String, trim: true, maxlength: 2000, default: '' },
     readByAdmin: { type: Boolean, default: false },
     readByStudent: { type: Boolean, default: false },
+    file: {
+      url: { type: String },
+      public_id: { type: String },
+      originalName: { type: String },
+      mimeType: { type: String },
+      size: { type: Number },
+    },
   },
   { timestamps: true }
 );
