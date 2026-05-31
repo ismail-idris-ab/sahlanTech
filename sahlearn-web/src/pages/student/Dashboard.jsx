@@ -73,6 +73,7 @@ export default function StudentDashboard() {
 
   const daysUntil = (date) => {
     const diff = Math.ceil((date - new Date()) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return 'Overdue';
     if (diff === 0) return 'Due today';
     if (diff === 1) return 'Due tomorrow';
     return `In ${diff} days`;
