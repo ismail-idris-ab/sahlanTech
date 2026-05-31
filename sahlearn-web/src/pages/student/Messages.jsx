@@ -1,17 +1,40 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useStudentAuth } from '../../context/StudentAuthContext';
 import { getMessages, sendMessage } from '../../services/studentMessages.service';
-import { Send } from 'lucide-react';
+import { Send, Paperclip, FileText, Download, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const FileAttachment = ({ file, dark }) => {
+  if (!file?.url) return null;
+  if (file.mimeType?.startsWith('image/')) {
+    return (
+      <a href={file.url} target="_blank" rel="noopener noreferrer" className="block mt-1.5">
+        <img src={file.url} alt={file.originalName} className="max-w-[200px] rounded-lg" />
+      </a>
+    );
+  }
+  return (
+    <a
+      href={file.url} target="_blank" rel="noopener noreferrer"
+      className={`mt-1.5 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition ${dark ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white hover:bg-surface-100 text-ink-700 border border-surface-200'}`}
+    >
+      {file.mimeType?.includes('pdf') ? <FileText size={13} /> : <Paperclip size={13} />}
+      <span className="truncate max-w-[160px]">{file.originalName || 'Attachment'}</span>
+      <Download size={11} className="opacity-60 flex-shrink-0" />
+    </a>
+  );
+};
 
 export default function StudentMessages() {
   const { student } = useStudentAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
+  const [file, setFile] = useState(null);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
   const pollingRef = useRef(null);
+  const fileRef = useRef(null);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -38,12 +61,13 @@ export default function StudentMessages() {
   const handleSend = async (e) => {
     e.preventDefault();
     const text = content.trim();
-    if (!text) return;
+    if (!text && !file) return;
     setSending(true);
     try {
-      const msg = await sendMessage(text);
+      const msg = await sendMessage(text, file);
       setMessages((prev) => [...prev, msg]);
       setContent('');
+      setFile(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to send message');
     } finally {
@@ -54,8 +78,14 @@ export default function StudentMessages() {
   const initials = student?.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
-      <h1 className="text-2xl font-display text-ink-900 mb-4 flex-shrink-0">Messages</h1>
+    <div className="space-y-4 max-w-2xl">
+      <div>
+        <h1 className="text-2xl font-display text-ink-900">Messages</h1>
+        <p className="text-xs text-ink-400 mt-0.5">Your conversation with your instructor.</p>
+      </div>
+
+      <div className="flex flex-col h-[calc(100vh-8rem)]">
+
 
       {/* Thread */}
       <div className="flex-1 bg-white rounded-2xl border border-surface-200 overflow-y-auto p-4 space-y-3 min-h-0">
@@ -94,6 +124,7 @@ export default function StudentMessages() {
                     }`}
                   >
                     {msg.content}
+                    <FileAttachment file={msg.file} dark={isStudent} />
                   </div>
                   <span className="text-[10px] text-ink-300 px-1">
                     {new Date(msg.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
@@ -108,8 +139,29 @@ export default function StudentMessages() {
         <div ref={bottomRef} />
       </div>
 
+      {/* File preview */}
+      {file && (
+        <div className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-surface-100 rounded-xl flex-shrink-0">
+          <Paperclip size={13} className="text-ink-400" />
+          <span className="text-xs text-ink-600 truncate flex-1">{file.name}</span>
+          <button onClick={() => setFile(null)} className="text-ink-400 hover:text-red-500 transition"><X size={13} /></button>
+        </div>
+      )}
+
       {/* Input */}
       <form onSubmit={handleSend} className="mt-3 flex gap-2 flex-shrink-0">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="p-3 border border-surface-300 rounded-xl text-ink-400 hover:text-brand-primary hover:border-brand-primary transition flex-shrink-0"
+          title="Attach file"
+        >
+          <Paperclip size={16} />
+        </button>
+        <input ref={fileRef} type="file" className="hidden"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.jpg,.jpeg,.png,.webp"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+        />
         <input
           type="text"
           value={content}
@@ -120,12 +172,13 @@ export default function StudentMessages() {
         />
         <button
           type="submit"
-          disabled={sending || !content.trim()}
+          disabled={sending || (!content.trim() && !file)}
           className="px-4 py-3 bg-brand-primary text-white rounded-xl hover:bg-brand-primary/90 transition disabled:opacity-50 flex items-center gap-2"
         >
           <Send size={16} />
         </button>
       </form>
+      </div>
     </div>
   );
 }
