@@ -43,8 +43,8 @@ export default function MyCourses() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {courses.map((ec) => (
-            <div key={ec.enrollmentId || ec.course?._id} className="bg-white rounded-2xl border border-surface-200 overflow-hidden hover:shadow-card-hover transition-shadow">
+          {courses.map((ec, i) => (
+            <div key={String(ec.enrollmentId || ec.course?._id || i)} className="bg-white rounded-2xl border border-surface-200 overflow-hidden hover:shadow-card-hover transition-shadow">
               {ec.course?.coverImage?.url ? (
                 <img src={ec.course.coverImage.url} alt={ec.course.title} className="w-full h-36 object-cover" />
               ) : (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -19,23 +19,26 @@ export default function AdminCourses() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = { page, limit: PAGE_SIZE, ...(filter !== 'all' ? { status: filter } : {}) };
-      const res = await adminGetCourses(params);
-      setCourses(res.data);
-      setMeta(res.meta ?? { total: res.data.length, totalPages: 1 });
-    } catch {
-      toast.error('Failed to load courses.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const params = { page, limit: PAGE_SIZE, ...(filter !== 'all' ? { status: filter } : {}) };
+        const res = await adminGetCourses(params);
+        if (!cancelled) {
+          setCourses(res.data);
+          setMeta(res.meta ?? { total: res.data.length, totalPages: 1 });
+        }
+      } catch {
+        if (!cancelled) toast.error('Failed to load courses.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, [page, filter]);
-
-  useEffect(() => { load(); }, [load]);
-  /* reset to page 1 when filter changes */
-  useEffect(() => { setPage(1); }, [filter]);
 
   const handleTogglePublish = async (course) => {
     const prev = course.isPublished;
@@ -84,7 +87,7 @@ export default function AdminCourses() {
         {['all', 'published', 'draft'].map((f) => (
           <button
             key={f}
-            onClick={() => setFilter(f)}
+            onClick={() => { setFilter(f); setPage(1); }}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition-all duration-150 ${
               filter === f ? 'bg-brand-primary text-white shadow-sm' : 'text-ink-500 hover:text-ink-900'
             }`}

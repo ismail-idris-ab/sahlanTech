@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -20,22 +20,26 @@ export default function AdminPosts() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = { page, limit: PAGE_SIZE, ...(activeTab !== 'all' ? { status: activeTab } : {}) };
-      const res = await adminGetPosts(params);
-      setPosts(res.data);
-      setMeta(res.meta ?? { total: res.data.length, totalPages: 1 });
-    } catch {
-      toast.error('Failed to load posts.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const params = { page, limit: PAGE_SIZE, ...(activeTab !== 'all' ? { status: activeTab } : {}) };
+        const res = await adminGetPosts(params);
+        if (!cancelled) {
+          setPosts(res.data);
+          setMeta(res.meta ?? { total: res.data.length, totalPages: 1 });
+        }
+      } catch {
+        if (!cancelled) toast.error('Failed to load posts.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, [page, activeTab]);
-
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [activeTab]);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -72,7 +76,7 @@ export default function AdminPosts() {
         {STATUS_TABS.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => { setActiveTab(tab); setPage(1); }}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition-all duration-150 ${
               activeTab === tab
                 ? 'bg-brand-primary text-white shadow-sm'

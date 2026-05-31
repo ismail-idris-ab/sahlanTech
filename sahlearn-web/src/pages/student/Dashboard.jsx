@@ -219,8 +219,8 @@ export default function StudentDashboard() {
             </div>
           ) : (
             <div className="space-y-0">
-              {student.enrolledCourses.slice(0, 4).map((ec) => (
-                <div key={ec.enrollmentId || ec.course?._id} className="flex items-center gap-3 py-3 border-b border-surface-100 last:border-0">
+              {student.enrolledCourses.slice(0, 4).map((ec, i) => (
+                <div key={String(ec.enrollmentId || ec.course?._id || i)} className="flex items-center gap-3 py-3 border-b border-surface-100 last:border-0">
                   {ec.course?.coverImage?.url ? (
                     <img src={ec.course.coverImage.url} alt={ec.course.title} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
                   ) : (

@@ -1,5 +1,5 @@
 // sahlearn-web/src/pages/student/Assignments.jsx
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getAssignments } from '../../services/studentAssignments.service';
 import { ClipboardList, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
@@ -38,15 +38,20 @@ export default function StudentAssignments() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(() => {
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     getAssignments({ page, limit: PAGE_SIZE })
-      .then((res) => { setAssignments(res.data); setMeta(res.meta ?? { total: res.data.length, totalPages: 1 }); })
-      .catch(() => toast.error('Failed to load assignments'))
-      .finally(() => setLoading(false));
+      .then((res) => {
+        if (!cancelled) {
+          setAssignments(res.data);
+          setMeta(res.meta ?? { total: res.data.length, totalPages: 1 });
+        }
+      })
+      .catch(() => { if (!cancelled) toast.error('Failed to load assignments'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [page]);
-
-  useEffect(() => { load(); }, [load]);
 
   return (
     <div className="space-y-5">

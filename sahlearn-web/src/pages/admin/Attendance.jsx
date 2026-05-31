@@ -39,7 +39,7 @@ export default function AdminAttendance() {
     load();
   }, []);
 
-  useEffect(() => { load(filterCourse, page); }, [page]);
+  /* page changes are handled by explicit load(filterCourse, page) calls in handleFilter and Pagination onPage */
 
   const handleFilter = (e) => {
     setFilterCourse(e.target.value);
@@ -226,7 +226,7 @@ export default function AdminAttendance() {
             totalPages={data.meta.totalPages}
             total={data.meta.total}
             pageSize={PAGE_SIZE}
-            onPage={setPage}
+            onPage={(p) => { setPage(p); load(filterCourse, p); }}
           />
         </div>
       )}
