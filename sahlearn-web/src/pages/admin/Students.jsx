@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { getStudents } from '../../services/adminStudents.service';
 import { Search, ChevronRight, UserCheck, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
+import StatusBadge from '../../components/common/StatusBadge';
+
+const GRAD = ['linear-gradient(135deg,#068562,#71B280)', 'linear-gradient(135deg,#C9962A,#E8B84B)', 'linear-gradient(135deg,#8b5cf6,#6366f1)', 'linear-gradient(135deg,#3b82f6,#60a5fa)', 'linear-gradient(135deg,#f97316,#fb923c)'];
+const avatarGrad = (name) => GRAD[(name?.charCodeAt(0) ?? 0) % GRAD.length];
 
 export default function AdminStudents() {
   const [students, setStudents] = useState([]);
@@ -28,78 +32,129 @@ export default function AdminStudents() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display text-ink-900">Students</h1>
-          <p className="text-sm text-ink-400">{meta.total} total student{meta.total !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-ink-400 mt-0.5">{meta.total} total student{meta.total !== 1 ? 's' : ''}</p>
         </div>
-        <div className="relative">
+      </div>
+
+      <div className="flex gap-3 items-center">
+        <div className="relative flex-1 max-w-xs">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
           <input
             type="text"
             placeholder="Search name, email, ID..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="pl-9 pr-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary w-56"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-ink-300/20 overflow-hidden shadow-card">
         {loading ? (
-          <div className="flex justify-center py-12"><div className="w-7 h-7 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-12">
+            <div className="w-7 h-7 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          </div>
         ) : students.length === 0 ? (
-          <div className="py-12 text-center text-ink-400 text-sm">No students found</div>
+          <div className="py-16 text-center">
+            <p className="text-sm text-ink-400">No students found.</p>
+          </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-surface-200 text-left">
-                <th className="px-4 py-3 font-medium text-ink-500">Student</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden sm:table-cell">ID</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden md:table-cell">Temp Password</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden lg:table-cell">Courses</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden lg:table-cell">Status</th>
-                <th className="px-4 py-3" />
+              <tr className="border-b border-surface-200 bg-surface-50 text-left">
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Student</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">ID</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Temp Password</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Courses</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Status</th>
+                <th className="px-5 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-100">
-              {students.map((s) => (
-                <tr key={s.id} className="hover:bg-surface-50 transition">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-ink-900">{s.fullName}</div>
-                    <div className="text-xs text-ink-400">{s.email}</div>
-                  </td>
-                  <td className="px-4 py-3 text-ink-500 hidden sm:table-cell font-mono text-xs">{s.studentId}</td>
-                  <td className="px-4 py-3 hidden md:table-cell">
-                    {s.tempPassword
-                      ? <span className="font-mono text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded">{s.tempPassword}</span>
-                      : <span className="text-xs text-ink-300">—</span>}
-                  </td>
-                  <td className="px-4 py-3 text-ink-500 hidden lg:table-cell">{s.enrolledCourses?.length || 0}</td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full ${s.isActive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                      {s.isActive ? <><UserCheck size={11} /> Active</> : <><UserX size={11} /> Inactive</>}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link to={`/admin/students/${s.id}`} className="inline-flex items-center gap-1 text-xs text-brand-primary hover:underline font-medium">
-                      View <ChevronRight size={13} />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {students.map((s) => {
+                const initials = s.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+                return (
+                  <tr key={s.id} className="hover:bg-surface-50 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
+                          style={{ background: avatarGrad(s.fullName) }}
+                        >
+                          {initials}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-ink-900">{s.fullName}</p>
+                          <p className="text-xs text-ink-400">{s.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-ink-500 hidden sm:table-cell font-mono text-xs">{s.studentId}</td>
+                    <td className="px-5 py-3.5 hidden md:table-cell">
+                      {s.tempPassword
+                        ? <span className="font-mono text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded">{s.tempPassword}</span>
+                        : <span className="text-xs text-ink-300">—</span>}
+                    </td>
+                    <td className="px-5 py-3.5 text-ink-600 hidden lg:table-cell">{s.enrolledCourses?.length || 0}</td>
+                    <td className="px-5 py-3.5 hidden lg:table-cell">
+                      <StatusBadge status={s.isActive ? 'active' : 'inactive'} />
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <Link
+                        to={`/admin/students/${s.id}`}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                        style={{ background: 'rgba(6,133,98,0.08)', color: '#068562', border: '1px solid rgba(6,133,98,0.15)' }}
+                      >
+                        View <ChevronRight size={12} />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
-      </div>
 
-      {meta.totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="px-3 py-1.5 text-sm border border-surface-300 rounded-xl disabled:opacity-40 hover:bg-surface-100 transition">Prev</button>
-          <span className="px-3 py-1.5 text-sm text-ink-500">{page} / {meta.totalPages}</span>
-          <button onClick={() => setPage((p) => p + 1)} disabled={page === meta.totalPages} className="px-3 py-1.5 text-sm border border-surface-300 rounded-xl disabled:opacity-40 hover:bg-surface-100 transition">Next</button>
-        </div>
-      )}
+        {meta.totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-3 bg-surface-50 border-t border-surface-200">
+            <p className="text-xs text-ink-400">
+              Showing {students.length} of {meta.total}
+            </p>
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 transition bg-white text-ink-600"
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition"
+                  style={page === p
+                    ? { background: '#068562', color: '#fff' }
+                    : { background: '#fff', color: '#506860', border: '1px solid rgba(168,196,188,0.4)' }
+                  }
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page === meta.totalPages}
+                className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 transition bg-white text-ink-600"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
