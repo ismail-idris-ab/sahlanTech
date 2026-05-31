@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAssignments, deleteAssignment } from '../../services/adminAssignments.service';
-import { Plus, ClipboardList, Users, Pencil, Trash2 } from 'lucide-react';
+import { Plus, ClipboardList, Pencil, Trash2, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminAssignments() {
@@ -38,26 +38,27 @@ export default function AdminAssignments() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display text-ink-900">Assignments</h1>
-          <p className="text-sm text-ink-400">{meta.total} total</p>
+          <p className="text-xs text-ink-400 mt-0.5">{meta.total} total</p>
         </div>
         <Link
           to="/admin/assignments/new"
-          className="flex items-center gap-2 px-4 py-2 bg-brand-primary text-white text-sm font-semibold rounded-xl hover:bg-brand-primary/90 transition"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl text-white transition hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #068562, #056B4E)' }}
         >
           <Plus size={15} /> New Assignment
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-ink-300/20 overflow-hidden shadow-card">
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-7 h-7 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : assignments.length === 0 ? (
-          <div className="py-12 text-center">
+          <div className="py-16 text-center">
             <ClipboardList size={36} className="mx-auto text-ink-300 mb-2" />
             <p className="text-sm text-ink-400">No assignments yet.</p>
             <Link to="/admin/assignments/new" className="mt-2 inline-block text-sm text-brand-primary hover:underline">Create one</Link>
@@ -65,41 +66,43 @@ export default function AdminAssignments() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-surface-200 text-left">
-                <th className="px-4 py-3 font-medium text-ink-500">Assignment</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden md:table-cell">Course</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden lg:table-cell">Due</th>
-                <th className="px-4 py-3 font-medium text-ink-500 hidden sm:table-cell">Submissions</th>
-                <th className="px-4 py-3" />
+              <tr className="border-b border-surface-200 bg-surface-50 text-left">
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Title</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Course</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Due Date</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">Submissions</th>
+                <th className="px-5 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-100">
               {assignments.map((a) => (
-                <tr key={a._id} className="hover:bg-surface-50 transition">
-                  <td className="px-4 py-3">
-                    <Link to={`/admin/assignments/${a._id}`} className="font-medium text-ink-900 hover:text-brand-primary transition">
-                      {a.title}
-                    </Link>
-                    {!a.isPublished && (
-                      <span className="ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-200 text-ink-500">Draft</span>
-                    )}
+                <tr key={a._id} className="hover:bg-surface-50 transition-colors">
+                  <td className="px-5 py-3.5 font-semibold text-ink-900">{a.title}</td>
+                  <td className="px-5 py-3.5 text-ink-500 hidden md:table-cell">{a.course?.title || '—'}</td>
+                  <td className="px-5 py-3.5 text-ink-500 hidden lg:table-cell">
+                    {a.dueDate ? new Date(a.dueDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-ink-500 hidden md:table-cell">{a.course?.title}</td>
-                  <td className="px-4 py-3 text-ink-500 hidden lg:table-cell text-xs">
-                    {a.dueDate ? new Date(a.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell">
-                    <span className="inline-flex items-center gap-1 text-xs text-ink-500">
-                      <Users size={12} /> {a.submissionCount}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link to={`/admin/assignments/${a._id}/edit`} className="p-1.5 text-ink-400 hover:text-ink-900 transition">
-                        <Pencil size={14} />
+                  <td className="px-5 py-3.5 text-ink-600 hidden sm:table-cell">{a.submissionCount ?? 0}</td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-2 justify-end">
+                      <Link
+                        to={`/admin/assignments/${a._id}`}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg"
+                        style={{ background: 'rgba(6,133,98,0.08)', color: '#068562', border: '1px solid rgba(6,133,98,0.15)' }}
+                      >
+                        <ChevronRight size={12} /> Review
                       </Link>
-                      <button onClick={() => handleDelete(a._id, a.title)} className="p-1.5 text-ink-400 hover:text-red-600 transition">
-                        <Trash2 size={14} />
+                      <Link
+                        to={`/admin/assignments/${a._id}/edit`}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-surface-100 text-ink-600 border border-surface-300 hover:bg-surface-200 transition"
+                      >
+                        <Pencil size={12} /> Edit
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(a._id, a.title)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition"
+                      >
+                        <Trash2 size={12} /> Delete
                       </button>
                     </div>
                   </td>
@@ -108,15 +111,29 @@ export default function AdminAssignments() {
             </tbody>
           </table>
         )}
+        {meta.totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-3 bg-surface-50 border-t border-surface-200">
+            <p className="text-xs text-ink-400">Page {page} of {meta.totalPages}</p>
+            <div className="flex gap-1.5">
+              <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 bg-white text-ink-600">← Prev</button>
+              {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition"
+                  style={page === p
+                    ? { background: '#068562', color: '#fff' }
+                    : { background: '#fff', color: '#506860', border: '1px solid rgba(168,196,188,0.4)' }
+                  }
+                >
+                  {p}
+                </button>
+              ))}
+              <button onClick={() => setPage((p) => p + 1)} disabled={page === meta.totalPages} className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 bg-white text-ink-600">Next →</button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {meta.totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="px-3 py-1.5 text-sm border border-surface-300 rounded-xl disabled:opacity-40 hover:bg-surface-100 transition">Prev</button>
-          <span className="px-3 py-1.5 text-sm text-ink-500">{page} / {meta.totalPages}</span>
-          <button onClick={() => setPage((p) => p + 1)} disabled={page === meta.totalPages} className="px-3 py-1.5 text-sm border border-surface-300 rounded-xl disabled:opacity-40 hover:bg-surface-100 transition">Next</button>
-        </div>
-      )}
     </div>
   );
 }
