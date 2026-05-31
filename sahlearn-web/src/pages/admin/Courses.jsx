@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminGetCourses, deleteCourse, updateCourse } from '../../services/courses.service';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import EmptyState from '../../components/common/EmptyState';
-
-const STATUS_BADGE = {
-  true: 'bg-green-100 text-green-700',
-  false: 'bg-yellow-100 text-yellow-700',
-};
+import StatusBadge from '../../components/common/StatusBadge';
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState([]);
@@ -61,19 +56,23 @@ export default function AdminCourses() {
   };
 
   return (
-    <div className="max-w-5xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold text-brand-primary uppercase tracking-wider mb-1">Learning</p>
-          <h1 className="font-display text-3xl text-ink-900">Courses</h1>
+          <h1 className="text-2xl font-display text-ink-900">Courses</h1>
+          <p className="text-xs text-ink-400 mt-0.5">{courses.length} course{courses.length !== 1 ? 's' : ''}</p>
         </div>
-        <Link to="/admin/courses/new">
-          <Button icon={<Plus size={15} />}>New Course</Button>
+        <Link
+          to="/admin/courses/new"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl text-white transition hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #068562, #056B4E)' }}
+        >
+          <Plus size={15} /> New Course
         </Link>
       </div>
 
       {/* Filter */}
-      <div className="flex gap-1.5 mb-5 p-1 bg-white rounded-xl border border-ink-300/20 w-fit shadow-card">
+      <div className="flex gap-1.5 p-1 bg-white rounded-xl border border-ink-300/20 w-fit shadow-card">
         {['all', 'published', 'draft'].map((f) => (
           <button
             key={f}
@@ -89,60 +88,49 @@ export default function AdminCourses() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-7 h-7 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : courses.length === 0 ? (
-        <EmptyState
-          icon={BookOpen}
-          title="No courses yet"
-          description="Add your first course to get started."
-          action={<Link to="/admin/courses/new"><Button>+ New Course</Button></Link>}
-        />
+        <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card py-16 text-center text-sm text-ink-400">
+          No courses yet. <Link to="/admin/courses/new" className="text-brand-primary hover:underline">Create one</Link>
+        </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="border-b border-ink-300/20">
-              <tr>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Title</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden md:table-cell">Category</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden lg:table-cell">Level</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Status</th>
-                <th className="text-right px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink-300/15">
-              {courses.map((course) => (
-                <tr key={course.id} className="hover:bg-surface-100/60 transition-colors">
-                  <td className="px-5 py-3.5 font-medium text-ink-900 max-w-xs truncate">{course.title}</td>
-                  <td className="px-5 py-3.5 text-ink-600 hidden md:table-cell">{course.category}</td>
-                  <td className="px-5 py-3.5 text-ink-600 hidden lg:table-cell capitalize">{course.level}</td>
-                  <td className="px-5 py-3.5">
-                    <button
-                      onClick={() => handleTogglePublish(course)}
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer transition-all ${STATUS_BADGE[course.isPublished]}`}
-                    >
-                      {course.isPublished ? 'Published' : 'Draft'}
-                    </button>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <Link to={`/admin/courses/${course.id}/edit`}>
-                        <button className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-primary hover:bg-brand-primary/8 transition-all">
-                          <Pencil size={14} />
-                        </button>
-                      </Link>
-                      <button
-                        onClick={() => setDeleteTarget(course)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-brand-danger hover:bg-red-50 transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {courses.map((course) => (
+            <div key={course.id || course._id} className="bg-white rounded-2xl border border-ink-300/20 overflow-hidden shadow-card hover:shadow-card-hover transition-shadow group">
+              <div className="relative h-36">
+                {course.coverImage?.url ? (
+                  <img src={course.coverImage.url} alt={course.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full" style={{ background: 'linear-gradient(135deg, #068562, #71B280)' }} />
+                )}
+                <div className="absolute top-2.5 left-2.5">
+                  <StatusBadge status={course.status || (course.isPublished ? 'published' : 'draft')} />
+                </div>
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-ink-900 leading-snug mb-1 truncate">{course.title}</h3>
+                <p className="text-xs text-ink-400 mb-3">{course.category} · {course.enrollmentCount ?? 0} students</p>
+                <div className="flex items-center gap-2">
+                  <Link
+                    to={`/admin/courses/${course.id || course._id}/edit`}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                    style={{ background: 'rgba(6,133,98,0.08)', color: '#068562', border: '1px solid rgba(6,133,98,0.15)' }}
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => setDeleteTarget(course)}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors text-red-500 hover:bg-red-50"
+                    style={{ border: '1px solid rgba(239,68,68,0.2)' }}
+                  >
+                    <Trash2 size={13} className="inline -mt-0.5 mr-1" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
