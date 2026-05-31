@@ -75,7 +75,11 @@ export default function StudentExams() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {exams.map((exam) => (
-            <div key={exam._id || exam.id} className="bg-white rounded-2xl border border-surface-200 p-4 hover:shadow-card-hover transition-all duration-200">
+            <Link
+              key={exam._id || exam.id}
+              to={`/student/exams/${exam._id || exam.id}`}
+              className="bg-white rounded-2xl border border-surface-200 p-4 hover:shadow-card-hover transition-all duration-200 block"
+            >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-ink-900 leading-snug">{exam.title}</h3>
                 <StatusBadge exam={exam} />
@@ -95,21 +99,19 @@ export default function StudentExams() {
                   }}
                 />
               </div>
-              {!exam.myAttempt && !(exam.dueDate && new Date(exam.dueDate) < new Date()) && (
-                <Link
-                  to={`/student/exams/${exam._id || exam.id}/take`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #068562, #056B4E)' }}
-                >
-                  Start Exam
-                </Link>
-              )}
-              {exam.myAttempt && (
+              {exam.myAttempt ? (
                 <p className="text-xs font-semibold text-ink-600">
                   Score: {exam.myAttempt.score} / {exam.myAttempt.maxScore}
                 </p>
+              ) : (
+                <span
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white"
+                  style={{ background: !(exam.dueDate && new Date(exam.dueDate) < new Date()) ? 'linear-gradient(135deg, #068562, #056B4E)' : '#A8C4BC' }}
+                >
+                  {exam.dueDate && new Date(exam.dueDate) < new Date() ? 'Overdue' : 'Start Exam'}
+                </span>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       )}
