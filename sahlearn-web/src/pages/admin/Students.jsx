@@ -4,6 +4,9 @@ import { getStudents } from '../../services/adminStudents.service';
 import { Search, ChevronRight, UserCheck, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StatusBadge from '../../components/common/StatusBadge';
+import Pagination from '../../components/common/Pagination';
+
+const PAGE_SIZE = 20;
 
 const GRAD = ['linear-gradient(135deg,#068562,#71B280)', 'linear-gradient(135deg,#C9962A,#E8B84B)', 'linear-gradient(135deg,#8b5cf6,#6366f1)', 'linear-gradient(135deg,#3b82f6,#60a5fa)', 'linear-gradient(135deg,#f97316,#fb923c)'];
 const avatarGrad = (name) => GRAD[(name?.charCodeAt(0) ?? 0) % GRAD.length];
@@ -118,47 +121,13 @@ export default function AdminStudents() {
           </table>
         )}
 
-        {meta.totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 bg-surface-50 border-t border-surface-200">
-            <p className="text-xs text-ink-400">
-              Showing {students.length} of {meta.total}
-            </p>
-            <div className="flex gap-1.5">
-              <button
-                onClick={() => setPage((p) => p - 1)}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 transition bg-white text-ink-600"
-              >
-                ← Prev
-              </button>
-              {(() => {
-                const total = meta.totalPages;
-                const start = Math.max(1, Math.min(page - 2, total - 4));
-                const end = Math.min(total, start + 4);
-                return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-              })().map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition"
-                  style={page === p
-                    ? { background: '#068562', color: '#fff' }
-                    : { background: '#fff', color: '#506860', border: '1px solid rgba(168,196,188,0.4)' }
-                  }
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={page === meta.totalPages}
-                className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 transition bg-white text-ink-600"
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          page={page}
+          totalPages={meta.totalPages}
+          total={meta.total}
+          pageSize={PAGE_SIZE}
+          onPage={setPage}
+        />
       </div>
     </div>
   );

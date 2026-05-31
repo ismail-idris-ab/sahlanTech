@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -6,28 +6,36 @@ import { adminGetCourses, deleteCourse, updateCourse } from '../../services/cour
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import StatusBadge from '../../components/common/StatusBadge';
+import Pagination from '../../components/common/Pagination';
+
+const PAGE_SIZE = 12;
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState([]);
+  const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = filter !== 'all' ? { status: filter } : {};
+      const params = { page, limit: PAGE_SIZE, ...(filter !== 'all' ? { status: filter } : {}) };
       const res = await adminGetCourses(params);
       setCourses(res.data);
+      setMeta(res.meta ?? { total: res.data.length, totalPages: 1 });
     } catch {
       toast.error('Failed to load courses.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filter]);
 
-  useEffect(() => { load(); }, [filter]);
+  useEffect(() => { load(); }, [load]);
+  /* reset to page 1 when filter changes */
+  useEffect(() => { setPage(1); }, [filter]);
 
   const handleTogglePublish = async (course) => {
     const prev = course.isPublished;
@@ -60,7 +68,7 @@ export default function AdminCourses() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display text-ink-900">Courses</h1>
-          <p className="text-xs text-ink-400 mt-0.5">{courses.length} course{courses.length !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-ink-400 mt-0.5">{meta.total} course{meta.total !== 1 ? 's' : ''}</p>
         </div>
         <Link
           to="/admin/courses/new"
@@ -141,6 +149,18 @@ export default function AdminCourses() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && meta.totalPages > 1 && (
+        <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card overflow-hidden">
+          <Pagination
+            page={page}
+            totalPages={meta.totalPages}
+            total={meta.total}
+            pageSize={PAGE_SIZE}
+            onPage={setPage}
+          />
         </div>
       )}
 

@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { getExams, deleteExam } from '../../services/adminExams.service';
 import { Plus, Pencil, Trash2, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/common/Pagination';
+
+const PAGE_SIZE = 20;
 
 export default function AdminExams() {
   const [exams, setExams] = useState([]);
@@ -107,15 +110,13 @@ export default function AdminExams() {
             </tbody>
           </table>
         )}
-        {meta.totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 bg-surface-50 border-t border-surface-200">
-            <p className="text-xs text-ink-400">Page {page} of {meta.totalPages}</p>
-            <div className="flex gap-1.5">
-              <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 bg-white text-ink-600">← Prev</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={page === meta.totalPages} className="px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-lg disabled:opacity-40 hover:bg-surface-100 bg-white text-ink-600">Next →</button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          page={page}
+          totalPages={meta.totalPages}
+          total={meta.total}
+          pageSize={PAGE_SIZE}
+          onPage={setPage}
+        />
       </div>
     </div>
   );

@@ -1,9 +1,12 @@
 // sahlearn-web/src/pages/student/Assignments.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAssignments } from '../../services/studentAssignments.service';
 import { ClipboardList, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/common/Pagination';
+
+const PAGE_SIZE = 12;
 
 function StatusBadge({ submission, dueDate }) {
   if (!submission) {
@@ -31,20 +34,25 @@ function StatusBadge({ submission, dueDate }) {
 
 export default function StudentAssignments() {
   const [assignments, setAssignments] = useState([]);
+  const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getAssignments({ limit: 50 })
-      .then((res) => setAssignments(res.data))
+  const load = useCallback(() => {
+    setLoading(true);
+    getAssignments({ page, limit: PAGE_SIZE })
+      .then((res) => { setAssignments(res.data); setMeta(res.meta ?? { total: res.data.length, totalPages: 1 }); })
       .catch(() => toast.error('Failed to load assignments'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
+
+  useEffect(() => { load(); }, [load]);
 
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-display text-ink-900">Assignments</h1>
-        <p className="text-xs text-ink-400 mt-0.5">{assignments.length} assignment{assignments.length !== 1 ? 's' : ''}</p>
+        <p className="text-xs text-ink-400 mt-0.5">{meta.total} assignment{meta.total !== 1 ? 's' : ''}</p>
       </div>
 
       {loading ? (
@@ -96,6 +104,18 @@ export default function StudentAssignments() {
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {!loading && meta.totalPages > 1 && (
+        <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
+          <Pagination
+            page={page}
+            totalPages={meta.totalPages}
+            total={meta.total}
+            pageSize={PAGE_SIZE}
+            onPage={setPage}
+          />
         </div>
       )}
     </div>

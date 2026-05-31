@@ -6,12 +6,15 @@ import { adminGetPosts, deletePost } from '../../services/posts.service';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import StatusBadge from '../../components/common/StatusBadge';
+import Pagination from '../../components/common/Pagination';
 
 const STATUS_TABS = ['all', 'published', 'draft', 'archived'];
+const PAGE_SIZE = 12;
 
 export default function AdminPosts() {
   const [posts, setPosts] = useState([]);
-  const [meta, setMeta] = useState({ total: 0 });
+  const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -20,18 +23,19 @@ export default function AdminPosts() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = activeTab !== 'all' ? { status: activeTab } : {};
+      const params = { page, limit: PAGE_SIZE, ...(activeTab !== 'all' ? { status: activeTab } : {}) };
       const res = await adminGetPosts(params);
       setPosts(res.data);
-      setMeta(res.meta);
+      setMeta(res.meta ?? { total: res.data.length, totalPages: 1 });
     } catch {
       toast.error('Failed to load posts.');
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [page, activeTab]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { setPage(1); }, [activeTab]);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -52,7 +56,7 @@ export default function AdminPosts() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display text-ink-900">Blog Posts</h1>
-          <p className="text-xs text-ink-400 mt-0.5">{posts.length} post{posts.length !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-ink-400 mt-0.5">{meta.total} post{meta.total !== 1 ? 's' : ''}</p>
         </div>
         <Link
           to="/admin/posts/new"
@@ -127,6 +131,18 @@ export default function AdminPosts() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && meta.totalPages > 1 && (
+        <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card overflow-hidden">
+          <Pagination
+            page={page}
+            totalPages={meta.totalPages}
+            total={meta.total}
+            pageSize={PAGE_SIZE}
+            onPage={setPage}
+          />
         </div>
       )}
 

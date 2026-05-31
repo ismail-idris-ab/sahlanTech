@@ -5,6 +5,9 @@ import { getSessions, deleteSession } from '../../services/adminAttendance.servi
 import api from '../../services/api';
 import { Plus, Trash2, ChevronRight, CalendarDays } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/common/Pagination';
+
+const PAGE_SIZE = 20;
 
 const STATUS_COLOR = {
   high: 'text-green-700 bg-green-50',
@@ -18,13 +21,14 @@ export default function AdminAttendance() {
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
   const [filterCourse, setFilterCourse] = useState('');
+  const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ course: '', label: '', date: '', note: '' });
   const [saving, setSaving] = useState(false);
 
-  const load = (course = filterCourse) => {
+  const load = (course = filterCourse, p = page) => {
     setLoading(true);
-    getSessions({ limit: 50, course: course || undefined })
+    getSessions({ page: p, limit: PAGE_SIZE, course: course || undefined })
       .then(setData)
       .catch(() => toast.error('Failed to load sessions'))
       .finally(() => setLoading(false));
@@ -35,9 +39,12 @@ export default function AdminAttendance() {
     load();
   }, []);
 
+  useEffect(() => { load(filterCourse, page); }, [page]);
+
   const handleFilter = (e) => {
     setFilterCourse(e.target.value);
-    load(e.target.value);
+    setPage(1);
+    load(e.target.value, 1);
   };
 
   const handleCreate = async (e) => {
@@ -209,6 +216,18 @@ export default function AdminAttendance() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {!loading && (data?.meta?.totalPages ?? 1) > 1 && (
+        <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card overflow-hidden">
+          <Pagination
+            page={page}
+            totalPages={data.meta.totalPages}
+            total={data.meta.total}
+            pageSize={PAGE_SIZE}
+            onPage={setPage}
+          />
         </div>
       )}
     </div>
