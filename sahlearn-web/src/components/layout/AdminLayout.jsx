@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -6,6 +7,7 @@ import {
   MessageSquare, Users, UserCog,
   LogOut, Sprout, Bell, GraduationCap, MessageCircle,
   ClipboardList, ClipboardCheck, CalendarCheck, Megaphone, Globe,
+  MoreHorizontal, ArrowLeft, X,
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -27,13 +29,28 @@ const SIDEBAR_MANAGE = [
   { to: '/admin/team', label: 'Team', icon: UserCog },
   { to: '/admin/site-content', label: 'Site Content', icon: Globe },
 ];
+
+/* Mobile: 4 core tabs + "More" */
 const BOTTOM_TABS = [
   { to: '/admin', label: 'Home', icon: LayoutDashboard, end: true },
   { to: '/admin/courses', label: 'Courses', icon: BookOpen },
-  { to: '/admin/posts', label: 'Blog', icon: FileText },
+  { to: '/admin/students', label: 'Students', icon: GraduationCap },
   { to: '/admin/messages', label: 'Messages', icon: MessageSquare },
-  { to: '/admin/enrollments', label: 'Enroll', icon: GraduationCap },
 ];
+
+/* Everything not in the bottom bar lives in the "More" sheet */
+const MORE_ITEMS = [
+  { to: '/admin/posts', label: 'Blog', icon: FileText },
+  { to: '/admin/enrollments', label: 'Enrollments', icon: Users },
+  { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
+  { to: '/admin/exams', label: 'Exams', icon: ClipboardCheck },
+  { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
+  { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
+  { to: '/admin/student-messages', label: 'Student Messages', icon: MessageCircle },
+  { to: '/admin/team', label: 'Team', icon: UserCog },
+  { to: '/admin/site-content', label: 'Site Content', icon: Globe },
+];
+
 const PAGE_TITLES = {
   '/admin': 'Dashboard',
   '/admin/courses': 'Courses',
@@ -49,6 +66,15 @@ const PAGE_TITLES = {
   '/admin/team': 'Team',
   '/admin/site-content': 'Site Content',
 };
+
+/* Resolve back-navigation target from current path (never relies on browser history) */
+function getParentRoute(pathname) {
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length <= 2) return null; // /admin or /admin/x → top-level, no back
+  let up = segments.slice(0, -1);
+  while (up.length > 2) up = up.slice(0, -1);
+  return '/' + up.join('/');
+}
 
 /* ── Sidebar nav item ── */
 function SideNavItem({ to, label, icon: Icon, end }) {
@@ -162,11 +188,85 @@ function Sidebar() {
   );
 }
 
-/* ── Mobile bottom tab bar ── */
-function BottomTabBar() {
-  return (
+/* ── "More" bottom sheet — portaled to document.body ── */
+function MoreSheet({ open, onClose, onLogout }) {
+  if (!open) return null;
+
+  return createPortal(
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-[100] lg:hidden"
+        style={{ background: 'rgba(1,31,40,0.6)', backdropFilter: 'blur(2px)' }}
+        onClick={onClose}
+      />
+
+      {/* Sheet */}
+      <div
+        className="fixed bottom-0 inset-x-0 z-[101] lg:hidden rounded-t-2xl overflow-hidden"
+        style={{ background: '#013F4A', boxShadow: '0 -8px 32px rgba(0,0,0,0.35)' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3" style={{ borderBottom: '1px solid rgba(201,150,42,0.2)' }}>
+          <p className="text-sm font-semibold text-white">More</p>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-xl transition-colors hover:bg-white/5"
+            style={{ color: '#87BAC2' }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Nav grid */}
+        <nav className="grid grid-cols-3 gap-2 p-4">
+          {MORE_ITEMS.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-xl text-center transition-all ${
+                  isActive ? 'bg-white/10' : 'hover:bg-white/5'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon size={20} style={{ color: isActive ? '#71B280' : '#87BAC2' }} />
+                  <span className="text-[10px] font-medium leading-tight" style={{ color: isActive ? '#71B280' : '#87BAC2' }}>
+                    {label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Sign out */}
+        <div className="px-3 pb-4 pt-1" style={{ borderTop: '1px solid rgba(201,150,42,0.15)' }}>
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-3 w-full px-3.5 py-3 rounded-xl text-sm font-medium transition-colors hover:bg-white/5"
+            style={{ color: '#F87171' }}
+          >
+            <LogOut size={18} />
+            Sign out
+          </button>
+        </div>
+
+        <div style={{ height: 'env(safe-area-inset-bottom)' }} />
+      </div>
+    </>,
+    document.body
+  );
+}
+
+/* ── Mobile bottom tab bar — portaled to document.body ── */
+function BottomTabBar({ onMoreClick, moreActive }) {
+  return createPortal(
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 lg:hidden flex items-stretch"
+      className="fixed bottom-0 inset-x-0 z-50 lg:hidden flex items-stretch"
       style={{
         background: 'rgba(1, 31, 40, 0.97)',
         backdropFilter: 'blur(16px)',
@@ -179,116 +279,66 @@ function BottomTabBar() {
           key={to}
           to={to}
           end={end}
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 relative group"
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 relative"
         >
           {({ isActive }) => (
             <>
-              {/* Active pill indicator */}
               {isActive && (
                 <span
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
                   style={{ background: 'linear-gradient(90deg, #C9962A, #E8B84B)' }}
                 />
               )}
-
-              {/* Icon container */}
               <span
                 className="flex items-center justify-center w-9 h-7 rounded-xl transition-all duration-200"
-                style={isActive
-                  ? { background: 'rgba(113,178,128,0.15)' }
-                  : {}
-                }
+                style={isActive ? { background: 'rgba(113,178,128,0.15)' } : {}}
               >
-                <Icon
-                  size={18}
-                  style={{ color: isActive ? '#71B280' : '#87BAC2' }}
-                />
+                <Icon size={18} style={{ color: isActive ? '#71B280' : '#87BAC2' }} />
               </span>
-
-              {/* Label */}
-              <span
-                className="text-[10px] font-semibold tracking-wide transition-colors duration-200"
-                style={{ color: isActive ? '#71B280' : '#506860' }}
-              >
+              <span className="text-[10px] font-semibold tracking-wide" style={{ color: isActive ? '#71B280' : '#506860' }}>
                 {label}
               </span>
             </>
           )}
         </NavLink>
       ))}
-    </nav>
-  );
-}
 
-/* ── Avatar dropdown (Team + Sign out) — mobile header ── */
-function AvatarDropdown({ initials }) {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleLogout = () => { logout(); navigate('/admin/login'); };
-
-  return (
-    <div className="relative" ref={ref}>
+      {/* More tab */}
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all"
-        style={{
-          background: open
-            ? 'linear-gradient(135deg, #056B4E, #068562)'
-            : 'linear-gradient(135deg, #068562, #71B280)',
-          color: '#011F28',
-          boxShadow: open ? '0 0 0 2px rgba(113,178,128,0.4)' : 'none',
-        }}
-        aria-label="Account menu"
-        aria-expanded={open}
+        type="button"
+        onClick={onMoreClick}
+        className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 relative"
       >
-        {initials}
-      </button>
-
-      {open && (
-        <div
-          className="absolute right-0 top-11 w-44 rounded-xl overflow-hidden z-50"
-          style={{
-            background: '#013F4A',
-            border: '1px solid rgba(201,150,42,0.2)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-          }}
+        {moreActive && (
+          <span
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+            style={{ background: 'linear-gradient(90deg, #C9962A, #E8B84B)' }}
+          />
+        )}
+        <span
+          className="flex items-center justify-center w-9 h-7 rounded-xl transition-all duration-200"
+          style={moreActive ? { background: 'rgba(113,178,128,0.15)' } : {}}
         >
-          <NavLink
-            to="/admin/team"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-3 text-sm transition-colors hover:bg-white/5"
-            style={{ color: '#87BAC2' }}
-          >
-            <UserCog size={14} /> Team
-          </NavLink>
-          <div className="gold-divider mx-3" />
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2.5 w-full px-4 py-3 text-sm transition-colors hover:bg-white/5 text-left"
-            style={{ color: '#87BAC2' }}
-          >
-            <LogOut size={14} /> Sign out
-          </button>
-        </div>
-      )}
-    </div>
+          <MoreHorizontal size={18} style={{ color: moreActive ? '#71B280' : '#87BAC2' }} />
+        </span>
+        <span className="text-[10px] font-semibold tracking-wide" style={{ color: moreActive ? '#71B280' : '#506860' }}>
+          More
+        </span>
+      </button>
+    </nav>,
+    document.body
   );
 }
 
 /* ── Root layout ── */
 export default function AdminLayout() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [notifCount, setNotifCount] = useState(0);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const handleLogout = () => { logout(); navigate('/admin/login'); };
 
   useEffect(() => {
     api.get('/api/admin/stats')
@@ -302,6 +352,13 @@ export default function AdminLayout() {
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'AD';
+
+  const parentRoute = getParentRoute(location.pathname);
+  const isLeaf = parentRoute !== null;
+
+  const moreActive = MORE_ITEMS.some(({ to }) =>
+    location.pathname === to || location.pathname.startsWith(to + '/')
+  );
 
   const pageTitle = Object.entries(PAGE_TITLES).find(([path]) =>
     path === '/admin' ? location.pathname === '/admin' : location.pathname.startsWith(path)
@@ -332,9 +389,23 @@ export default function AdminLayout() {
             borderBottom: '1px solid rgba(168,196,188,0.3)',
           }}
         >
-          <div className="min-w-0">
-            <h2 className="font-display text-lg sm:text-xl text-ink-900 leading-none truncate">{pageTitle}</h2>
-            <p className="text-xs mt-0.5 hidden sm:block" style={{ color: '#506860' }}>{today}</p>
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Back arrow — mobile only, detail/form pages only */}
+            {isLeaf && (
+              <button
+                type="button"
+                onClick={() => navigate(parentRoute)}
+                className="lg:hidden flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-surface-200"
+                style={{ background: '#fff', border: '1px solid rgba(168,196,188,0.4)', color: '#506860' }}
+                aria-label="Go back"
+              >
+                <ArrowLeft size={16} />
+              </button>
+            )}
+            <div className="min-w-0">
+              <h2 className="font-display text-lg sm:text-xl text-ink-900 leading-none truncate">{pageTitle}</h2>
+              <p className="text-xs mt-0.5 hidden sm:block" style={{ color: '#506860' }}>{today}</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
@@ -355,14 +426,10 @@ export default function AdminLayout() {
               )}
             </Link>
 
-            {/* Desktop: plain avatar. Mobile: avatar with dropdown */}
-            <div className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center text-xs font-bold flex-shrink-0"
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, #068562, #71B280)', color: '#011F28' }}
             >
               {initials}
-            </div>
-            <div className="lg:hidden">
-              <AvatarDropdown initials={initials} />
             </div>
           </div>
         </header>
@@ -373,8 +440,9 @@ export default function AdminLayout() {
         </main>
       </div>
 
-      {/* Mobile bottom tab bar */}
-      <BottomTabBar />
+      {/* Portaled outside the scroll container — safe on all mobile browsers */}
+      <BottomTabBar onMoreClick={() => setMoreOpen(true)} moreActive={moreActive} />
+      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} onLogout={handleLogout} />
     </div>
   );
 }
