@@ -8,6 +8,7 @@ const announcementSchema = new mongoose.Schema(
     file: {
       url: { type: String },
       public_id: { type: String },
+      resource_type: { type: String }, // 'image' | 'raw' — needed for correct Cloudinary deletion
       originalName: { type: String },
       mimeType: { type: String },
       size: { type: Number },

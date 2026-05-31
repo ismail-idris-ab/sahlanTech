@@ -3,6 +3,23 @@ const Announcement = require('../models/Announcement');
 const cloudinary = require('../config/cloudinary');
 const { success, successList, notFound } = require('../utils/apiResponse');
 
+// Documents are stored as 'raw' on Cloudinary, images as 'image'.
+const fileResourceType = (file) => (file.mimetype.startsWith('image/') ? 'image' : 'raw');
+
+const buildFileMeta = (file) => ({
+  url: file.path,
+  public_id: file.filename,
+  resource_type: fileResourceType(file),
+  originalName: file.originalname,
+  mimeType: file.mimetype,
+  size: file.size,
+});
+
+const destroyFile = (fileDoc) =>
+  cloudinary.uploader
+    .destroy(fileDoc.public_id, { resource_type: fileDoc.resource_type || 'image' })
+    .catch(() => {});
+
 const parsePagination = (query) => {
   const page = Math.max(1, parseInt(query.page) || 1);
   const limit = Math.min(50, Math.max(1, parseInt(query.limit) || 20));
@@ -19,15 +36,7 @@ const create = async (req, res) => {
     target: target || 'all',
     course: target === 'course' ? course : null,
     studentIds: target === 'students' ? (JSON.parse(studentIds || '[]')) : [],
-    file: req.file
-      ? {
-          url: req.file.path,
-          public_id: req.file.filename,
-          originalName: req.file.originalname,
-          mimeType: req.file.mimetype,
-          size: req.file.size,
-        }
-      : undefined,
+    file: req.file ? buildFileMeta(req.file) : undefined,
   });
 
   success(res, announcement, 201);
@@ -68,17 +77,11 @@ const update = async (req, res) => {
   // Replace file if new one uploaded
   if (req.file) {
     if (announcement.file?.public_id) {
-      await cloudinary.uploader.destroy(announcement.file.public_id, { resource_type: 'auto' }).catch(() => {});
+      await destroyFile(announcement.file);
     }
-    announcement.file = {
-      url: req.file.path,
-      public_id: req.file.filename,
-      originalName: req.file.originalname,
-      mimeType: req.file.mimetype,
-      size: req.file.size,
-    };
+    announcement.file = buildFileMeta(req.file);
   } else if (removeFile === 'true' && announcement.file?.public_id) {
-    await cloudinary.uploader.destroy(announcement.file.public_id, { resource_type: 'auto' }).catch(() => {});
+    await destroyFile(announcement.file);
     announcement.file = undefined;
   }
 
@@ -92,7 +95,7 @@ const remove = async (req, res) => {
   if (!announcement) return notFound(res, 'Announcement not found');
 
   if (announcement.file?.public_id) {
-    await cloudinary.uploader.destroy(announcement.file.public_id, { resource_type: 'auto' }).catch(() => {});
+    await destroyFile(announcement.file);
   }
 
   await announcement.deleteOne();

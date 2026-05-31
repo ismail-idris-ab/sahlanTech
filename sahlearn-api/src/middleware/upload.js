@@ -87,15 +87,25 @@ const DOC_MIMES = [
 const docStorage = new CloudinaryStorage({
   cloudinary,
   params: (_req, file) => {
-    // Strip extension — Cloudinary appends it automatically for raw resources
-    const nameNoExt = file.originalname
-      .replace(/\.[^.]+$/, '')
+    const isImage = file.mimetype.startsWith('image/');
+    // Images: store as image type (renders inline, allows transforms), strip extension.
+    // Documents (PDF/Word/Excel/ZIP): store as RAW so Cloudinary delivers them without
+    // the PDF/ZIP delivery restriction that returns 401 on image-type resources.
+    // Raw resources do NOT auto-append the extension, so keep it in the public_id.
+    const base = file.originalname
       .replace(/\s+/g, '_')
-      .replace(/[^a-zA-Z0-9_-]/g, '');
+      .replace(/[^a-zA-Z0-9._-]/g, '');
+    if (isImage) {
+      return {
+        folder: 'sahlearn/documents',
+        resource_type: 'image',
+        public_id: `${Date.now()}-${base.replace(/\.[^.]+$/, '')}`,
+      };
+    }
     return {
       folder: 'sahlearn/documents',
-      resource_type: 'auto',
-      public_id: `${Date.now()}-${nameNoExt}`,
+      resource_type: 'raw',
+      public_id: `${Date.now()}-${base}`, // keep extension so the URL ends in .pdf/.docx/etc.
     };
   },
 });
