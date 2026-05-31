@@ -172,7 +172,7 @@ export default function StudentProgress() {
         </div>
       ) : (
         <div className="space-y-4">
-          {groups.map((group, i) => <CourseSection key={i} group={group} />)}
+          {groups.map((group) => <CourseSection key={group.courseId || group.courseTitle} group={group} />)}
         </div>
       )}
     </div>
