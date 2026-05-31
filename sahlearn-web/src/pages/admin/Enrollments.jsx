@@ -128,21 +128,20 @@ export default function Enrollments() {
   return (
     <div className="max-w-5xl">
       <div className="mb-6">
-        <p className="text-xs font-semibold text-brand-primary uppercase tracking-wider mb-1">Students</p>
-        <div className="flex items-baseline gap-3">
-          <span className="font-display text-3xl text-ink-900">{meta.total}</span>
-          <span className="text-ink-500 text-sm">total enrollments</span>
-        </div>
+        <h1 className="text-2xl font-display text-ink-900">Enrollments</h1>
+        <p className="text-xs text-ink-400 mt-0.5">{meta.total} total</p>
       </div>
 
-      <div className="flex gap-1.5 mb-5 p-1 bg-white rounded-xl border border-ink-300/20 w-fit shadow-card">
+      <div className="flex gap-2 flex-wrap mb-5">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition-all duration-150 ${
-              activeTab === tab ? 'bg-brand-primary text-white shadow-sm' : 'text-ink-500 hover:text-ink-900'
-            }`}
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-xl capitalize transition-all"
+            style={activeTab === tab
+              ? { background: '#068562', color: '#fff' }
+              : { background: '#fff', color: '#506860', border: '1px solid rgba(168,196,188,0.4)' }
+            }
           >
             {tab}
           </button>
@@ -160,11 +159,11 @@ export default function Enrollments() {
           <table className="w-full text-sm">
             <thead className="border-b border-ink-300/20">
               <tr>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Student</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden md:table-cell">Course</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden sm:table-cell">Status</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden lg:table-cell">Date</th>
-                <th className="text-right px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Actions</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Student</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Course</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">Status</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Date</th>
+                <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-300/15">
