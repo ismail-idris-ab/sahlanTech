@@ -7,7 +7,9 @@ const { sendMail } = require('../utils/mailer');
 const { passwordResetTemplate } = require('../utils/emailTemplates');
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { password } = req.body;
+  // Stored emails are lowercased; normalize the input so mixed-case logins match.
+  const email = (req.body.email || '').toLowerCase().trim();
 
   const student = await Student.findOne({ email }).select('+password');
   if (!student || !student.isActive) {
@@ -41,7 +43,7 @@ const login = async (req, res) => {
 };
 
 const forgotPassword = async (req, res) => {
-  const { email } = req.body;
+  const email = (req.body.email || '').toLowerCase().trim();
   const msg = 'If that email is registered, a reset link has been sent.';
 
   const student = await Student.findOne({ email });
