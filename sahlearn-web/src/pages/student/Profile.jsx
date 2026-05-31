@@ -12,6 +12,7 @@ export default function StudentProfile() {
     dateOfBirth: student?.dateOfBirth ? student.dateOfBirth.slice(0, 10) : '',
     address: student?.address || '',
     bio: student?.bio || '',
+    academicLevel: student?.academicLevel || '',
   });
   const [saving, setSaving] = useState(false);
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
@@ -72,11 +73,11 @@ export default function StudentProfile() {
   const initials = student?.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-5 max-w-2xl">
       <h1 className="text-2xl font-display text-ink-900">My Profile</h1>
 
       {/* Avatar */}
-      <div className="bg-white rounded-2xl border border-surface-200 p-6">
+      <div className="bg-white rounded-2xl border border-surface-200 p-6 shadow-card">
         <div className="flex items-center gap-4">
           <div className="relative">
             {student?.avatar?.url ? (
@@ -106,7 +107,7 @@ export default function StudentProfile() {
       </div>
 
       {/* Profile form */}
-      <div className="bg-white rounded-2xl border border-surface-200 p-6">
+      <div className="bg-white rounded-2xl border border-surface-200 p-6 shadow-card">
         <h2 className="font-semibold text-ink-900 mb-4">Personal Information</h2>
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -146,6 +147,20 @@ export default function StudentProfile() {
                 className="w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
               />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-ink-600 mb-1">Academic Level</label>
+              <select
+                value={form.academicLevel}
+                onChange={(e) => setForm({ ...form, academicLevel: e.target.value })}
+                className="w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
+              >
+                <option value="">Select level...</option>
+                <option>ND1</option>
+                <option>ND2</option>
+                <option>HND1</option>
+                <option>HND2</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-ink-600 mb-1">Bio <span className="text-ink-400">(max 300 chars)</span></label>
@@ -169,7 +184,7 @@ export default function StudentProfile() {
       </div>
 
       {/* Change password */}
-      <div className="bg-white rounded-2xl border border-surface-200 p-6">
+      <div className="bg-white rounded-2xl border border-surface-200 p-6 shadow-card">
         <h2 className="font-semibold text-ink-900 mb-4 flex items-center gap-2"><Lock size={16} /> Change Password</h2>
         <form onSubmit={handleChangePassword} className="space-y-3">
           <input
