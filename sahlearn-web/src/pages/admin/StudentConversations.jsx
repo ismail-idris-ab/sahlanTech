@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { listConversations } from '../../services/adminStudentMessages.service';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function StudentConversations() {
@@ -31,11 +31,19 @@ export default function StudentConversations() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-display text-ink-900">Student Messages</h1>
-        {totalUnread > 0 && (
-          <p className="text-sm text-brand-primary mt-0.5">{totalUnread} unread message{totalUnread !== 1 ? 's' : ''}</p>
-        )}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-display text-ink-900">Student Messages</h1>
+          {totalUnread > 0 && (
+            <p className="text-sm text-brand-primary mt-0.5">{totalUnread} unread message{totalUnread !== 1 ? 's' : ''}</p>
+          )}
+        </div>
+        <Link
+          to="/admin/students"
+          className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-brand-primary text-white rounded-xl hover:bg-brand-primary/90 transition flex-shrink-0"
+        >
+          <Plus size={13} /> New Conversation
+        </Link>
       </div>
 
       <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">

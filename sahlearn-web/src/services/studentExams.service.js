@@ -16,7 +16,7 @@ export const getExam = async (id) => {
 
 export const submitExam = async (id, answers) => {
   const { data } = await api.post(
-    `/student/exams/${id}/submit`,
+    `/api/student/exams/${id}/submit`,
     { answers },
     { headers: authHeader() }
   );

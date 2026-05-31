@@ -12,8 +12,13 @@ export const getConversation = async (studentId, { page = 1, limit = 50 } = {}) 
   return data.data; // { student, messages[], meta }
 };
 
-export const sendReply = async (studentId, content) => {
-  const { data } = await api.post(`/api/admin/student-messages/${studentId}`, { content });
+export const sendReply = async (studentId, content, file = null) => {
+  const fd = new FormData();
+  if (content) fd.append('content', content);
+  if (file) fd.append('file', file);
+  const { data } = await api.post(`/api/admin/student-messages/${studentId}`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return data.data;
 };
 

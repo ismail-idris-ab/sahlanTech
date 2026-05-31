@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getStudentById, triggerPasswordReset, toggleStudentStatus, getStudentProgress } from '../../services/adminStudents.service';
-import { ArrowLeft, Mail, RefreshCw, UserCheck, UserX, MessageCircle, ClipboardCheck, ClipboardList, Clock } from 'lucide-react';
+import { getStudentAttendance } from '../../services/adminAttendance.service';
+import { RefreshCw, UserCheck, UserX, MessageCircle, ClipboardCheck, ClipboardList, Clock, CalendarCheck, CheckCircle2, XCircle, ShieldCheck, Download } from 'lucide-react';
+import StatusBadge from '../../components/common/StatusBadge';
+import { downloadFile } from '../../utils/download';
 import toast from 'react-hot-toast';
 
 const pct = (score, max) => (max > 0 ? Math.round((score / max) * 100) : 0);
@@ -27,10 +30,13 @@ export default function StudentDetail() {
   const [toggling, setToggling] = useState(false);
   const [progress, setProgress] = useState([]);
   const [progressLoading, setProgressLoading] = useState(true);
+  const [attendance, setAttendance] = useState([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
 
   useEffect(() => {
     getStudentById(id).then(setStudent).catch(() => toast.error('Student not found')).finally(() => setLoading(false));
     getStudentProgress(id).then(setProgress).catch(() => {}).finally(() => setProgressLoading(false));
+    getStudentAttendance(id).then(setAttendance).catch(() => {}).finally(() => setAttendanceLoading(false));
   }, [id]);
 
   const handleResetPassword = async () => {
@@ -67,68 +73,82 @@ export default function StudentDetail() {
   const initials = student.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <div className="flex items-center gap-3">
-        <Link to="/admin/students" className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-900 transition">
-          <ArrowLeft size={14} /> Students
-        </Link>
+    <div className="max-w-4xl space-y-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs text-ink-400">
+        <Link to="/admin/students" className="hover:text-ink-900 transition">Students</Link>
+        <span>›</span>
+        <span className="font-semibold" style={{ color: '#068562' }}>{student.fullName}</span>
       </div>
 
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-surface-200 p-6">
-        <div className="flex items-start gap-4">
-          {student.avatar?.url ? (
-            <img src={student.avatar.url} alt={student.fullName} className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center text-lg font-bold flex-shrink-0">
-              {initials}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-display text-ink-900">{student.fullName}</h1>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${student.isActive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                {student.isActive ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-            <p className="text-sm text-ink-400 mt-0.5 font-mono">{student.studentId}</p>
-            <p className="text-sm text-ink-500 mt-0.5 flex items-center gap-1"><Mail size={13} /> {student.email}</p>
-          </div>
-
-          <div className="flex gap-2 flex-shrink-0 flex-wrap">
-            <Link
-              to={`/admin/student-messages/${student.id}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 rounded-xl transition"
-            >
-              <MessageCircle size={12} /> Message
-            </Link>
-            <button
-              onClick={handleResetPassword}
-              disabled={resetting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-xl hover:bg-surface-100 transition disabled:opacity-60"
-            >
-              <RefreshCw size={12} /> {resetting ? 'Sending...' : 'Reset Password'}
-            </button>
-            <button
-              onClick={handleToggleStatus}
-              disabled={toggling}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl transition disabled:opacity-60 ${
-                student.isActive ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'
-              }`}
-            >
-              {student.isActive ? <><UserX size={12} /> Deactivate</> : <><UserCheck size={12} /> Activate</>}
-            </button>
+      {/* Header card */}
+      <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-lg font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, #068562, #71B280)' }}
+        >
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-display text-ink-900">{student.fullName}</h1>
+          <p className="text-xs text-ink-400 mt-0.5">{student.studentId} · {student.email}</p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <StatusBadge status={student.isActive ? 'active' : 'inactive'} />
+            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              {student.enrolledCourses?.length || 0} Course{(student.enrolledCourses?.length || 0) !== 1 ? 's' : ''}
+            </span>
           </div>
         </div>
+        <div className="flex flex-wrap gap-2 flex-shrink-0">
+          <button
+            onClick={async () => {
+              try {
+                await downloadFile(`/api/admin/exports/students/${id}/report.pdf`, `report-${student.studentId}.pdf`);
+              } catch {
+                toast.error('Failed to generate report');
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-surface-100 text-ink-700 border border-surface-300 hover:bg-surface-200 transition"
+          >
+            <Download size={13} /> Report PDF
+          </button>
+          <Link
+            to={`/admin/student-messages/${student.id}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-brand-primary/10 text-brand-primary border border-brand-primary/20 hover:bg-brand-primary/20 transition"
+          >
+            <MessageCircle size={13} /> Message
+          </Link>
+          <button
+            onClick={handleResetPassword}
+            disabled={resetting}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-surface-100 text-ink-700 border border-surface-300 hover:bg-surface-200 transition disabled:opacity-40"
+          >
+            <RefreshCw size={13} className={resetting ? 'animate-spin' : ''} />
+            {resetting ? 'Sending…' : 'Reset PW'}
+          </button>
+          <button
+            onClick={handleToggleStatus}
+            disabled={toggling}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition disabled:opacity-40 ${
+              student.isActive
+                ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
+                : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
+            }`}
+          >
+            {student.isActive ? <><UserX size={13} /> Deactivate</> : <><UserCheck size={13} /> Activate</>}
+          </button>
+        </div>
+      </div>
 
-        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+      {/* Student details */}
+      <div className="bg-white rounded-2xl border border-surface-200 p-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
           {student.phone && <div><p className="text-xs text-ink-400">Phone</p><p className="text-ink-700">{student.phone}</p></div>}
           {student.dateOfBirth && <div><p className="text-xs text-ink-400">Date of Birth</p><p className="text-ink-700">{new Date(student.dateOfBirth).toLocaleDateString('en-NG')}</p></div>}
           {student.academicLevel && <div><p className="text-xs text-ink-400">Academic Level</p><p className="text-ink-700">{student.academicLevel}</p></div>}
           {student.address && <div><p className="text-xs text-ink-400">Address</p><p className="text-ink-700">{student.address}</p></div>}
           <div><p className="text-xs text-ink-400">Joined</p><p className="text-ink-700">{new Date(student.createdAt).toLocaleDateString('en-NG')}</p></div>
         </div>
-
         {student.bio && <p className="mt-4 text-sm text-ink-600 italic">{student.bio}</p>}
       </div>
 
@@ -248,6 +268,48 @@ export default function StudentDetail() {
                   {group.exams.length === 0 && group.assignments.length === 0 && (
                     <p className="text-xs text-ink-400 italic">No activity for this course.</p>
                   )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Attendance */}
+      <div className="bg-white rounded-2xl border border-surface-200 p-6">
+        <h2 className="font-semibold text-ink-900 mb-4">Attendance</h2>
+
+        {attendanceLoading ? (
+          <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" /></div>
+        ) : attendance.length === 0 ? (
+          <p className="text-sm text-ink-400">No attendance records yet.</p>
+        ) : (
+          <div className="space-y-5">
+            {attendance.map((group) => {
+              const pct = group.percentage;
+              const color = pct === null ? 'text-ink-400' : pct >= 75 ? 'text-green-600' : pct >= 50 ? 'text-amber-600' : 'text-red-500';
+              return (
+                <div key={group.courseId}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-ink-800">{group.courseTitle}</h3>
+                    <span className={`text-sm font-bold ${color}`}>
+                      {group.attended}/{group.total} {pct !== null ? `(${pct}%)` : ''}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {group.sessions.map((s) => {
+                      const STATUS_ICON = { present: CheckCircle2, late: Clock, excused: ShieldCheck, absent: XCircle };
+                      const STATUS_CLS = { present: 'text-green-600', late: 'text-amber-500', excused: 'text-blue-500', absent: 'text-red-400' };
+                      const Icon = STATUS_ICON[s.status] || XCircle;
+                      return (
+                        <div key={s.sessionId} className="flex items-center gap-3 py-1.5 border-b border-surface-50 last:border-0">
+                          <Icon size={14} className={`flex-shrink-0 ${STATUS_CLS[s.status]}`} />
+                          <span className="text-sm text-ink-700 flex-1 truncate">{s.label}</span>
+                          <span className="text-xs text-ink-400 flex-shrink-0">{new Date(s.date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}

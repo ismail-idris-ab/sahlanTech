@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { listAttempts, reviewAttempt } from '../../services/adminExams.service';
-import { ArrowLeft, Pencil, CheckCircle2, Clock } from 'lucide-react';
+import { ClipboardCheck, Pencil, CheckCircle2, Clock, Download } from 'lucide-react';
+import StatusBadge from '../../components/common/StatusBadge';
+import { downloadFile } from '../../utils/download';
 import toast from 'react-hot-toast';
 
 function ReviewForm({ attempt, examQuestions, onReviewed }) {
@@ -160,29 +162,53 @@ export default function AdminExamDetail() {
   const { exam, attempts } = data;
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div className="flex items-center gap-3">
-        <Link to="/admin/exams" className="inline-flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-900 transition">
-          <ArrowLeft size={14} /> Exams
-        </Link>
+    <div className="max-w-4xl space-y-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs text-ink-400">
+        <Link to="/admin/exams" className="hover:text-ink-900 transition">Exams</Link>
+        <span>›</span>
+        <span className="font-semibold" style={{ color: '#068562' }}>{exam.title}</span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-surface-200 p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-display text-ink-900">{exam.title}</h1>
-            <p className="text-sm text-ink-400 mt-0.5">{exam.course?.title}</p>
-            <div className="flex items-center gap-3 mt-2 text-xs text-ink-400">
-              <span>{exam.questions?.length || 0} questions</span>
-              <span>{exam.totalPoints} points total</span>
-              <span>{attempts.length} attempt{attempts.length !== 1 ? 's' : ''}</span>
-            </div>
+      {/* Header card */}
+      <div className="bg-white rounded-2xl border border-ink-300/20 shadow-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-white"
+          style={{ background: 'linear-gradient(135deg, #068562, #71B280)' }}
+        >
+          <ClipboardCheck size={24} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-display text-ink-900">{exam.title}</h1>
+          <p className="text-xs text-ink-400 mt-0.5">{exam.course?.title}</p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <StatusBadge status={exam.published ? 'published' : 'draft'} />
+            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-100 text-ink-500 border border-surface-300">
+              {exam.questions?.length || 0} questions · {exam.totalPoints} pts
+            </span>
+            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              {attempts.length} attempt{attempts.length !== 1 ? 's' : ''}
+            </span>
           </div>
+        </div>
+        <div className="flex flex-wrap gap-2 flex-shrink-0">
+          <button
+            onClick={async () => {
+              try {
+                await downloadFile(`/api/admin/exports/exams/${id}/results.csv`, `${exam.title}-results.csv`);
+              } catch {
+                toast.error('Failed to export results');
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-surface-100 text-ink-700 border border-surface-300 hover:bg-surface-200 transition"
+          >
+            <Download size={13} /> Export CSV
+          </button>
           <Link
             to={`/admin/exams/${id}/edit`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-surface-300 rounded-xl hover:bg-surface-100 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-surface-100 text-ink-700 border border-surface-300 hover:bg-surface-200 transition"
           >
-            <Pencil size={12} /> Edit
+            <Pencil size={13} /> Edit
           </Link>
         </div>
       </div>

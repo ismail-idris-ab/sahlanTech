@@ -5,8 +5,31 @@ import {
   getConversation,
   sendReply,
 } from '../../services/adminStudentMessages.service';
-import { MessageCircle, Send, ArrowLeft } from 'lucide-react';
+import { MessageCircle, Send, ArrowLeft, Paperclip, FileText, Download, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const FileAttachment = ({ file, dark }) => {
+  if (!file?.url) return null;
+  const isPdf = file.mimeType?.includes('pdf');
+  const isImage = file.mimeType?.startsWith('image/');
+  if (isImage) {
+    return (
+      <a href={file.url} target="_blank" rel="noopener noreferrer" className="block mt-1.5">
+        <img src={file.url} alt={file.originalName} className="max-w-[200px] rounded-lg border border-white/20 object-cover" />
+      </a>
+    );
+  }
+  return (
+    <a
+      href={file.url} target="_blank" rel="noopener noreferrer"
+      className={`mt-1.5 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition ${dark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-surface-100 hover:bg-surface-200 text-ink-700'}`}
+    >
+      {isPdf ? <FileText size={13} /> : <Paperclip size={13} />}
+      <span className="truncate max-w-[160px]">{file.originalName || 'Attachment'}</span>
+      <Download size={11} className="flex-shrink-0 opacity-60" />
+    </a>
+  );
+};
 
 /* ── Conversation list panel ── */
 function ConversationList({ conversations, activeId, onSelect }) {
@@ -73,9 +96,11 @@ function ChatPanel({ convMeta, onBack }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
+  const [file, setFile] = useState(null);
   const [sending, setSending] = useState(false);
   const [student, setStudent] = useState(null);
   const bottomRef = useRef(null);
+  const fileRef = useRef(null);
   const pollingRef = useRef(null);
 
   const studentId = String(convMeta.studentId);
@@ -109,12 +134,13 @@ function ChatPanel({ convMeta, onBack }) {
   const handleSend = async (e) => {
     e.preventDefault();
     const text = content.trim();
-    if (!text) return;
+    if (!text && !file) return;
     setSending(true);
     try {
-      const msg = await sendReply(studentId, text);
+      const msg = await sendReply(studentId, text, file);
       setMessages((prev) => [...prev, msg]);
       setContent('');
+      setFile(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to send');
     } finally {
@@ -174,6 +200,7 @@ function ChatPanel({ convMeta, onBack }) {
                 <div className={`max-w-[75%] flex flex-col gap-0.5 ${isAdmin ? 'items-end' : 'items-start'}`}>
                   <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isAdmin ? 'bg-ink-900 text-white rounded-tr-sm' : 'bg-white text-ink-800 rounded-tl-sm border border-surface-200'}`}>
                     {msg.content}
+                    <FileAttachment file={msg.file} dark={isAdmin} />
                   </div>
                   <span className="text-[10px] text-ink-300 px-1">
                     {new Date(msg.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
@@ -188,8 +215,29 @@ function ChatPanel({ convMeta, onBack }) {
         <div ref={bottomRef} />
       </div>
 
+      {/* File preview */}
+      {file && (
+        <div className="px-3 pt-2 flex items-center gap-2 bg-white border-t border-surface-100">
+          <Paperclip size={13} className="text-ink-400" />
+          <span className="text-xs text-ink-600 truncate flex-1">{file.name}</span>
+          <button onClick={() => setFile(null)} className="text-ink-400 hover:text-red-500 transition"><X size={13} /></button>
+        </div>
+      )}
+
       {/* Input */}
       <form onSubmit={handleSend} className="p-3 border-t border-surface-200 flex gap-2 flex-shrink-0 bg-white">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="p-2.5 border border-surface-300 rounded-xl text-ink-400 hover:text-brand-primary hover:border-brand-primary transition flex-shrink-0"
+          title="Attach file"
+        >
+          <Paperclip size={15} />
+        </button>
+        <input ref={fileRef} type="file" className="hidden"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.jpg,.jpeg,.png,.webp"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+        />
         <input
           type="text"
           value={content}
@@ -200,7 +248,7 @@ function ChatPanel({ convMeta, onBack }) {
         />
         <button
           type="submit"
-          disabled={sending || !content.trim()}
+          disabled={sending || (!content.trim() && !file)}
           className="px-4 py-2.5 bg-brand-primary text-white rounded-xl hover:bg-brand-primary/90 transition disabled:opacity-50 flex items-center gap-2"
         >
           <Send size={15} />
