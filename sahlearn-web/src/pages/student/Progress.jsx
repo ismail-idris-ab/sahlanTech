@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
-import { ClipboardCheck, ClipboardList, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { ClipboardCheck, ClipboardList, ChevronDown, ChevronUp, Clock, BarChart2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const authHeader = () => ({
@@ -151,30 +151,28 @@ export default function StudentProgress() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-24">
-        <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-display text-ink-900">My Progress</h1>
-        <p className="text-sm text-ink-400 mt-1">All exam and assignment scores across your enrolled courses.</p>
+        <p className="text-xs text-ink-400 mt-0.5">Scores and results across all your courses</p>
       </div>
 
-      {groups.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-surface-200 p-12 text-center text-ink-400 text-sm">
-          No activity yet. Complete exams or submit assignments to see scores here.
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : groups.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-surface-200 p-16 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-surface-100 flex items-center justify-center mx-auto mb-3">
+            <BarChart2 size={22} className="text-ink-300" />
+          </div>
+          <p className="font-semibold text-ink-700">No graded work yet</p>
+          <p className="text-sm text-ink-400 mt-1">Complete assignments and exams to see your progress.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {groups.map((g) => (
-            <CourseSection key={g.courseId} group={g} />
-          ))}
+          {groups.map((group, i) => <CourseSection key={i} group={group} />)}
         </div>
       )}
     </div>
