@@ -70,6 +70,7 @@ export default function StudentExams() {
             <ClipboardCheck size={22} className="text-ink-300" />
           </div>
           <p className="font-semibold text-ink-700">No exams available yet</p>
+          <p className="text-sm text-ink-400 mt-1">Check back later.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
