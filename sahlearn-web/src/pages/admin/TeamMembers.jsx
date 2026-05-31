@@ -9,6 +9,9 @@ import EmptyState from '../../components/common/EmptyState';
 
 const EMPTY_FORM = { name: '', email: '', password: '' };
 
+const GRAD = ['linear-gradient(135deg,#068562,#71B280)', 'linear-gradient(135deg,#C9962A,#E8B84B)', 'linear-gradient(135deg,#8b5cf6,#6366f1)', 'linear-gradient(135deg,#3b82f6,#60a5fa)', 'linear-gradient(135deg,#f97316,#fb923c)'];
+const avatarGrad = (name) => GRAD[(name?.charCodeAt(0) ?? 0) % GRAD.length];
+
 export default function TeamMembers() {
   const { user: currentUser } = useAuth();
   const [admins, setAdmins] = useState([]);
@@ -89,14 +92,11 @@ export default function TeamMembers() {
     <div className="max-w-5xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-xs font-semibold text-brand-primary uppercase tracking-wider mb-1">Access</p>
-          <div className="flex items-baseline gap-3">
-            <span className="font-display text-3xl text-ink-900">{admins.length}</span>
-            <span className="text-ink-500 text-sm">admin{admins.length !== 1 ? 's' : ''}</span>
-          </div>
+          <h1 className="text-2xl font-display text-ink-900">Team Members</h1>
+          <p className="text-xs text-ink-400 mt-0.5">{admins.length} admin{admins.length !== 1 ? 's' : ''}</p>
         </div>
         <Button onClick={() => setShowCreate(true)} icon={<UserPlus size={15} />}>
-          Add Admin
+          Add Member
         </Button>
       </div>
 
@@ -113,11 +113,11 @@ export default function TeamMembers() {
           <table className="w-full text-sm">
             <thead className="border-b border-ink-300/20">
               <tr>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Name</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden sm:table-cell">Email</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden md:table-cell">Role</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide hidden lg:table-cell">Added</th>
-                <th className="text-right px-5 py-3.5 text-xs font-semibold text-ink-500 uppercase tracking-wide">Actions</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Name</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">Email</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Role</th>
+                <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Added</th>
+                <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-300/15">
@@ -126,7 +126,13 @@ export default function TeamMembers() {
                 return (
                   <tr key={admin.id} className="hover:bg-surface-100/60 transition-colors">
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                          style={{ background: avatarGrad(admin.name) }}
+                        >
+                          {admin.name?.charAt(0)?.toUpperCase()}
+                        </div>
                         <p className="font-medium text-ink-900">{admin.name}</p>
                         {isSelf && (
                           <span className="text-xs bg-brand-primary/10 text-brand-primary px-2 py-0.5 rounded-full font-medium">you</span>
