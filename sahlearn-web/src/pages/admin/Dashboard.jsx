@@ -280,14 +280,6 @@ export default function Dashboard() {
                   color: '#0d9488',
                   link: '/admin/posts',
                 },
-                {
-                  label: 'Attendance sessions',
-                  published: stats.attendance?.sessions ?? 0,
-                  draft: 0,
-                  total: stats.attendance?.sessions ?? 0,
-                  color: '#C9962A',
-                  link: '/admin/attendance',
-                },
               ].map(({ label, published, draft, total, color, link }) => {
                 const pct = total > 0 ? Math.round((published / total) * 100) : 0;
                 return (
