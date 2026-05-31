@@ -120,6 +120,16 @@ export default function AdminCourses() {
                     Edit
                   </Link>
                   <button
+                    onClick={(e) => { e.preventDefault(); handleTogglePublish(course); }}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                    style={course.isPublished
+                      ? { background: 'rgba(217,119,6,0.08)', color: '#d97706', border: '1px solid rgba(217,119,6,0.2)' }
+                      : { background: 'rgba(6,133,98,0.08)', color: '#068562', border: '1px solid rgba(6,133,98,0.15)' }
+                    }
+                  >
+                    {course.isPublished ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <button
                     onClick={() => setDeleteTarget(course)}
                     className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors text-red-500 hover:bg-red-50"
                     style={{ border: '1px solid rgba(239,68,68,0.2)' }}
