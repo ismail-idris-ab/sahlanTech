@@ -73,7 +73,7 @@ export default function Dashboard() {
           style={{ background: 'radial-gradient(circle, #C9962A, transparent)' }}
         />
 
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#71B280' }}>
               {greeting}
@@ -84,25 +84,56 @@ export default function Dashboard() {
             <p className="text-sm mt-1" style={{ color: '#87BAC2' }}>
               Here's what's happening with Sahlearn today.
             </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Link
+                to="/admin/courses/new"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #C9962A, #E8B84B)', color: '#011F28' }}
+              >
+                <PlusCircle size={13} /> New Course
+              </Link>
+              <Link
+                to="/admin/posts/new"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:bg-white/15"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}
+              >
+                <Edit3 size={13} /> New Post
+              </Link>
+            </div>
           </div>
 
-          {/* Quick actions — visible in banner on desktop, collapsible on mobile */}
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/admin/courses/new"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #C9962A, #E8B84B)', color: '#011F28' }}
-            >
-              <PlusCircle size={13} /> New Course
-            </Link>
-            <Link
-              to="/admin/posts/new"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:bg-white/15"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}
-            >
-              <Edit3 size={13} /> New Post
-            </Link>
-          </div>
+          {/* Mini-stat chips */}
+          {stats && (
+            <div className="flex sm:flex-col gap-3 sm:gap-2 flex-shrink-0">
+              <div
+                className="flex flex-col px-4 py-3 rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <span className="text-2xl font-display text-white leading-none">
+                  {stats.students?.total ?? '—'}
+                </span>
+                <span className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  Total students
+                </span>
+              </div>
+              <div
+                className="flex flex-col px-4 py-3 rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <span className="text-2xl font-display leading-none" style={{ color: '#E8B84B' }}>
+                  {loading ? '—' : (
+                    (stats.messages?.new ?? 0) +
+                    (stats.enrollments?.pending ?? 0) +
+                    (stats.assignments?.ungraded ?? 0) +
+                    (stats.exams?.pendingReview ?? 0)
+                  )}
+                </span>
+                <span className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  Pending actions
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -248,6 +279,14 @@ export default function Dashboard() {
                   total: stats.posts.total,
                   color: '#0d9488',
                   link: '/admin/posts',
+                },
+                {
+                  label: 'Attendance sessions',
+                  published: stats.attendance?.sessions ?? 0,
+                  draft: 0,
+                  total: stats.attendance?.sessions ?? 0,
+                  color: '#C9962A',
+                  link: '/admin/attendance',
                 },
               ].map(({ label, published, draft, total, color, link }) => {
                 const pct = total > 0 ? Math.round((published / total) * 100) : 0;
