@@ -29,7 +29,7 @@ const enrollmentSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['paystack', 'bank_transfer', 'free'],
+      enum: ['bank_transfer', 'cash', 'free'],
       default: 'bank_transfer',
     },
     paymentStatus: {
@@ -40,6 +40,12 @@ const enrollmentSchema = new mongoose.Schema(
     },
     paymentRef: { type: String, trim: true },
     amountPaid: { type: Number, default: 0 },
+    paymentProof: {
+      url: String,
+      public_id: String,
+      originalName: String,
+    },
+    enrollmentCode: { type: String, trim: true },
     ipAddress: String,
     userAgent: String,
     studentAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },

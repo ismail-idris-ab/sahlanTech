@@ -5,7 +5,7 @@ const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const studentAuth = require('../middleware/studentAuth');
 const { upload } = require('../middleware/upload');
-const { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats, getProgress } = require('../controllers/student.controller');
+const { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, setFirstPassword, getStats, getProgress } = require('../controllers/student.controller');
 
 router.use(studentAuth);
 
@@ -27,6 +27,7 @@ router.patch(
 
 router.post('/me/avatar', upload.single('image'), uploadAvatar);
 router.delete('/me/avatar', deleteAvatar);
+router.patch('/me/set-password', setFirstPassword);
 
 router.patch(
   '/me/password',

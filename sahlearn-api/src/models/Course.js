@@ -26,6 +26,8 @@ const courseSchema = new mongoose.Schema(
     prerequisites: [String],
     isPublished: { type: Boolean, default: false, index: true },
     isFeatured: { type: Boolean, default: false, index: true },
+    courseCode: { type: String, trim: true, uppercase: true, maxlength: 5 },
+    isFree: { type: Boolean, default: false, index: true },
     videoUrl: { type: String, trim: true },
     seoTitle: { type: String, maxlength: 70 },
     seoDescription: { type: String, maxlength: 160 },

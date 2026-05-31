@@ -10,8 +10,8 @@ const parsePagination = (query) => {
 };
 
 const createExam = async (req, res) => {
-  const { course, title, description, duration, dueDate, isPublished, questions } = req.body;
-  const exam = await Exam.create({ course, title, description, duration, dueDate, isPublished, questions: questions || [] });
+  const { course, title, description, duration, dueDate, enrollmentCutoff, isPublished, questions } = req.body;
+  const exam = await Exam.create({ course, title, description, duration, dueDate, enrollmentCutoff: enrollmentCutoff || undefined, isPublished, questions: questions || [] });
   success(res, exam, 201);
 };
 
@@ -58,7 +58,7 @@ const updateExam = async (req, res) => {
   const exam = await Exam.findById(req.params.id);
   if (!exam) return notFound(res, 'Exam not found');
 
-  const allowed = ['title', 'description', 'duration', 'dueDate', 'isPublished', 'questions', 'course'];
+  const allowed = ['title', 'description', 'duration', 'dueDate', 'enrollmentCutoff', 'isPublished', 'questions', 'course'];
   for (const key of allowed) {
     if (req.body[key] !== undefined) exam[key] = req.body[key];
   }

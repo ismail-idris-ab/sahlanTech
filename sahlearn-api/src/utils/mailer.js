@@ -1,40 +1,27 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-let _transporter = null;
+let _resend = null;
 
-function getTransporter() {
-  if (_transporter) return _transporter;
-
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
-
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    return null; // email not configured — fail silently
-  }
-
-  _transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: parseInt(SMTP_PORT || '587'),
-    secure: parseInt(SMTP_PORT || '587') === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
-
-  return _transporter;
+function getClient() {
+  if (_resend) return _resend;
+  if (!process.env.RESEND_API_KEY) return null;
+  _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
 }
 
 /**
- * Send an email. Fails silently if SMTP not configured.
+ * Send an email. Fails silently if RESEND_API_KEY is not configured.
  * @param {{ to: string, subject: string, html: string }} options
  */
 async function sendMail({ to, subject, html }) {
-  const transporter = getTransporter();
-  if (!transporter) return;
+  const client = getClient();
+  if (!client) return;
 
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const from = process.env.MAIL_FROM || 'Sahlearn <noreply@sahlearn.com>';
 
   try {
-    await transporter.sendMail({ from, to, subject, html });
+    await client.emails.send({ from, to, subject, html });
   } catch (err) {
-    // Log but never throw — email failure must not break the enrollment flow
     console.error('[mailer] send failed:', err.message);
   }
 }

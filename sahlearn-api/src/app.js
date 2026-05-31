@@ -21,6 +21,12 @@ const adminAssignmentsRoutes = require('./routes/admin.assignments.routes');
 const studentAssignmentsRoutes = require('./routes/student.assignments.routes');
 const studentExamsRoutes = require('./routes/student.exams.routes');
 const adminExamsRoutes = require('./routes/admin.exams.routes');
+const adminAttendanceRoutes = require('./routes/admin.attendance.routes');
+const studentAttendanceRoutes = require('./routes/student.attendance.routes');
+const exportsRoutes = require('./routes/exports.routes');
+const adminAnnouncementsRoutes = require('./routes/admin.announcements.routes');
+const studentAnnouncementsRoutes = require('./routes/student.announcements.routes');
+const siteContentRoutes = require('./routes/siteContent.routes');
 
 const app = express();
 
@@ -31,10 +37,6 @@ const corsOrigins = process.env.CORS_ORIGIN
 app.use(helmet());
 app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(compression());
-
-// Paystack webhook needs raw body for signature verification — mount before json()
-const { paystackWebhook } = require('./controllers/enrollments.controller');
-app.post('/api/enrollments/webhook/paystack', express.raw({ type: 'application/json' }), paystackWebhook);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -107,6 +109,12 @@ app.use('/api/student/assignments', studentAssignmentsRoutes);
 app.use('/api/student/exams', studentExamsRoutes);
 app.use('/api/admin/assignments', adminAssignmentsRoutes);
 app.use('/api/admin/exams', adminExamsRoutes);
+app.use('/api/admin/attendance', adminAttendanceRoutes);
+app.use('/api/student/attendance', studentAttendanceRoutes);
+app.use('/api/admin/exports', exportsRoutes);
+app.use('/api/admin/announcements', adminAnnouncementsRoutes);
+app.use('/api/student/announcements', studentAnnouncementsRoutes);
+app.use('/api/content', siteContentRoutes);
 
 // 404
 app.use((_req, res) => {

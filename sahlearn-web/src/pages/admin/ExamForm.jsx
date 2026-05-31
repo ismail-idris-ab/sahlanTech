@@ -9,7 +9,7 @@ const emptyQuestion = () => ({
   text: '',
   type: 'mcq',
   options: ['', '', '', ''],
-  correctIndex: 0,
+  correctIndex: null,
   points: 1,
 });
 
@@ -91,34 +91,57 @@ function QuestionEditor({ question, index, onChange, onRemove }) {
 
           {question.type === 'mcq' && (
             <div>
-              <label className="block text-xs font-medium text-ink-600 mb-2">Options (select correct answer)</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-medium text-ink-600">Options</label>
+                <span className="text-xs text-ink-400">Click the radio button to mark the correct answer</span>
+              </div>
               <div className="space-y-2">
-                {question.options.map((opt, oi) => (
-                  <div key={oi} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name={`correct-${index}`}
-                      checked={question.correctIndex === oi}
-                      onChange={() => update('correctIndex', oi)}
-                      className="accent-brand-primary flex-shrink-0"
-                    />
-                    <input
-                      type="text"
-                      value={opt}
-                      onChange={(e) => updateOption(oi, e.target.value)}
-                      placeholder={`Option ${oi + 1}`}
-                      className="flex-1 px-3 py-1.5 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
-                    />
-                    {question.options.length > 2 && (
-                      <button
-                        onClick={() => removeOption(oi)}
-                        className="p-1 rounded hover:bg-red-50 text-ink-300 hover:text-red-500 transition"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                {question.correctIndex === null && (
+                  <p className="text-xs text-amber-600 mb-2">No correct answer selected — click a radio button to mark one.</p>
+                )}
+                {question.options.map((opt, oi) => {
+                  const isCorrect = question.correctIndex === oi;
+                  const letter = ['A', 'B', 'C', 'D'][oi];
+                  return (
+                    <div
+                      key={oi}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition ${
+                        isCorrect
+                          ? 'bg-green-50 border-green-300'
+                          : 'border-surface-200'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`correct-${index}`}
+                        checked={isCorrect}
+                        onChange={() => update('correctIndex', oi)}
+                        className="accent-green-600 flex-shrink-0"
+                      />
+                      <span className={`text-xs font-bold w-4 flex-shrink-0 ${isCorrect ? 'text-green-700' : 'text-ink-400'}`}>
+                        {letter}
+                      </span>
+                      <input
+                        type="text"
+                        value={opt}
+                        onChange={(e) => updateOption(oi, e.target.value)}
+                        placeholder={`Option ${letter}`}
+                        className="flex-1 bg-transparent text-sm focus:outline-none text-ink-900 placeholder:text-ink-300"
+                      />
+                      {isCorrect && (
+                        <span className="text-xs font-semibold text-green-600 flex-shrink-0">Correct</span>
+                      )}
+                      {question.options.length > 2 && (
+                        <button
+                          onClick={() => removeOption(oi)}
+                          className="p-1 rounded hover:bg-red-50 text-ink-300 hover:text-red-500 transition flex-shrink-0"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
                 {question.options.length < 4 && (
                   <button
                     onClick={addOption}
@@ -147,6 +170,7 @@ export default function ExamForm() {
     course: '',
     duration: '',
     dueDate: '',
+    enrollmentCutoff: '',
     isPublished: true,
   });
   const [questions, setQuestions] = useState([emptyQuestion()]);
@@ -163,6 +187,7 @@ export default function ExamForm() {
           course: exam.course?._id || exam.course || '',
           duration: exam.duration || '',
           dueDate: exam.dueDate ? new Date(exam.dueDate).toISOString().slice(0, 16) : '',
+          enrollmentCutoff: exam.enrollmentCutoff ? new Date(exam.enrollmentCutoff).toISOString().slice(0, 16) : '',
           isPublished: exam.isPublished ?? true,
         });
         setQuestions(exam.questions?.length ? exam.questions : [emptyQuestion()]);
@@ -178,11 +203,14 @@ export default function ExamForm() {
     e.preventDefault();
     if (!form.course) { toast.error('Select a course'); return; }
     if (questions.length === 0) { toast.error('Add at least one question'); return; }
+    const unset = questions.findIndex((q) => q.type === 'mcq' && q.correctIndex === null);
+    if (unset !== -1) { toast.error(`Q${unset + 1}: select the correct answer`); return; }
 
     const payload = {
       ...form,
       duration: form.duration ? Number(form.duration) : undefined,
       dueDate: form.dueDate || undefined,
+      enrollmentCutoff: form.enrollmentCutoff || undefined,
       questions: questions.map((q) => {
         const clean = { text: q.text, type: q.type, points: q.points || 1 };
         if (q.type === 'mcq') {
@@ -264,6 +292,16 @@ export default function ExamForm() {
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
                 className="w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-ink-600 mb-1">Enrollment Cutoff (optional)</label>
+              <input
+                type="datetime-local"
+                value={form.enrollmentCutoff}
+                onChange={(e) => setForm({ ...form, enrollmentCutoff: e.target.value })}
+                className="w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
+              />
+              <p className="text-[10px] text-ink-400 mt-1">Students enrolled after this date cannot take this exam. Leave blank to use the exam creation date.</p>
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-ink-600 mb-1">Description (optional)</label>

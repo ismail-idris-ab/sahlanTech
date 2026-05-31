@@ -17,12 +17,44 @@ import {
 } from "lucide-react";
 import { getCourses } from "../../services/courses.service";
 import { getPosts } from "../../services/posts.service";
+import { getContent } from "../../services/siteContent.service";
 import CourseCard from "../../components/courses/CourseCard";
 import BlogCard from "../../components/blog/BlogCard";
 import SEO from "../../components/common/SEO";
 import HeroBg from "../../components/common/HeroBg";
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
+
+function initials(name) {
+  return (name || '?').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function TestimonialCard({ testimonial }) {
+  const { name, role, text, avatarUrl } = testimonial;
+  return (
+    <div className="bg-white rounded-2xl border border-ink-300/40 p-6 flex flex-col gap-4 hover:shadow-md transition-shadow">
+      <div className="text-brand-primary/30">
+        <svg width="28" height="20" viewBox="0 0 28 20" fill="currentColor">
+          <path d="M0 20V12.667C0 5.556 4.148 1.37 12.444 0l1.334 2.222C9.926 3.185 7.926 5.037 7.111 7.778H12V20H0zm16 0V12.667C16 5.556 20.148 1.37 28.444 0l1.334 2.222C25.926 3.185 23.926 5.037 23.111 7.778H28V20H16z" />
+        </svg>
+      </div>
+      <p className="text-ink-700 text-sm leading-relaxed flex-1">{text}</p>
+      <div className="flex items-center gap-3 pt-2 border-t border-ink-300/20">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+        ) : (
+          <div className="w-9 h-9 rounded-full bg-brand-primary/10 flex items-center justify-center flex-shrink-0 text-xs font-bold text-brand-primary">
+            {initials(name)}
+          </div>
+        )}
+        <div>
+          <p className="text-sm font-semibold text-ink-900">{name}</p>
+          {role && <p className="text-xs text-ink-400">{role}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CATEGORIES = [
   {
@@ -119,6 +151,7 @@ export default function Home() {
   const [courses, setCourses] = useState(null);
   const [posts, setPosts] = useState([]);
   const [openFaq, setOpenFaq] = useState(null);
+  const [testimonials, setTestimonials] = useState([]);
 
   useEffect(() => {
     getCourses({ limit: 6 })
@@ -126,6 +159,9 @@ export default function Home() {
       .catch(() => setCourses([]));
     getPosts({ limit: 3 })
       .then((r) => setPosts(r.data))
+      .catch(() => {});
+    getContent('testimonials')
+      .then((data) => setTestimonials(Array.isArray(data) ? data.slice(0, 3) : []))
       .catch(() => {});
   }, []);
 
@@ -355,6 +391,27 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Testimonials */}
+      {testimonials.length > 0 && (
+        <section className="bg-white py-16 md:py-20 border-y border-ink-300/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <span className="text-xs font-semibold text-brand-primary uppercase tracking-widest">
+                Student Stories
+              </span>
+              <h2 className="text-2xl md:text-3xl font-bold text-ink-900 font-display mt-2">
+                What our students say
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {testimonials.map((t, i) => (
+                <TestimonialCard key={i} testimonial={t} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Latest Blog */}
       {posts.length > 0 && (

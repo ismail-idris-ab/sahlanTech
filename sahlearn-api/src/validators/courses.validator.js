@@ -25,6 +25,7 @@ const courseCreateValidator = [
   body('prerequisites').optional().isArray().withMessage('prerequisites must be an array'),
   body('isPublished').optional().isBoolean(),
   body('isFeatured').optional().isBoolean(),
+  body('isFree').optional().isBoolean(),
   body('seoTitle').optional().trim().isLength({ max: 70 }),
   body('seoDescription').optional().trim().isLength({ max: 160 }),
 ];
@@ -47,6 +48,7 @@ const courseUpdateValidator = [
   body('prerequisites').optional().isArray(),
   body('isPublished').optional().isBoolean(),
   body('isFeatured').optional().isBoolean(),
+  body('isFree').optional().isBoolean(),
   body('seoTitle').optional().trim().isLength({ max: 70 }),
   body('seoDescription').optional().trim().isLength({ max: 160 }),
 ];

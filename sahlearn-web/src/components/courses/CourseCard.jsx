@@ -26,9 +26,15 @@ export default function CourseCard({ course }) {
         <span className="absolute top-3 left-3 bg-white/90 text-xs font-medium text-ink-700 px-2 py-1 rounded-full">
           {course.category}
         </span>
-        <span className={`absolute top-3 right-3 text-xs font-medium px-2 py-1 rounded-full ${LEVEL_COLOR[course.level]}`}>
-          {course.level}
-        </span>
+        {course.isFree ? (
+          <span className="absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full bg-green-500 text-white">
+            Free
+          </span>
+        ) : (
+          <span className={`absolute top-3 right-3 text-xs font-medium px-2 py-1 rounded-full ${LEVEL_COLOR[course.level]}`}>
+            {course.level}
+          </span>
+        )}
       </div>
 
       <div className="p-4">
@@ -42,7 +48,11 @@ export default function CourseCard({ course }) {
             <Clock size={13} />
             <span>{course.duration}</span>
           </div>
-          <span className="font-semibold text-brand-primary text-sm">{course.price}</span>
+          {course.isFree ? (
+            <span className="font-bold text-green-600 text-sm bg-green-50 px-2 py-0.5 rounded-full border border-green-200">Free</span>
+          ) : (
+            <span className="font-semibold text-brand-primary text-sm">{course.price}</span>
+          )}
         </div>
       </div>
     </Link>

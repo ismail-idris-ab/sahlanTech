@@ -5,7 +5,7 @@ import {
   LayoutDashboard, BookOpen, FileText,
   MessageSquare, Users, UserCog,
   LogOut, Sprout, Bell, GraduationCap, MessageCircle,
-  ClipboardList, ClipboardCheck,
+  ClipboardList, ClipboardCheck, CalendarCheck, Megaphone, Globe,
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -20,9 +20,12 @@ const SIDEBAR_MANAGE = [
   { to: '/admin/enrollments', label: 'Enrollments', icon: Users },
   { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
   { to: '/admin/exams', label: 'Exams', icon: ClipboardCheck },
+  { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
+  { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/admin/students', label: 'Students', icon: GraduationCap },
   { to: '/admin/student-messages', label: 'Student Messages', icon: MessageCircle },
   { to: '/admin/team', label: 'Team', icon: UserCog },
+  { to: '/admin/site-content', label: 'Site Content', icon: Globe },
 ];
 const BOTTOM_TABS = [
   { to: '/admin', label: 'Home', icon: LayoutDashboard, end: true },
@@ -39,9 +42,12 @@ const PAGE_TITLES = {
   '/admin/enrollments': 'Enrollments',
   '/admin/assignments': 'Assignments',
   '/admin/exams': 'Exams',
+  '/admin/attendance': 'Attendance',
+  '/admin/announcements': 'Announcements',
   '/admin/students': 'Students',
   '/admin/student-messages': 'Student Messages',
   '/admin/team': 'Team',
+  '/admin/site-content': 'Site Content',
 };
 
 /* ── Sidebar nav item ── */

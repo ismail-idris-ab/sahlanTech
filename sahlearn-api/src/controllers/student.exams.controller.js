@@ -15,6 +15,21 @@ const stripAnswers = (exam) => {
   return obj;
 };
 
+// Build a map of courseId → enrolledAt from the student's enrolled courses
+function buildEnrollmentDateMap(student) {
+  const map = {};
+  for (const ec of student.enrolledCourses) {
+    if (ec.course) map[ec.course.toString()] = ec.enrolledAt;
+  }
+  return map;
+}
+
+function isEligible(enrolledAt, exam) {
+  if (!enrolledAt) return false;
+  const cutoff = exam.enrollmentCutoff || exam.createdAt;
+  return enrolledAt <= cutoff;
+}
+
 const listExams = async (req, res) => {
   const courseIds = req.student.enrolledCourses.filter((ec) => ec.course).map((ec) => ec.course);
 
@@ -22,15 +37,22 @@ const listExams = async (req, res) => {
     .sort({ createdAt: -1 })
     .populate('course', 'title slug');
 
-  const examIds = exams.map((e) => e._id);
+  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+
+  const eligibleExams = exams.filter((exam) => {
+    const enrolledAt = enrollmentDateMap[exam.course._id.toString()];
+    return isEligible(enrolledAt, exam);
+  });
+
+  const examIds = eligibleExams.map((e) => e._id);
   const myAttempts = await ExamAttempt.find({
     exam: { $in: examIds },
     student: req.student._id,
-  }).select('exam score maxScore status submittedAt');
+  }).select('exam score maxScore mcqScore status submittedAt');
 
   const attemptMap = Object.fromEntries(myAttempts.map((a) => [a.exam.toString(), a]));
 
-  const data = exams.map((e) => {
+  const data = eligibleExams.map((e) => {
     const stripped = stripAnswers(e);
     const attempt = attemptMap[e._id.toString()];
     const hasShortQuestions = e.questions.some((q) => q.type === 'short');
@@ -60,10 +82,15 @@ const getExam = async (req, res) => {
     return res.status(403).json({ status: 'error', message: 'You are not enrolled in this course' });
   }
 
+  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+  const enrolledAt = enrollmentDateMap[exam.course._id.toString()];
+  if (!isEligible(enrolledAt, exam)) {
+    return res.status(403).json({ status: 'error', message: 'You are not eligible for this exam' });
+  }
+
   const myAttempt = await ExamAttempt.findOne({ exam: exam._id, student: req.student._id });
 
   if (myAttempt) {
-    // Reveal correct answers after submission — use toJSON shape (id already mapped)
     const obj = exam.toJSON();
     const hasShortQuestions = exam.questions.some((q) => q.type === 'short');
     const attemptObj = myAttempt.toJSON();
@@ -84,6 +111,12 @@ const submitExam = async (req, res) => {
 
   if (!courseIds.includes(exam.course.toString())) {
     return res.status(403).json({ status: 'error', message: 'You are not enrolled in this course' });
+  }
+
+  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+  const enrolledAt = enrollmentDateMap[exam.course.toString()];
+  if (!isEligible(enrolledAt, exam)) {
+    return res.status(403).json({ status: 'error', message: 'You are not eligible for this exam' });
   }
 
   const existing = await ExamAttempt.findOne({ exam: exam._id, student: req.student._id });
@@ -109,7 +142,7 @@ const submitExam = async (req, res) => {
       student: req.student._id,
       answers: answers || [],
       mcqScore,
-      score: mcqScore, // essay scores added later by admin
+      score: mcqScore,
       maxScore: exam.totalPoints,
       submittedAt: new Date(),
     });

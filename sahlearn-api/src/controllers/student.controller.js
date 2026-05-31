@@ -64,9 +64,28 @@ const changePassword = async (req, res) => {
 
   student.password = newPassword;
   student.tempPassword = undefined;
+  student.mustChangePassword = false;
   await student.save();
 
   success(res, { message: 'Password changed successfully' });
+};
+
+// First-login forced password set — no current password required (already authenticated)
+const setFirstPassword = async (req, res) => {
+  const { password } = req.body;
+  if (!password || password.length < 8) {
+    return res.status(422).json({ status: 'error', message: 'Password must be at least 8 characters.' });
+  }
+
+  const bcrypt = require('bcryptjs');
+  const hashed = await bcrypt.hash(password, 10);
+
+  await Student.findByIdAndUpdate(req.student._id, {
+    $set: { password: hashed, mustChangePassword: false },
+    $unset: { tempPassword: 1 },
+  });
+
+  success(res, { message: 'Password set successfully' });
 };
 
 const getStats = async (req, res) => {
@@ -172,4 +191,4 @@ const getProgress = async (req, res) => {
   success(res, data);
 };
 
-module.exports = { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, getStats, getProgress };
+module.exports = { getMe, updateMe, uploadAvatar, deleteAvatar, changePassword, setFirstPassword, getStats, getProgress };

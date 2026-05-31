@@ -34,6 +34,7 @@ const AdminExamDetail = lazy(() => import('../pages/admin/ExamDetail'));
 const StudentLogin = lazy(() => import('../pages/student/Login'));
 const StudentForgotPassword = lazy(() => import('../pages/student/ForgotPassword'));
 const StudentResetPassword = lazy(() => import('../pages/student/ResetPassword'));
+const StudentChangePassword = lazy(() => import('../pages/student/ChangePassword'));
 const StudentDashboard = lazy(() => import('../pages/student/Dashboard'));
 const StudentProfile = lazy(() => import('../pages/student/Profile'));
 const StudentMyCourses = lazy(() => import('../pages/student/MyCourses'));
@@ -43,6 +44,12 @@ const StudentAssignmentDetail = lazy(() => import('../pages/student/AssignmentDe
 const StudentExams = lazy(() => import('../pages/student/Exams'));
 const StudentExamTake = lazy(() => import('../pages/student/ExamTake'));
 const StudentProgress = lazy(() => import('../pages/student/Progress'));
+const StudentAttendance = lazy(() => import('../pages/student/Attendance'));
+const AdminAttendance = lazy(() => import('../pages/admin/Attendance'));
+const AdminAttendanceSession = lazy(() => import('../pages/admin/AttendanceSession'));
+const AdminAnnouncements = lazy(() => import('../pages/admin/Announcements'));
+const AdminSiteContent = lazy(() => import('../pages/admin/SiteContent'));
+const StudentAnnouncements = lazy(() => import('../pages/student/Announcements'));
 
 // Public pages — lazy loaded (each route is a separate chunk)
 const Home = lazy(() => import('../pages/public/Home'));
@@ -53,6 +60,7 @@ const Blog = lazy(() => import('../pages/public/Blog'));
 const BlogDetail = lazy(() => import('../pages/public/BlogDetail'));
 const Contact = lazy(() => import('../pages/public/Contact'));
 const Enroll = lazy(() => import('../pages/public/Enroll'));
+const FAQ = lazy(() => import('../pages/public/FAQ'));
 
 const PageSpinner = () => (
   <div className="flex justify-center py-24">
@@ -86,6 +94,7 @@ export default function AppRouter() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/enroll" element={<Enroll />} />
               <Route path="/enroll/:courseSlug" element={<Enroll />} />
+              <Route path="/faq" element={<FAQ />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 
@@ -123,12 +132,17 @@ export default function AppRouter() {
               <Route path="exams/new" element={<AdminExamForm />} />
               <Route path="exams/:id" element={<AdminExamDetail />} />
               <Route path="exams/:id/edit" element={<AdminExamForm />} />
+              <Route path="attendance" element={<AdminAttendance />} />
+              <Route path="attendance/:id" element={<AdminAttendanceSession />} />
+              <Route path="announcements" element={<AdminAnnouncements />} />
+              <Route path="site-content" element={<AdminSiteContent />} />
             </Route>
 
             {/* Student auth — no layout */}
             <Route path="/student/login" element={<StudentLogin />} />
             <Route path="/student/forgot-password" element={<StudentForgotPassword />} />
             <Route path="/student/reset-password" element={<StudentResetPassword />} />
+            <Route path="/student/change-password" element={<StudentChangePassword />} />
 
             {/* Student portal — protected */}
             <Route
@@ -149,6 +163,8 @@ export default function AppRouter() {
               <Route path="exams" element={<StudentExams />} />
               <Route path="exams/:id" element={<StudentExamTake />} />
               <Route path="progress" element={<StudentProgress />} />
+              <Route path="attendance" element={<StudentAttendance />} />
+              <Route path="announcements" element={<StudentAnnouncements />} />
             </Route>
           </Routes>
         </Suspense>

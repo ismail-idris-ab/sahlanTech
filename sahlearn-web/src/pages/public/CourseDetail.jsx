@@ -136,7 +136,14 @@ export default function CourseDetail() {
         {/* Sticky sidebar */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl border border-ink-300/40 shadow-sm p-6 lg:sticky lg:top-8 space-y-5">
-            <div className="text-3xl font-bold text-brand-primary">{course.price}</div>
+            {course.isFree ? (
+              <div className="flex items-center gap-2">
+                <span className="text-3xl font-bold text-green-600">Free</span>
+                <span className="text-xs font-semibold bg-green-50 text-green-600 border border-green-200 px-2 py-0.5 rounded-full">No payment required</span>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold text-brand-primary">{course.price}</div>
+            )}
 
             <div className="space-y-2 text-sm text-ink-700">
               <div className="flex items-center gap-2">
@@ -151,9 +158,13 @@ export default function CourseDetail() {
 
             <Link
               to={`/enroll/${course.slug}`}
-              className="block w-full text-center bg-brand-primary text-white font-medium py-3 rounded-lg hover:bg-brand-primaryDark transition-colors"
+              className={`block w-full text-center font-medium py-3 rounded-lg transition-colors ${
+                course.isFree
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-brand-primary hover:bg-brand-primaryDark text-white'
+              }`}
             >
-              Enroll Now
+              {course.isFree ? 'Enroll for Free' : 'Enroll Now'}
             </Link>
 
             <a

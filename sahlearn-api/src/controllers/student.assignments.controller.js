@@ -3,6 +3,20 @@ const Assignment = require('../models/Assignment');
 const Submission = require('../models/Submission');
 const { success, successList, notFound } = require('../utils/apiResponse');
 
+function buildEnrollmentDateMap(student) {
+  const map = {};
+  for (const ec of student.enrolledCourses) {
+    if (ec.course) map[ec.course.toString()] = ec.enrolledAt;
+  }
+  return map;
+}
+
+function isEligible(enrolledAt, assignment) {
+  if (!enrolledAt) return false;
+  const cutoff = assignment.enrollmentCutoff || assignment.createdAt;
+  return enrolledAt <= cutoff;
+}
+
 const listAssignments = async (req, res) => {
   const courseIds = req.student.enrolledCourses
     .filter((ec) => ec.course)
@@ -28,7 +42,14 @@ const listAssignments = async (req, res) => {
     Assignment.countDocuments(filter),
   ]);
 
-  const ids = assignments.map((a) => a._id);
+  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+
+  const eligibleAssignments = assignments.filter((a) => {
+    const enrolledAt = enrollmentDateMap[a.course._id.toString()];
+    return isEligible(enrolledAt, a);
+  });
+
+  const ids = eligibleAssignments.map((a) => a._id);
   const mySubmissions = await Submission.find({
     assignment: { $in: ids },
     student: req.student._id,
@@ -36,12 +57,12 @@ const listAssignments = async (req, res) => {
 
   const submissionMap = Object.fromEntries(mySubmissions.map((s) => [s.assignment.toString(), s]));
 
-  const data = assignments.map((a) => ({
+  const data = eligibleAssignments.map((a) => ({
     ...a,
     mySubmission: submissionMap[a._id.toString()] || null,
   }));
 
-  successList(res, data, { page, limit, total, totalPages: Math.ceil(total / limit) });
+  successList(res, data, { page, limit, total: eligibleAssignments.length, totalPages: Math.ceil(eligibleAssignments.length / limit) });
 };
 
 const getAssignment = async (req, res) => {
@@ -57,6 +78,12 @@ const getAssignment = async (req, res) => {
   if (!assignment.isPublished) return notFound(res, 'Assignment not found');
   if (!courseIds.includes(assignment.course._id.toString())) {
     return res.status(403).json({ status: 'error', message: 'Not enrolled in this course' });
+  }
+
+  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+  const enrolledAt = enrollmentDateMap[assignment.course._id.toString()];
+  if (!isEligible(enrolledAt, assignment)) {
+    return res.status(403).json({ status: 'error', message: 'You are not eligible for this assignment' });
   }
 
   const mySubmission = await Submission.findOne({
@@ -76,6 +103,12 @@ const submitAssignment = async (req, res) => {
   if (!assignment || !assignment.isPublished) return notFound(res, 'Assignment not found');
   if (!courseIds.includes(assignment.course.toString())) {
     return res.status(403).json({ status: 'error', message: 'Not enrolled in this course' });
+  }
+
+  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+  const enrolledAt = enrollmentDateMap[assignment.course.toString()];
+  if (!isEligible(enrolledAt, assignment)) {
+    return res.status(403).json({ status: 'error', message: 'You are not eligible for this assignment' });
   }
 
   const existing = await Submission.findOne({ assignment: req.params.id, student: req.student._id });

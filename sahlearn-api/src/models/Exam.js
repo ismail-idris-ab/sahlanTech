@@ -37,6 +37,7 @@ const examSchema = new mongoose.Schema(
     description: { type: String, trim: true, maxlength: 2000 },
     duration: { type: Number, min: 1 },
     dueDate: { type: Date },
+    enrollmentCutoff: { type: Date },
     isPublished: { type: Boolean, default: true },
     questions: { type: [questionSchema], default: [] },
     totalPoints: { type: Number, default: 0 },

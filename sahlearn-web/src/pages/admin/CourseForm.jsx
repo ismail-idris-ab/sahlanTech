@@ -13,7 +13,7 @@ const EMPTY = {
   title: '', slug: '', shortDescription: '', description: '',
   category: 'Design', level: 'Beginner', duration: '', price: '',
   whatYouLearn: [''], prerequisites: [],
-  isPublished: false, isFeatured: false,
+  isPublished: false, isFeatured: false, isFree: false,
   videoUrl: '',
   seoTitle: '', seoDescription: '',
   coverImage: null,
@@ -145,7 +145,28 @@ export default function CourseForm() {
                 <input value={form.duration} onChange={(e) => set('duration', e.target.value)} className={inputCls} placeholder="4 weeks" required />
               </Field>
               <Field label="Price" required>
-                <input value={form.price} onChange={(e) => set('price', e.target.value)} className={inputCls} placeholder="₦25,000" required />
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.isFree}
+                      onChange={(e) => {
+                        set('isFree', e.target.checked);
+                        if (e.target.checked) set('price', 'Free');
+                      }}
+                      className="w-4 h-4 rounded accent-brand-primary"
+                    />
+                    <span className="text-sm text-ink-700">This is a free course</span>
+                  </label>
+                  <input
+                    value={form.price}
+                    onChange={(e) => set('price', e.target.value)}
+                    className={`${inputCls} ${form.isFree ? 'bg-surface-100 text-ink-400 cursor-not-allowed' : ''}`}
+                    placeholder="₦25,000"
+                    disabled={form.isFree}
+                    required
+                  />
+                </div>
               </Field>
             </div>
 
@@ -242,6 +263,14 @@ export default function CourseForm() {
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-ink-700">Featured</label>
                 <Toggle checked={form.isFeatured} onChange={(v) => set('isFeatured', v)} />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-ink-700">Free Course</label>
+                  <p className="text-xs text-ink-400">Auto-confirms enrollment</p>
+                </div>
+                <Toggle checked={form.isFree} onChange={(v) => { set('isFree', v); if (v) set('price', 'Free'); }} />
               </div>
             </div>
 

@@ -1,4 +1,3 @@
-// sahlearn-web/src/components/layout/StudentRoute.jsx
 import { Navigate } from 'react-router-dom';
 import { useStudentAuth } from '../../context/StudentAuthContext';
 
@@ -14,6 +13,8 @@ export default function StudentRoute({ children }) {
   }
 
   if (!student) return <Navigate to="/student/login" replace />;
+
+  if (student.mustChangePassword) return <Navigate to="/student/change-password" replace />;
 
   return children;
 }

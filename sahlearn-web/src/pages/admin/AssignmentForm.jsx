@@ -15,6 +15,7 @@ export default function AssignmentForm() {
     title: '',
     description: '',
     dueDate: '',
+    enrollmentCutoff: '',
     isPublished: true,
     totalPoints: 100,
   });
@@ -32,6 +33,7 @@ export default function AssignmentForm() {
             title: a.title,
             description: a.description || '',
             dueDate: a.dueDate ? new Date(a.dueDate).toISOString().slice(0, 16) : '',
+            enrollmentCutoff: a.enrollmentCutoff ? new Date(a.enrollmentCutoff).toISOString().slice(0, 16) : '',
             isPublished: a.isPublished,
             totalPoints: a.totalPoints || 100,
           });
@@ -49,6 +51,7 @@ export default function AssignmentForm() {
       const payload = {
         ...form,
         dueDate: form.dueDate || undefined,
+        enrollmentCutoff: form.enrollmentCutoff || undefined,
         description: form.description || undefined,
       };
       if (isEdit) {
@@ -139,6 +142,17 @@ export default function AssignmentForm() {
               onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
               className="w-full px-3 py-2.5 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-ink-600 mb-1">Enrollment Cutoff <span className="text-ink-400">(optional)</span></label>
+            <input
+              type="datetime-local"
+              value={form.enrollmentCutoff}
+              onChange={(e) => setForm({ ...form, enrollmentCutoff: e.target.value })}
+              className="w-full px-3 py-2.5 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
+            />
+            <p className="text-[10px] text-ink-400 mt-1">Students enrolled after this date cannot submit this assignment. Leave blank to use the assignment creation date.</p>
           </div>
 
           <div className="flex items-center gap-3">
