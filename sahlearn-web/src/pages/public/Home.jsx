@@ -186,6 +186,7 @@ export default function Home() {
   const [courses, setCourses] = useState(null);
   const [posts, setPosts] = useState([]);
   const [openFaq, setOpenFaq] = useState(null);
+  const [faqs, setFaqs] = useState(FAQS);
   const [testimonials, setTestimonials] = useState([]);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
 
@@ -204,6 +205,12 @@ export default function Home() {
     getContent("hero_categories")
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) setCategories(data);
+      })
+      .catch(() => {});
+    getContent("faq")
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0)
+          setFaqs(data.map((item) => ({ q: item.question, a: item.answer })));
       })
       .catch(() => {});
   }, []);
@@ -506,7 +513,7 @@ export default function Home() {
               </h2>
 
               <div className="divide-y divide-ink-300/30">
-                {FAQS.map(({ q, a }, i) => {
+                {faqs.map(({ q, a }, i) => {
                   const open = openFaq === i;
                   return (
                     <div key={i}>
