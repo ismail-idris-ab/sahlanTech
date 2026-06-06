@@ -1,43 +1,55 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 300 72" width="300" height="72"
-     xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SahLearn">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" width="520" height="320">
   <defs>
-    <style><![CDATA[@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');]]></style>
+    <linearGradient id="orangeYellow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#E84A0C"/>
+      <stop offset="60%" style="stop-color:#F5A200"/>
+      <stop offset="100%" style="stop-color:#F5C800"/>
+    </linearGradient>
+    <linearGradient id="yellowGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C8D400"/>
+      <stop offset="40%" style="stop-color:#7BC400"/>
+      <stop offset="100%" style="stop-color:#18B800"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" style="stop-color:#8BBF00"/>
+      <stop offset="50%" style="stop-color:#C8D400"/>
+      <stop offset="100%" style="stop-color:#E8F000"/>
+    </linearGradient>
+    <filter id="textShadow" x="-5%" y="-5%" width="120%" height="130%">
+      <feDropShadow dx="3" dy="5" stdDeviation="2" flood-color="#00000066"/>
+    </filter>
+    <filter id="leafShadow">
+      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#00000055"/>
+    </filter>
   </defs>
 
-  <!-- ╔═ S LETTERMARK ══════════════════════════════╗ -->
-  <!-- Two cubic-bezier arcs: upper opens right,     -->
-  <!-- lower opens left — together forming a clean S -->
-  <path
-    d="M 24,6 C 40,6 40,32 24,32 C 8,32 8,58 24,58"
-    stroke="#0D1F3C"
-    stroke-width="5.6"
-    stroke-linecap="round"
-    fill="none"/>
+  <text x="26" y="183" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900"
+    font-size="118" fill="#7A2A00" opacity="0.5" letter-spacing="-2">Sahl</text>
+  <text x="260" y="183" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900"
+    font-size="118" fill="#1A5A00" opacity="0.5" letter-spacing="-2">earn</text>
 
-  <!-- Teal anchor dot — top of S (the "spark") -->
-  <circle cx="24" cy="6"  r="5.2" fill="#00C9A7"/>
-  <!-- Echo dot — bottom of S -->
-  <circle cx="24" cy="58" r="3.4" fill="#00A88B" opacity="0.55"/>
+  <text x="22" y="178" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900"
+    font-size="118" fill="url(#orangeYellow)" filter="url(#textShadow)" letter-spacing="-2">Sahl</text>
 
-  <!-- ╔═ WORDMARK ═══════════════════════════════════╗ -->
-  <!-- "SahLearn" — Plus Jakarta Sans 600, tight track -->
-  <text
-    x="62" y="46"
-    font-family="'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif"
-    font-size="30"
-    font-weight="600"
-    letter-spacing="-0.5"
-    fill="#0D1F3C">SahLearn</text>
+  <text x="256" y="178" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900"
+    font-size="118" fill="url(#yellowGreen)" filter="url(#textShadow)" letter-spacing="-2">earn</text>
 
-  <!-- Subtext: discipline tag -->
-  <text
-    x="64" y="64"
-    font-family="'Plus Jakarta Sans', system-ui, sans-serif"
-    font-size="9.5"
-    font-weight="400"
-    letter-spacing="3.2"
-    fill="#00A88B"
-    opacity="0.8">DIGITAL SKILLS TRAINING</text>
+  <g transform="translate(268, 28) rotate(-12)" filter="url(#leafShadow)">
+    <path d="M0,68 C-18,50 -22,20 0,-4 C22,20 18,50 0,68 Z" fill="url(#leafGrad)"/>
+    <line x1="0" y1="66" x2="0" y2="-2" stroke="#5A8000" stroke-width="1.2" opacity="0.7"/>
+    <line x1="0" y1="50" x2="-12" y2="32" stroke="#5A8000" stroke-width="0.8" opacity="0.5"/>
+    <line x1="0" y1="50" x2="12" y2="32" stroke="#5A8000" stroke-width="0.8" opacity="0.5"/>
+    <line x1="0" y1="30" x2="-10" y2="16" stroke="#5A8000" stroke-width="0.7" opacity="0.45"/>
+    <line x1="0" y1="30" x2="10" y2="16" stroke="#5A8000" stroke-width="0.7" opacity="0.45"/>
+    <path d="M-4,55 C-14,38 -15,16 -3,2 C-10,20 -10,44 -4,55 Z" fill="white" opacity="0.18"/>
+  </g>
 
+  <text x="130" y="248" font-family="'Georgia', serif" font-size="22" fill="#2E9A6A" text-anchor="middle"
+    font-style="italic" letter-spacing="0.5">We command computer</text>
+  <text x="150" y="275" font-family="'Georgia', serif" font-size="22" fill="#2E9A6A" text-anchor="middle"
+    font-style="italic" letter-spacing="0.5">and it obeys</text>
+
+  <g transform="translate(494, 298)">
+    <polygon points="0,-8 2,-2 8,0 2,2 0,8 -2,2 -8,0 -2,-2" fill="#8899AA" opacity="0.8"/>
+  </g>
 </svg>
