@@ -1,7 +1,7 @@
 const SiteContent = require('../models/SiteContent');
 const { success } = require('../utils/apiResponse');
 
-const ALLOWED_KEYS = ['about', 'faq', 'testimonials'];
+const ALLOWED_KEYS = ['about', 'faq', 'testimonials', 'hero_categories', 'about_sections'];
 
 const getContent = async (req, res) => {
   const { key } = req.params;
