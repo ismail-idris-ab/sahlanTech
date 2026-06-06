@@ -5,12 +5,12 @@ import { FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, G
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
 const SOCIALS = [
-  { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook' },
-  { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn' },
-  { icon: TwitterXIcon, href: import.meta.env.VITE_TWITTER_URL, label: 'X (Twitter)' },
-  { icon: YoutubeIcon, href: import.meta.env.VITE_YOUTUBE_URL, label: 'YouTube' },
-  { icon: InstagramIcon, href: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram' },
-  { icon: GithubIcon, href: import.meta.env.VITE_GITHUB_URL, label: 'GitHub' },
+  { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook', bg: '#1877F2' },
+  { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn', bg: '#0077B5' },
+  { icon: TwitterXIcon, href: import.meta.env.VITE_TWITTER_URL, label: 'X (Twitter)', bg: '#000000' },
+  { icon: YoutubeIcon, href: import.meta.env.VITE_YOUTUBE_URL, label: 'YouTube', bg: '#FF0000' },
+  { icon: InstagramIcon, href: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram', bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' },
+  { icon: GithubIcon, href: import.meta.env.VITE_GITHUB_URL, label: 'GitHub', bg: '#24292e' },
 ];
 
 const QUICK_LINKS = [
@@ -49,14 +49,15 @@ export default function Footer() {
               <MessageCircle size={16} /> Chat on WhatsApp
             </a>
             <div className="flex items-center gap-3 mt-5">
-              {SOCIALS.filter((s) => s.href).map(({ icon: Icon, href, label }) => (
+              {SOCIALS.filter((s) => s.href).map(({ icon: Icon, href, label, bg }) => (
                 <a
                   key={label}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={label}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-brand-primary flex items-center justify-center text-ink-300 hover:text-white transition-colors"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                  style={{ background: bg }}
                 >
                   <Icon size={15} />
                 </a>
