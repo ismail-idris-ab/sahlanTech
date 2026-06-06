@@ -11,13 +11,22 @@ import {
 import SEO from '../../components/common/SEO';
 import { getContent } from '../../services/siteContent.service';
 
-const SOCIALS = [
-  { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook', bg: '#1877F2' },
-  { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn', bg: '#0077B5' },
-  { icon: TwitterXIcon, href: import.meta.env.VITE_TWITTER_URL, label: 'X (Twitter)', bg: '#000000' },
-  { icon: YoutubeIcon, href: import.meta.env.VITE_YOUTUBE_URL, label: 'YouTube', bg: '#FF0000' },
-  { icon: InstagramIcon, href: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram', bg: 'instagram' },
-  { icon: GithubIcon, href: import.meta.env.VITE_GITHUB_URL, label: 'GitHub', bg: '#24292e' },
+const ICON_MAP = {
+  Facebook: FacebookIcon,
+  LinkedIn: LinkedinIcon,
+  'X (Twitter)': TwitterXIcon,
+  YouTube: YoutubeIcon,
+  Instagram: InstagramIcon,
+  GitHub: GithubIcon,
+};
+
+const ENV_SOCIALS = [
+  { platform: 'Facebook',    url: import.meta.env.VITE_FACEBOOK_URL,  bg: '#1877F2' },
+  { platform: 'LinkedIn',    url: import.meta.env.VITE_LINKEDIN_URL,  bg: '#0077B5' },
+  { platform: 'X (Twitter)', url: import.meta.env.VITE_TWITTER_URL,   bg: '#000000' },
+  { platform: 'YouTube',     url: import.meta.env.VITE_YOUTUBE_URL,   bg: '#FF0000' },
+  { platform: 'Instagram',   url: import.meta.env.VITE_INSTAGRAM_URL, bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' },
+  { platform: 'GitHub',      url: import.meta.env.VITE_GITHUB_URL,    bg: '#24292e' },
 ];
 
 const DEFAULT_SECTIONS = [
@@ -48,15 +57,9 @@ function renderContent(text) {
   ));
 }
 
-function socialBg(bg) {
-  if (bg === 'instagram') {
-    return 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)';
-  }
-  return bg;
-}
-
 export default function About() {
   const [sections, setSections] = useState(DEFAULT_SECTIONS);
+  const [socials, setSocials] = useState(ENV_SOCIALS);
 
   useEffect(() => {
     getContent('about_sections')
@@ -64,9 +67,12 @@ export default function About() {
         if (Array.isArray(data) && data.length > 0) setSections(data);
       })
       .catch((err) => { console.error('Failed to load about sections:', err); });
+    getContent('social_links')
+      .then((data) => { if (Array.isArray(data) && data.length > 0) setSocials(data); })
+      .catch(() => {});
   }, []);
 
-  const visibleSocials = SOCIALS.filter((s) => s.href);
+  const visibleSocials = socials.filter((s) => s.url);
 
   return (
     <>
@@ -116,19 +122,23 @@ export default function About() {
               Follow us on:
             </p>
             <div className="flex items-center gap-3 flex-wrap">
-              {visibleSocials.map(({ icon: Icon, href, label, bg }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={label}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-                  style={{ background: socialBg(bg) }}
-                >
-                  <Icon size={18} />
-                </a>
-              ))}
+              {visibleSocials.map(({ platform, url, bg }) => {
+                const Icon = ICON_MAP[platform];
+                if (!Icon) return null;
+                return (
+                  <a
+                    key={platform}
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={platform}
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                    style={{ background: bg }}
+                  >
+                    <Icon size={18} />
+                  </a>
+                );
+              })}
             </div>
           </div>
         </section>

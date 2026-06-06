@@ -1,16 +1,27 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, Mail, Phone } from 'lucide-react';
 import { FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, GithubIcon } from '../common/SocialIcons';
+import { getContent } from '../../services/siteContent.service';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
-const SOCIALS = [
-  { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook', bg: '#1877F2' },
-  { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn', bg: '#0077B5' },
-  { icon: TwitterXIcon, href: import.meta.env.VITE_TWITTER_URL, label: 'X (Twitter)', bg: '#000000' },
-  { icon: YoutubeIcon, href: import.meta.env.VITE_YOUTUBE_URL, label: 'YouTube', bg: '#FF0000' },
-  { icon: InstagramIcon, href: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram', bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' },
-  { icon: GithubIcon, href: import.meta.env.VITE_GITHUB_URL, label: 'GitHub', bg: '#24292e' },
+const ICON_MAP = {
+  Facebook: FacebookIcon,
+  LinkedIn: LinkedinIcon,
+  'X (Twitter)': TwitterXIcon,
+  YouTube: YoutubeIcon,
+  Instagram: InstagramIcon,
+  GitHub: GithubIcon,
+};
+
+const ENV_SOCIALS = [
+  { platform: 'Facebook',    url: import.meta.env.VITE_FACEBOOK_URL,  bg: '#1877F2' },
+  { platform: 'LinkedIn',    url: import.meta.env.VITE_LINKEDIN_URL,  bg: '#0077B5' },
+  { platform: 'X (Twitter)', url: import.meta.env.VITE_TWITTER_URL,   bg: '#000000' },
+  { platform: 'YouTube',     url: import.meta.env.VITE_YOUTUBE_URL,   bg: '#FF0000' },
+  { platform: 'Instagram',   url: import.meta.env.VITE_INSTAGRAM_URL, bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' },
+  { platform: 'GitHub',      url: import.meta.env.VITE_GITHUB_URL,    bg: '#24292e' },
 ];
 
 const QUICK_LINKS = [
@@ -29,6 +40,13 @@ const COURSE_LINKS = [
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const [socials, setSocials] = useState(ENV_SOCIALS);
+
+  useEffect(() => {
+    getContent('social_links')
+      .then((data) => { if (Array.isArray(data) && data.length > 0) setSocials(data); })
+      .catch(() => {});
+  }, []);
 
   return (
     <footer className="bg-ink-900 text-surface-100">
@@ -49,19 +67,23 @@ export default function Footer() {
               <MessageCircle size={16} /> Chat on WhatsApp
             </a>
             <div className="flex items-center gap-3 mt-5">
-              {SOCIALS.filter((s) => s.href).map(({ icon: Icon, href, label, bg }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={label}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-                  style={{ background: bg }}
-                >
-                  <Icon size={15} />
-                </a>
-              ))}
+              {socials.filter((s) => s.url).map(({ platform, url, bg }) => {
+                const Icon = ICON_MAP[platform];
+                if (!Icon) return null;
+                return (
+                  <a
+                    key={platform}
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={platform}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                    style={{ background: bg }}
+                  >
+                    <Icon size={15} />
+                  </a>
+                );
+              })}
             </div>
           </div>
 

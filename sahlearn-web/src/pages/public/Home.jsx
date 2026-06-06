@@ -52,7 +52,12 @@ import HeroBg from "../../components/common/HeroBg";
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
 function initials(name) {
-  return (name || '?').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  return (name || "?")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function TestimonialCard({ testimonial }) {
@@ -67,7 +72,11 @@ function TestimonialCard({ testimonial }) {
       <p className="text-ink-700 text-sm leading-relaxed flex-1">{text}</p>
       <div className="flex items-center gap-3 pt-2 border-t border-ink-300/20">
         {avatarUrl ? (
-          <img src={avatarUrl} alt={name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+          <img
+            src={avatarUrl}
+            alt={name}
+            className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+          />
         ) : (
           <div className="w-9 h-9 rounded-full bg-brand-primary/10 flex items-center justify-center flex-shrink-0 text-xs font-bold text-brand-primary">
             {initials(name)}
@@ -83,11 +92,36 @@ function TestimonialCard({ testimonial }) {
 }
 
 const DEFAULT_CATEGORIES = [
-  { iconName: "Palette", title: "Graphic Design", desc: "Canva, CorelDRAW, Figma basics, for social media, branding & more", popular: true },
-  { iconName: "Cpu", title: "AI Tools", desc: "ChatGPT, automation & more, for work and business", popular: false },
-  { iconName: "LayoutDashboard", title: "Office Productivity", desc: "Excel, Word, Google Workspace, presentations", popular: false },
-  { iconName: "TrendingUp", title: "Digital Marketing", desc: "Social media, SEO, ads", popular: false },
-  { iconName: "Globe", title: "Web Development", desc: "HTML, CSS, JavaScript, React, WordPress", popular: false },
+  {
+    iconName: "Palette",
+    title: "Graphic Design",
+    desc: "Canva, CorelDRAW, Figma basics, for social media, branding & more",
+    popular: true,
+  },
+  {
+    iconName: "Cpu",
+    title: "AI Tools",
+    desc: "ChatGPT, automation & more, for work and business",
+    popular: false,
+  },
+  {
+    iconName: "LayoutDashboard",
+    title: "Office Productivity",
+    desc: "Excel, Word, Google Workspace, presentations",
+    popular: false,
+  },
+  {
+    iconName: "TrendingUp",
+    title: "Digital Marketing",
+    desc: "Social media, SEO, ads",
+    popular: false,
+  },
+  {
+    iconName: "Globe",
+    title: "Web Development",
+    desc: "HTML, CSS, JavaScript, React, WordPress",
+    popular: false,
+  },
 ];
 
 const TAGS = [
@@ -162,11 +196,15 @@ export default function Home() {
     getPosts({ limit: 3 })
       .then((r) => setPosts(r.data))
       .catch(() => {});
-    getContent('testimonials')
-      .then((data) => setTestimonials(Array.isArray(data) ? data.slice(0, 3) : []))
+    getContent("testimonials")
+      .then((data) =>
+        setTestimonials(Array.isArray(data) ? data.slice(0, 3) : []),
+      )
       .catch(() => {});
-    getContent('hero_categories')
-      .then((data) => { if (Array.isArray(data) && data.length > 0) setCategories(data); })
+    getContent("hero_categories")
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setCategories(data);
+      })
       .catch(() => {});
   }, []);
 
@@ -186,10 +224,6 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left — copy + CTAs */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-xs font-semibold px-3 py-1.5 rounded-full mb-6 uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
-                Now Enrolling
-              </div>
               <h1 className="text-3xl leading-tight sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-ink-900 font-display tracking-normal">
                 Learn Practical{" "}
                 <span className="italic leading-relaxed text-brand-primary tracking-wider">
@@ -257,26 +291,26 @@ export default function Home() {
                 {categories.map(({ iconName, title, desc, popular }, i) => {
                   const Icon = CATEGORY_ICON_MAP[iconName] || Globe;
                   return (
-                  <div
-                    key={title}
-                    className="flex items-center gap-4 p-4 bg-white rounded-xl border border-ink-300/40 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
-                    style={{ animationDelay: `${i * 80}ms` }}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Icon size={20} className="text-brand-primary" />
+                    <div
+                      key={title}
+                      className="flex items-center gap-4 p-4 bg-white rounded-xl border border-ink-300/40 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
+                      style={{ animationDelay: `${i * 80}ms` }}
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Icon size={20} className="text-brand-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-ink-900 text-sm">
+                          {title}
+                        </p>
+                        <p className="text-ink-500 text-xs mt-0.5">{desc}</p>
+                      </div>
+                      {popular && (
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-accent/15 text-brand-accent flex-shrink-0">
+                          Popular
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-ink-900 text-sm">
-                        {title}
-                      </p>
-                      <p className="text-ink-500 text-xs mt-0.5">{desc}</p>
-                    </div>
-                    {popular && (
-                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-accent/15 text-brand-accent flex-shrink-0">
-                        Popular
-                      </span>
-                    )}
-                  </div>
                   );
                 })}
               </div>
@@ -341,10 +375,18 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div
               className="rounded-2xl overflow-hidden h-72 lg:h-96 flex flex-col items-center justify-center gap-4"
-              style={{ background: 'linear-gradient(145deg, #013F4A 0%, #011F28 100%)' }}
+              style={{
+                background: "linear-gradient(145deg, #013F4A 0%, #011F28 100%)",
+              }}
             >
-              <img src="/sahlearn-icon.svg" alt="Sahlearn" className="w-24 h-24 opacity-90" />
-              <p className="text-sm font-medium" style={{ color: '#71B280' }}>sahlearn</p>
+              <img
+                src="/sahlearn-icon.svg"
+                alt="Sahlearn"
+                className="w-24 h-24 opacity-90"
+              />
+              <p className="text-sm font-medium" style={{ color: "#71B280" }}>
+                sahlearn
+              </p>
             </div>
             <div>
               <span className="text-xs font-semibold text-brand-primary uppercase tracking-wider">

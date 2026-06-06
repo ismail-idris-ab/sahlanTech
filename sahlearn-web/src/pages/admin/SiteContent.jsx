@@ -408,6 +408,110 @@ function AboutSectionsEditor({ initial, onSave, saving }) {
   );
 }
 
+// ─── Social links editor ──────────────────────────────────────────────────────
+
+const PLATFORM_PRESETS = [
+  { label: 'Facebook',  bg: '#1877F2' },
+  { label: 'LinkedIn',  bg: '#0077B5' },
+  { label: 'X (Twitter)', bg: '#000000' },
+  { label: 'YouTube',   bg: '#FF0000' },
+  { label: 'Instagram', bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' },
+  { label: 'GitHub',    bg: '#24292e' },
+  { label: 'TikTok',    bg: '#010101' },
+  { label: 'WhatsApp',  bg: '#25D366' },
+  { label: 'Telegram',  bg: '#2CA5E0' },
+  { label: 'Pinterest', bg: '#E60023' },
+];
+
+function SocialLinksEditor({ initial, onSave, saving }) {
+  const [items, setItems] = useState(Array.isArray(initial) && initial.length > 0 ? initial : []);
+
+  useEffect(() => {
+    setItems(Array.isArray(initial) && initial.length > 0 ? initial : []);
+  }, [initial]);
+
+  const add = () => {
+    const preset = PLATFORM_PRESETS[0];
+    setItems((prev) => [...prev, { platform: preset.label, url: '', bg: preset.bg }]);
+  };
+
+  const update = (i, field, value) =>
+    setItems((prev) => prev.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)));
+
+  const applyPreset = (i, label) => {
+    const preset = PLATFORM_PRESETS.find((p) => p.label === label);
+    if (preset) setItems((prev) => prev.map((item, idx) => (idx === i ? { ...item, platform: preset.label, bg: preset.bg } : item)));
+  };
+
+  const remove = (i) => setItems((prev) => prev.filter((_, idx) => idx !== i));
+  const move = (i, dir) => {
+    const next = [...items];
+    const swap = i + dir;
+    if (swap < 0 || swap >= next.length) return;
+    [next[i], next[swap]] = [next[swap], next[i]];
+    setItems(next);
+  };
+
+  const inputCls = 'w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary';
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSave(items); }} className="space-y-4">
+      <p className="text-xs text-ink-500 bg-surface-50 border border-surface-200 rounded-xl px-4 py-3">
+        Social links appear in the site footer and About page. Only links with a URL are shown publicly.
+      </p>
+
+      {items.length === 0 && (
+        <div className="text-center py-12 text-ink-400 text-sm bg-white rounded-2xl border border-surface-200">
+          No social links yet. Add one below.
+        </div>
+      )}
+
+      {items.map((item, i) => (
+        <ListItemCard key={i} index={i} total={items.length} label="Social"
+          onMoveUp={() => move(i, -1)} onMoveDown={() => move(i, 1)} onRemove={() => remove(i)}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-ink-600 mb-1">Platform</label>
+              <select value={item.platform} onChange={(e) => applyPreset(i, e.target.value)} className={inputCls}>
+                {PLATFORM_PRESETS.map((p) => (
+                  <option key={p.label} value={p.label}>{p.label}</option>
+                ))}
+                <option value="__custom__">Custom…</option>
+              </select>
+              {item.platform === '__custom__' && (
+                <input type="text" placeholder="Platform name" value={item.customLabel || ''}
+                  onChange={(e) => update(i, 'customLabel', e.target.value)}
+                  className={`${inputCls} mt-2`} />
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-ink-600 mb-1">URL <span className="text-red-500">*</span></label>
+              <input type="url" value={item.url} onChange={(e) => update(i, 'url', e.target.value)}
+                placeholder="https://..." className={inputCls} />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-full flex-shrink-0 border border-surface-200"
+              style={{ background: item.bg || '#888' }}
+            />
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-ink-600 mb-1">Brand Color / Gradient</label>
+              <input type="text" value={item.bg || ''} onChange={(e) => update(i, 'bg', e.target.value)}
+                placeholder="#1877F2 or linear-gradient(...)"
+                className={inputCls} />
+              <p className="text-[10px] text-ink-400 mt-1">Hex color or CSS gradient. Auto-filled when you pick a platform above.</p>
+            </div>
+          </div>
+        </ListItemCard>
+      ))}
+
+      <AddButton onClick={add} label="Add social link" />
+      <SaveButton saving={saving} label="Save Social Links" />
+    </form>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const TABS = [
@@ -416,6 +520,7 @@ const TABS = [
   { key: 'testimonials', label: 'Testimonials' },
   { key: 'hero_categories', label: 'Home Categories' },
   { key: 'about_sections', label: 'About Sections' },
+  { key: 'social_links', label: 'Social Links' },
 ];
 
 export default function SiteContent() {
@@ -425,6 +530,7 @@ export default function SiteContent() {
   const [testimonialsData, setTestimonialsData] = useState(null);
   const [categoriesData, setCategoriesData] = useState(null);
   const [aboutSectionsData, setAboutSectionsData] = useState(null);
+  const [socialLinksData, setSocialLinksData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -435,13 +541,15 @@ export default function SiteContent() {
       getContent('testimonials'),
       getContent('hero_categories'),
       getContent('about_sections'),
+      getContent('social_links'),
     ])
-      .then(([about, faq, testimonials, categories, aboutSections]) => {
+      .then(([about, faq, testimonials, categories, aboutSections, socialLinks]) => {
         setAboutData(about || {});
         setFaqData(Array.isArray(faq) ? faq : []);
         setTestimonialsData(Array.isArray(testimonials) ? testimonials : []);
         setCategoriesData(Array.isArray(categories) ? categories : []);
         setAboutSectionsData(Array.isArray(aboutSections) ? aboutSections : []);
+        setSocialLinksData(Array.isArray(socialLinks) ? socialLinks : []);
       })
       .catch(() => {
         setAboutData({});
@@ -449,6 +557,7 @@ export default function SiteContent() {
         setTestimonialsData([]);
         setCategoriesData([]);
         setAboutSectionsData([]);
+        setSocialLinksData([]);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -504,6 +613,9 @@ export default function SiteContent() {
       )}
       {tab === 'about_sections' && (
         <AboutSectionsEditor initial={aboutSectionsData} onSave={(d) => save('about_sections', d, setAboutSectionsData)} saving={saving} />
+      )}
+      {tab === 'social_links' && (
+        <SocialLinksEditor initial={socialLinksData} onSave={(d) => save('social_links', d, setSocialLinksData)} saving={saving} />
       )}
     </div>
   );
