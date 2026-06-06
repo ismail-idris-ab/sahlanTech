@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { getContent, updateContent } from '../../services/siteContent.service';
 import { Plus, Trash2, ChevronUp, ChevronDown, Quote } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { CATEGORY_ICON_MAP } from '../public/Home';
+
+const ICON_OPTIONS = Object.keys(CATEGORY_ICON_MAP);
 
 const DEFAULT_ABOUT = {
   heroTitle: 'About Sahlearn',
@@ -258,12 +261,161 @@ function TestimonialsEditor({ initial, onSave, saving }) {
   );
 }
 
+// ─── Home categories editor ───────────────────────────────────────────────────
+
+const DEFAULT_CATEGORIES = [
+  { iconName: 'Palette', title: 'Graphic Design', desc: 'Canva, CorelDRAW, Figma basics, for social media, branding & more', popular: true },
+  { iconName: 'Cpu', title: 'AI Tools', desc: 'ChatGPT, automation & more, for work and business', popular: false },
+  { iconName: 'LayoutDashboard', title: 'Office Productivity', desc: 'Excel, Word, Google Workspace, presentations', popular: false },
+  { iconName: 'TrendingUp', title: 'Digital Marketing', desc: 'Social media, SEO, ads', popular: false },
+  { iconName: 'Globe', title: 'Web Development', desc: 'HTML, CSS, JavaScript, React, WordPress', popular: false },
+];
+
+function CategoriesEditor({ initial, onSave, saving }) {
+  const [items, setItems] = useState(initial && initial.length > 0 ? initial : DEFAULT_CATEGORIES);
+
+  useEffect(() => { setItems(initial && initial.length > 0 ? initial : DEFAULT_CATEGORIES); }, [initial]);
+
+  const add = () => setItems((prev) => [...prev, { iconName: 'BookOpen', title: '', desc: '', popular: false }]);
+  const update = (i, field, value) => setItems((prev) => prev.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)));
+  const remove = (i) => setItems((prev) => prev.filter((_, idx) => idx !== i));
+  const move = (i, dir) => {
+    const next = [...items];
+    const swap = i + dir;
+    if (swap < 0 || swap >= next.length) return;
+    [next[i], next[swap]] = [next[swap], next[i]];
+    setItems(next);
+  };
+
+  const inputCls = 'w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary';
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSave(items); }} className="space-y-4">
+      <p className="text-xs text-ink-500 bg-surface-50 border border-surface-200 rounded-xl px-4 py-3">
+        These cards appear in the "What You'll Learn" panel on the right side of the home page hero (desktop only).
+      </p>
+
+      {items.map((item, i) => {
+        const IconPreview = CATEGORY_ICON_MAP[item.iconName];
+        return (
+          <ListItemCard key={i} index={i} total={items.length} label="Category"
+            onMoveUp={() => move(i, -1)} onMoveDown={() => move(i, 1)} onRemove={() => remove(i)}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-ink-600 mb-1">Title <span className="text-red-500">*</span></label>
+                <input type="text" value={item.title} onChange={(e) => update(i, 'title', e.target.value)}
+                  placeholder="e.g. Graphic Design" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-ink-600 mb-1">Icon</label>
+                <div className="flex items-center gap-2">
+                  {IconPreview && <IconPreview size={16} className="text-brand-primary flex-shrink-0" />}
+                  <select value={item.iconName} onChange={(e) => update(i, 'iconName', e.target.value)} className={inputCls}>
+                    {ICON_OPTIONS.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-ink-600 mb-1">Description</label>
+              <input type="text" value={item.desc} onChange={(e) => update(i, 'desc', e.target.value)}
+                placeholder="Short description of what's taught" className={inputCls} />
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
+              <input type="checkbox" checked={!!item.popular} onChange={(e) => update(i, 'popular', e.target.checked)}
+                className="w-4 h-4 accent-brand-primary rounded" />
+              <span className="text-xs font-medium text-ink-600">Mark as Popular</span>
+            </label>
+          </ListItemCard>
+        );
+      })}
+
+      <AddButton onClick={add} label="Add category" />
+      <SaveButton saving={saving} label="Save Categories" />
+    </form>
+  );
+}
+
+// ─── About sections editor ────────────────────────────────────────────────────
+
+function AboutSectionsEditor({ initial, onSave, saving }) {
+  const [items, setItems] = useState(initial && initial.length > 0 ? initial : []);
+
+  useEffect(() => { setItems(initial && initial.length > 0 ? initial : []); }, [initial]);
+
+  const add = () => setItems((prev) => [...prev, { title: '', content: '' }]);
+  const update = (i, field, value) =>
+    setItems((prev) => prev.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)));
+  const remove = (i) => setItems((prev) => prev.filter((_, idx) => idx !== i));
+  const move = (i, dir) => {
+    const next = [...items];
+    const swap = i + dir;
+    if (swap < 0 || swap >= next.length) return;
+    [next[i], next[swap]] = [next[swap], next[i]];
+    setItems(next);
+  };
+
+  const inputCls = 'w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary';
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSave(items); }} className="space-y-4">
+      <p className="text-xs text-ink-500 bg-surface-50 border border-surface-200 rounded-xl px-4 py-3">
+        Each section shows as a dark navy header bar + content panel on the public About page. Order controls display order. Leave empty to show built-in defaults.
+      </p>
+
+      {items.length === 0 && (
+        <div className="text-center py-12 text-ink-400 text-sm bg-white rounded-2xl border border-surface-200">
+          No sections yet. Add one below — or leave empty to use the built-in defaults.
+        </div>
+      )}
+
+      {items.map((item, i) => (
+        <ListItemCard key={item.title || i} index={i} total={items.length} label="Section"
+          onMoveUp={() => move(i, -1)} onMoveDown={() => move(i, 1)} onRemove={() => remove(i)}>
+          <div>
+            <label className="block text-xs font-medium text-ink-600 mb-1">
+              Section Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={item.title}
+              onChange={(e) => update(i, 'title', e.target.value)}
+              placeholder="e.g. Introduction, Our Goals, Our Departments"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-ink-600 mb-1">Content</label>
+            <textarea
+              value={item.content}
+              onChange={(e) => update(i, 'content', e.target.value)}
+              rows={5}
+              placeholder="Write the section content here. Use a blank line to separate paragraphs."
+              className={`${inputCls} resize-none`}
+            />
+            <p className="text-[10px] text-ink-400 mt-1">
+              Blank line = new paragraph. Single line break = line break within paragraph.
+            </p>
+          </div>
+        </ListItemCard>
+      ))}
+
+      <AddButton onClick={add} label="Add section" />
+      <SaveButton saving={saving} label="Save About Sections" />
+    </form>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const TABS = [
   { key: 'about', label: 'About Page' },
   { key: 'faq', label: 'FAQ' },
   { key: 'testimonials', label: 'Testimonials' },
+  { key: 'hero_categories', label: 'Home Categories' },
+  { key: 'about_sections', label: 'About Sections' },
 ];
 
 export default function SiteContent() {
@@ -271,20 +423,32 @@ export default function SiteContent() {
   const [aboutData, setAboutData] = useState(null);
   const [faqData, setFaqData] = useState(null);
   const [testimonialsData, setTestimonialsData] = useState(null);
+  const [categoriesData, setCategoriesData] = useState(null);
+  const [aboutSectionsData, setAboutSectionsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([getContent('about'), getContent('faq'), getContent('testimonials')])
-      .then(([about, faq, testimonials]) => {
+    Promise.all([
+      getContent('about'),
+      getContent('faq'),
+      getContent('testimonials'),
+      getContent('hero_categories'),
+      getContent('about_sections'),
+    ])
+      .then(([about, faq, testimonials, categories, aboutSections]) => {
         setAboutData(about || {});
         setFaqData(Array.isArray(faq) ? faq : []);
         setTestimonialsData(Array.isArray(testimonials) ? testimonials : []);
+        setCategoriesData(Array.isArray(categories) ? categories : []);
+        setAboutSectionsData(Array.isArray(aboutSections) ? aboutSections : []);
       })
       .catch(() => {
         setAboutData({});
         setFaqData([]);
         setTestimonialsData([]);
+        setCategoriesData([]);
+        setAboutSectionsData([]);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -314,7 +478,7 @@ export default function SiteContent() {
     <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-display text-ink-900">Site Content</h1>
-        <p className="text-sm text-ink-500 mt-1">Edit the public About page, FAQ, and Testimonials.</p>
+        <p className="text-sm text-ink-500 mt-1">Edit the public About page, FAQ, Testimonials, and Home page categories.</p>
       </div>
 
       <div className="flex gap-1 bg-surface-100 p-1 rounded-xl w-fit">
@@ -334,6 +498,12 @@ export default function SiteContent() {
       )}
       {tab === 'testimonials' && (
         <TestimonialsEditor initial={testimonialsData} onSave={(d) => save('testimonials', d, setTestimonialsData)} saving={saving} />
+      )}
+      {tab === 'hero_categories' && (
+        <CategoriesEditor initial={categoriesData} onSave={(d) => save('hero_categories', d, setCategoriesData)} saving={saving} />
+      )}
+      {tab === 'about_sections' && (
+        <AboutSectionsEditor initial={aboutSectionsData} onSave={(d) => save('about_sections', d, setAboutSectionsData)} saving={saving} />
       )}
     </div>
   );
