@@ -11,8 +11,6 @@ import {
 import SEO from '../../components/common/SEO';
 import { getContent } from '../../services/siteContent.service';
 
-const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
-
 const SOCIALS = [
   { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook', bg: '#1877F2' },
   { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn', bg: '#0077B5' },
@@ -65,7 +63,7 @@ export default function About() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) setSections(data);
       })
-      .catch(() => {});
+      .catch((err) => { console.error('Failed to load about sections:', err); });
   }, []);
 
   const visibleSocials = SOCIALS.filter((s) => s.href);
@@ -96,11 +94,11 @@ export default function About() {
       <section className="py-10 md:py-14">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           {sections.map((sec, i) => (
-            <div key={i} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+            <div key={sec.title || i} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
               <div className="bg-[#013F4A] px-6 py-4 text-center">
-                <span className="text-white font-bold tracking-widest uppercase text-sm">
+                <h2 className="text-white font-bold tracking-widest uppercase text-sm m-0">
                   {sec.title}
-                </span>
+                </h2>
               </div>
               <div className="bg-white px-6 py-5 space-y-3 border-t border-gray-200">
                 {renderContent(sec.content)}
