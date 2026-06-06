@@ -14,10 +14,36 @@ import {
   Monitor,
   Globe,
   ChevronDown,
+  BookOpen,
+  Star,
+  Zap,
+  Users,
+  Camera,
+  Music,
+  Code2,
+  BarChart2,
 } from "lucide-react";
 import { getCourses } from "../../services/courses.service";
 import { getPosts } from "../../services/posts.service";
 import { getContent } from "../../services/siteContent.service";
+
+export const CATEGORY_ICON_MAP = {
+  Palette,
+  Cpu,
+  LayoutDashboard,
+  TrendingUp,
+  Pencil,
+  Monitor,
+  Globe,
+  BookOpen,
+  Star,
+  Zap,
+  Users,
+  Camera,
+  Music,
+  Code2,
+  BarChart2,
+};
 import CourseCard from "../../components/courses/CourseCard";
 import BlogCard from "../../components/blog/BlogCard";
 import SEO from "../../components/common/SEO";
@@ -56,37 +82,12 @@ function TestimonialCard({ testimonial }) {
   );
 }
 
-const CATEGORIES = [
-  {
-    icon: Palette,
-    title: "Graphic Design",
-    desc: "Canva, CorelDRAW, Figma basics, for social media, branding & more",
-    popular: true,
-  },
-  {
-    icon: Cpu,
-    title: "AI Tools",
-    desc: "ChatGPT, automation & more, for work and business",
-    popular: false,
-  },
-  {
-    icon: LayoutDashboard,
-    title: "Office Productivity",
-    desc: "Excel, Word, Google Workspace, presentations",
-    popular: false,
-  },
-  {
-    icon: TrendingUp,
-    title: "Digital Marketing",
-    desc: "Social media, SEO, ads",
-    popular: false,
-  },
-  {
-    icon: Globe,
-    title: "Web Development",
-    desc: "HTML, CSS, JavaScript, React, WordPress",
-    popular: false,
-  },
+const DEFAULT_CATEGORIES = [
+  { iconName: "Palette", title: "Graphic Design", desc: "Canva, CorelDRAW, Figma basics, for social media, branding & more", popular: true },
+  { iconName: "Cpu", title: "AI Tools", desc: "ChatGPT, automation & more, for work and business", popular: false },
+  { iconName: "LayoutDashboard", title: "Office Productivity", desc: "Excel, Word, Google Workspace, presentations", popular: false },
+  { iconName: "TrendingUp", title: "Digital Marketing", desc: "Social media, SEO, ads", popular: false },
+  { iconName: "Globe", title: "Web Development", desc: "HTML, CSS, JavaScript, React, WordPress", popular: false },
 ];
 
 const TAGS = [
@@ -152,6 +153,7 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [openFaq, setOpenFaq] = useState(null);
   const [testimonials, setTestimonials] = useState([]);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
 
   useEffect(() => {
     getCourses({ limit: 6 })
@@ -162,6 +164,9 @@ export default function Home() {
       .catch(() => {});
     getContent('testimonials')
       .then((data) => setTestimonials(Array.isArray(data) ? data.slice(0, 3) : []))
+      .catch(() => {});
+    getContent('hero_categories')
+      .then((data) => { if (Array.isArray(data) && data.length > 0) setCategories(data); })
       .catch(() => {});
   }, []);
 
@@ -249,7 +254,9 @@ export default function Home() {
                 What You'll Learn
               </p>
               <div className="flex flex-col gap-3">
-                {CATEGORIES.map(({ icon: Icon, title, desc, popular }, i) => (
+                {categories.map(({ iconName, title, desc, popular }, i) => {
+                  const Icon = CATEGORY_ICON_MAP[iconName] || Globe;
+                  return (
                   <div
                     key={title}
                     className="flex items-center gap-4 p-4 bg-white rounded-xl border border-ink-300/40 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
@@ -270,7 +277,8 @@ export default function Home() {
                       </span>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
