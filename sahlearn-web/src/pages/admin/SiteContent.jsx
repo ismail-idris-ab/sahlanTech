@@ -372,7 +372,7 @@ function AboutSectionsEditor({ initial, onSave, saving }) {
       )}
 
       {items.map((item, i) => (
-        <ListItemCard key={item.title || i} index={i} total={items.length} label="Section"
+        <ListItemCard key={i} index={i} total={items.length} label="Section"
           onMoveUp={() => move(i, -1)} onMoveDown={() => move(i, 1)} onRemove={() => remove(i)}>
           <div>
             <label className="block text-xs font-medium text-ink-600 mb-1">
