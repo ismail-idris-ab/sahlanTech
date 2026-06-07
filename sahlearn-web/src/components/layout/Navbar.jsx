@@ -51,6 +51,12 @@ export default function Navbar() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Link
+              to="/student/login"
+              className="px-4 py-2 border border-ink-300 text-ink-700 text-sm font-medium rounded-lg hover:border-brand-primary hover:text-brand-primary transition-colors"
+            >
+              Student Login
+            </Link>
+            <Link
               to="/enroll"
               className="px-4 py-2 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primaryDark transition-colors"
             >
@@ -105,7 +111,14 @@ export default function Navbar() {
               {label}
             </NavLink>
           ))}
-          <div className="pt-4">
+          <div className="pt-4 space-y-2">
+            <Link
+              to="/student/login"
+              onClick={close}
+              className="block w-full text-center px-4 py-3 border border-ink-300 text-ink-700 text-sm font-medium rounded-lg hover:border-brand-primary hover:text-brand-primary transition-colors"
+            >
+              Student Login
+            </Link>
             <Link
               to="/enroll"
               onClick={close}
