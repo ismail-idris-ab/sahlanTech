@@ -127,7 +127,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-ink-300 text-sm">
                 <Mail size={15} className="text-brand-primary flex-shrink-0" />
-                <span>hello@sahlearn.com</span>
+                <span>sahlearntechnology@gmail.com</span>
               </li>
               <li className="flex items-center gap-2 text-ink-300 text-sm">
                 <Phone size={15} className="text-brand-accent flex-shrink-0" />
