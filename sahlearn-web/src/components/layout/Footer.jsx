@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, Mail, Phone } from 'lucide-react';
-import { FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, GithubIcon } from '../common/SocialIcons';
+import {
+  FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, GithubIcon,
+  TelegramIcon, TikTokIcon, WhatsAppIcon, PinterestIcon,
+} from '../common/SocialIcons';
 import { getContent } from '../../services/siteContent.service';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
@@ -13,6 +16,10 @@ const ICON_MAP = {
   YouTube: YoutubeIcon,
   Instagram: InstagramIcon,
   GitHub: GithubIcon,
+  Telegram: TelegramIcon,
+  TikTok: TikTokIcon,
+  WhatsApp: WhatsAppIcon,
+  Pinterest: PinterestIcon,
 };
 
 const ENV_SOCIALS = [

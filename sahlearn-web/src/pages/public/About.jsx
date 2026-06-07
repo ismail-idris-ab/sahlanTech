@@ -7,6 +7,10 @@ import {
   YoutubeIcon,
   InstagramIcon,
   GithubIcon,
+  TelegramIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+  PinterestIcon,
 } from '../../components/common/SocialIcons';
 import SEO from '../../components/common/SEO';
 import { getContent } from '../../services/siteContent.service';
@@ -18,6 +22,10 @@ const ICON_MAP = {
   YouTube: YoutubeIcon,
   Instagram: InstagramIcon,
   GitHub: GithubIcon,
+  Telegram: TelegramIcon,
+  TikTok: TikTokIcon,
+  WhatsApp: WhatsAppIcon,
+  Pinterest: PinterestIcon,
 };
 
 const ENV_SOCIALS = [
