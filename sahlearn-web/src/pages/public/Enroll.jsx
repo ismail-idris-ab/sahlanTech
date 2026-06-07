@@ -10,9 +10,9 @@ import { getCourseBySlug, getCourses } from '../../services/courses.service';
 import SEO from '../../components/common/SEO';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
-const BANK_NAME = import.meta.env.VITE_BANK_NAME || 'First Bank of Nigeria';
-const BANK_ACCOUNT = import.meta.env.VITE_BANK_ACCOUNT || '0000000000';
-const BANK_ACCOUNT_NAME = import.meta.env.VITE_BANK_ACCOUNT_NAME || 'Sahlearn Education';
+const BANK_NAME = import.meta.env.VITE_BANK_NAME || 'Jaiz Bank';
+const BANK_ACCOUNT = import.meta.env.VITE_BANK_ACCOUNT || '0016107377';
+const BANK_ACCOUNT_NAME = import.meta.env.VITE_BANK_ACCOUNT_NAME || 'Salearn Technology';
 const MODES = ['online', 'physical', 'hybrid'];
 
 const EMPTY = {
