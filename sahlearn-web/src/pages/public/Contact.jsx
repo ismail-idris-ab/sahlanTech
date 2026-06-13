@@ -1,19 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageCircle, Mail, Phone } from 'lucide-react';
-import { FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, GithubIcon } from '../../components/common/SocialIcons';
+import {
+  FacebookIcon, LinkedinIcon, TwitterXIcon, YoutubeIcon, InstagramIcon, GithubIcon,
+  TelegramIcon, TikTokIcon, WhatsAppIcon, PinterestIcon,
+} from '../../components/common/SocialIcons';
 import toast from 'react-hot-toast';
 import { submitContact } from '../../services/contact.service';
+import { getContent } from '../../services/siteContent.service';
 import SEO from '../../components/common/SEO';
 
 const WA_NUM = import.meta.env.VITE_WHATSAPP_NUMBER;
 
-const SOCIALS = [
-  { icon: FacebookIcon, href: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook', color: 'text-blue-600' },
-  { icon: LinkedinIcon, href: import.meta.env.VITE_LINKEDIN_URL, label: 'LinkedIn', color: 'text-blue-700' },
-  { icon: TwitterXIcon, href: import.meta.env.VITE_TWITTER_URL, label: 'X (Twitter)', color: 'text-ink-900' },
-  { icon: YoutubeIcon, href: import.meta.env.VITE_YOUTUBE_URL, label: 'YouTube', color: 'text-red-600' },
-  { icon: InstagramIcon, href: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram', color: 'text-pink-600' },
-  { icon: GithubIcon, href: import.meta.env.VITE_GITHUB_URL, label: 'GitHub', color: 'text-ink-900' },
+const ICON_MAP = {
+  Facebook: FacebookIcon,
+  LinkedIn: LinkedinIcon,
+  'X (Twitter)': TwitterXIcon,
+  YouTube: YoutubeIcon,
+  Instagram: InstagramIcon,
+  GitHub: GithubIcon,
+  Telegram: TelegramIcon,
+  TikTok: TikTokIcon,
+  WhatsApp: WhatsAppIcon,
+  Pinterest: PinterestIcon,
+};
+
+const ENV_SOCIALS = [
+  { platform: 'Facebook',    url: import.meta.env.VITE_FACEBOOK_URL },
+  { platform: 'LinkedIn',    url: import.meta.env.VITE_LINKEDIN_URL },
+  { platform: 'X (Twitter)', url: import.meta.env.VITE_TWITTER_URL },
+  { platform: 'YouTube',     url: import.meta.env.VITE_YOUTUBE_URL },
+  { platform: 'Instagram',   url: import.meta.env.VITE_INSTAGRAM_URL },
+  { platform: 'GitHub',      url: import.meta.env.VITE_GITHUB_URL },
 ];
 
 const EMPTY = { name: '', email: '', phone: '', subject: '', message: '' };
@@ -22,6 +39,13 @@ export default function Contact() {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [socials, setSocials] = useState(ENV_SOCIALS);
+
+  useEffect(() => {
+    getContent('social_links')
+      .then((data) => { if (Array.isArray(data) && data.length > 0) setSocials(data); })
+      .catch(() => {});
+  }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -146,22 +170,26 @@ export default function Contact() {
               </div>
             </div>
 
-            {SOCIALS.filter((s) => s.href).length > 0 && (
+            {socials.filter((s) => s.url).length > 0 && (
               <div className="pt-2 border-t border-ink-300/40">
                 <p className="text-sm font-medium text-ink-900 mb-3">Follow us</p>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {SOCIALS.filter((s) => s.href).map(({ icon: Icon, href, label, color }) => (
-                    <a
-                      key={label}
-                      href={href}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={label}
-                      className={`w-9 h-9 rounded-full bg-surface-100 border border-ink-300/40 flex items-center justify-center hover:border-brand-primary transition-colors ${color}`}
-                    >
-                      <Icon size={16} />
-                    </a>
-                  ))}
+                  {socials.filter((s) => s.url).map(({ platform, url }) => {
+                    const Icon = ICON_MAP[platform];
+                    if (!Icon) return null;
+                    return (
+                      <a
+                        key={platform}
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={platform}
+                        className="w-9 h-9 rounded-full bg-surface-100 border border-ink-300/40 flex items-center justify-center hover:border-brand-primary transition-colors text-ink-600"
+                      >
+                        <Icon size={16} />
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
