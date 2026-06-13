@@ -1,5 +1,11 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 import { AuthProvider } from '../context/AuthContext';
 import { StudentAuthProvider } from '../context/StudentAuthContext';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
@@ -78,6 +84,7 @@ const NotFound = () => (
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <StudentAuthProvider>
         <Suspense fallback={<PageSpinner />}>
