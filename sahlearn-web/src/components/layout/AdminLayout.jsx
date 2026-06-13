@@ -6,7 +6,7 @@ import {
   LayoutDashboard, BookOpen, FileText,
   MessageSquare, Users, UserCog,
   LogOut, Sprout, Bell, GraduationCap, MessageCircle,
-  ClipboardList, ClipboardCheck, CalendarCheck, Megaphone, Globe, UserCheck,
+  ClipboardList, ClipboardCheck, CalendarCheck, Megaphone, Globe,
   MoreHorizontal, ArrowLeft, X,
 } from 'lucide-react';
 import api from '../../services/api';
@@ -23,7 +23,6 @@ const SIDEBAR_MANAGE = [
   { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
   { to: '/admin/exams', label: 'Exams', icon: ClipboardCheck },
   { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
-  { to: '/admin/daily-checkins', label: 'Daily Check-ins', icon: UserCheck },
   { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/admin/students', label: 'Students', icon: GraduationCap },
   { to: '/admin/student-messages', label: 'Student Messages', icon: MessageCircle },
@@ -46,7 +45,6 @@ const MORE_ITEMS = [
   { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
   { to: '/admin/exams', label: 'Exams', icon: ClipboardCheck },
   { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
-  { to: '/admin/daily-checkins', label: 'Daily Check-ins', icon: UserCheck },
   { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/admin/student-messages', label: 'Student Messages', icon: MessageCircle },
   { to: '/admin/team', label: 'Team', icon: UserCog },
@@ -62,7 +60,6 @@ const PAGE_TITLES = {
   '/admin/assignments': 'Assignments',
   '/admin/exams': 'Exams',
   '/admin/attendance': 'Attendance',
-  '/admin/daily-checkins': 'Daily Check-ins',
   '/admin/announcements': 'Announcements',
   '/admin/students': 'Students',
   '/admin/student-messages': 'Student Messages',
