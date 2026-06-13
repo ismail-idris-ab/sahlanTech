@@ -27,3 +27,9 @@ export const getStudentProgress = async (id) => {
   const { data } = await api.get(`/api/admin/students/${id}/progress`);
   return data.data; // CourseGroup[]
 };
+
+export const deleteStudent = async (id) =>
+  api.delete(`/api/admin/students/${id}`);
+
+export const deleteStudents = async (ids) =>
+  api.delete('/api/admin/students', { data: { ids } });

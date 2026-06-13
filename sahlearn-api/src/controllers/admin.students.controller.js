@@ -137,4 +137,18 @@ const getStudentProgress = async (req, res) => {
   success(res, Object.values(courseMap));
 };
 
-module.exports = { list, getById, resetPassword, updateStatus, getStudentProgress };
+const deleteStudent = async (req, res) => {
+  const Student = require('../models/Student');
+  await Student.findByIdAndDelete(req.params.id);
+  success(res, { deleted: true });
+};
+
+const deleteStudents = async (req, res) => {
+  const Student = require('../models/Student');
+  const { ids } = req.body;
+  const filter = Array.isArray(ids) && ids.length ? { _id: { $in: ids } } : {};
+  const result = await Student.deleteMany(filter);
+  success(res, { deleted: result.deletedCount });
+};
+
+module.exports = { list, getById, resetPassword, updateStatus, getStudentProgress, deleteStudent, deleteStudents };
