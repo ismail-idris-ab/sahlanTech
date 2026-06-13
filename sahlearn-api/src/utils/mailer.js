@@ -1,26 +1,31 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
-let _resend = null;
+let _transporter = null;
 
-function getClient() {
-  if (_resend) return _resend;
-  if (!process.env.RESEND_API_KEY) return null;
-  _resend = new Resend(process.env.RESEND_API_KEY);
-  return _resend;
+function getTransporter() {
+  if (_transporter) return _transporter;
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return null;
+  _transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+  return _transporter;
 }
 
-/**
- * Send an email. Fails silently if RESEND_API_KEY is not configured.
- * @param {{ to: string, subject: string, html: string }} options
- */
 async function sendMail({ to, subject, html }) {
-  const client = getClient();
-  if (!client) return;
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn('[mailer] GMAIL_USER or GMAIL_APP_PASSWORD not set — email skipped');
+    return;
+  }
 
-  const from = process.env.MAIL_FROM || 'Sahlearn <noreply@sahlearn.com>';
+  const from = process.env.MAIL_FROM || `Sahlearn <${process.env.GMAIL_USER}>`;
 
   try {
-    await client.emails.send({ from, to, subject, html });
+    await transporter.sendMail({ from, to, subject, html });
   } catch (err) {
     console.error('[mailer] send failed:', err.message);
   }
