@@ -25,12 +25,12 @@ const ICON_MAP = {
 };
 
 const ENV_SOCIALS = [
-  { platform: 'Facebook',    url: import.meta.env.VITE_FACEBOOK_URL },
-  { platform: 'LinkedIn',    url: import.meta.env.VITE_LINKEDIN_URL },
-  { platform: 'X (Twitter)', url: import.meta.env.VITE_TWITTER_URL },
-  { platform: 'YouTube',     url: import.meta.env.VITE_YOUTUBE_URL },
-  { platform: 'Instagram',   url: import.meta.env.VITE_INSTAGRAM_URL },
-  { platform: 'GitHub',      url: import.meta.env.VITE_GITHUB_URL },
+  { platform: 'Facebook',    url: import.meta.env.VITE_FACEBOOK_URL,  bg: '#1877F2' },
+  { platform: 'LinkedIn',    url: import.meta.env.VITE_LINKEDIN_URL,  bg: '#0077B5' },
+  { platform: 'X (Twitter)', url: import.meta.env.VITE_TWITTER_URL,   bg: '#000000' },
+  { platform: 'YouTube',     url: import.meta.env.VITE_YOUTUBE_URL,   bg: '#FF0000' },
+  { platform: 'Instagram',   url: import.meta.env.VITE_INSTAGRAM_URL, bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' },
+  { platform: 'GitHub',      url: import.meta.env.VITE_GITHUB_URL,    bg: '#24292e' },
 ];
 
 const EMPTY = { name: '', email: '', phone: '', subject: '', message: '' };
@@ -174,7 +174,7 @@ export default function Contact() {
               <div className="pt-2 border-t border-ink-300/40">
                 <p className="text-sm font-medium text-ink-900 mb-3">Follow us</p>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {socials.filter((s) => s.url).map(({ platform, url }) => {
+                  {socials.filter((s) => s.url).map(({ platform, url, bg }) => {
                     const Icon = ICON_MAP[platform];
                     if (!Icon) return null;
                     return (
@@ -184,7 +184,8 @@ export default function Contact() {
                         target="_blank"
                         rel="noreferrer"
                         aria-label={platform}
-                        className="w-9 h-9 rounded-full bg-surface-100 border border-ink-300/40 flex items-center justify-center hover:border-brand-primary transition-colors text-ink-600"
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                        style={{ background: bg || '#555' }}
                       >
                         <Icon size={16} />
                       </a>
