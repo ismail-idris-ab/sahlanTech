@@ -110,7 +110,7 @@ function SideNavItem({ to, label, icon: Icon, end }) {
 function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const handleLogout = () => { logout(); navigate('/admin/login'); };
+  const handleLogout = () => { logout(); navigate('/'); };
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'AD';
@@ -338,7 +338,7 @@ export default function AdminLayout() {
   const [notifCount, setNotifCount] = useState(0);
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const handleLogout = () => { logout(); navigate('/admin/login'); };
+  const handleLogout = () => { logout(); navigate('/'); };
 
   useEffect(() => {
     api.get('/api/admin/stats')

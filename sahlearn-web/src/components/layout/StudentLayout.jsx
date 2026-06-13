@@ -200,7 +200,7 @@ export default function StudentLayout() {
   const { pathname } = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const handleLogout = () => { logoutStudent(); navigate('/student/login'); };
+  const handleLogout = () => { logoutStudent(); navigate('/'); };
 
   const initials = student?.fullName
     ? student.fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
