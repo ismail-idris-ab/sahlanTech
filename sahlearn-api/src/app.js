@@ -27,6 +27,8 @@ const exportsRoutes = require('./routes/exports.routes');
 const adminAnnouncementsRoutes = require('./routes/admin.announcements.routes');
 const studentAnnouncementsRoutes = require('./routes/student.announcements.routes');
 const siteContentRoutes = require('./routes/siteContent.routes');
+const studentCheckinRoutes = require('./routes/student.checkin.routes');
+const adminCheckinRoutes = require('./routes/admin.checkin.routes');
 
 const app = express();
 
@@ -115,6 +117,8 @@ app.use('/api/admin/exports', exportsRoutes);
 app.use('/api/admin/announcements', adminAnnouncementsRoutes);
 app.use('/api/student/announcements', studentAnnouncementsRoutes);
 app.use('/api/content', siteContentRoutes);
+app.use('/api/student/checkin', studentCheckinRoutes);
+app.use('/api/admin/checkins', adminCheckinRoutes);
 
 // 404
 app.use((_req, res) => {

@@ -49,6 +49,7 @@ const AdminAttendance = lazy(() => import('../pages/admin/Attendance'));
 const AdminAttendanceSession = lazy(() => import('../pages/admin/AttendanceSession'));
 const AdminAnnouncements = lazy(() => import('../pages/admin/Announcements'));
 const AdminSiteContent = lazy(() => import('../pages/admin/SiteContent'));
+const AdminDailyCheckIns = lazy(() => import('../pages/admin/DailyCheckIns'));
 const StudentAnnouncements = lazy(() => import('../pages/student/Announcements'));
 
 // Public pages — lazy loaded (each route is a separate chunk)
@@ -134,6 +135,7 @@ export default function AppRouter() {
               <Route path="exams/:id/edit" element={<AdminExamForm />} />
               <Route path="attendance" element={<AdminAttendance />} />
               <Route path="attendance/:id" element={<AdminAttendanceSession />} />
+              <Route path="daily-checkins" element={<AdminDailyCheckIns />} />
               <Route path="announcements" element={<AdminAnnouncements />} />
               <Route path="site-content" element={<AdminSiteContent />} />
             </Route>
