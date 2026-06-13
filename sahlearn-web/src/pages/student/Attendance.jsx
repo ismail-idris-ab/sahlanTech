@@ -104,6 +104,7 @@ export default function StudentAttendance() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-surface-50 text-left text-xs text-ink-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 font-medium w-12">#</th>
                   <th className="px-6 py-3 font-medium">Name</th>
                   <th className="px-6 py-3 font-medium">Reg No.</th>
                   <th className="px-6 py-3 font-medium">Status</th>
@@ -112,8 +113,9 @@ export default function StudentAttendance() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-100">
-                {records.map((r) => (
+                {records.map((r, i) => (
                   <tr key={r._id} className="hover:bg-surface-50 transition-colors">
+                    <td className="px-6 py-3 text-ink-400 text-xs">{i + 1}</td>
                     <td className="px-6 py-3 text-ink-900 font-medium">{student?.fullName || '-'}</td>
                     <td className="px-6 py-3 text-ink-600">{student?.studentId || '-'}</td>
                     <td className="px-6 py-3">

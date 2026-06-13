@@ -228,6 +228,7 @@ export default function DailyCheckIns() {
                       {allSelected ? <CheckSquare size={16} className="text-brand-primary" /> : <Square size={16} />}
                     </button>
                   </th>
+                  <th className="px-4 py-3 font-medium w-12">#</th>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Reg No.</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -237,13 +238,14 @@ export default function DailyCheckIns() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-100">
-                {records.map((r) => (
+                {records.map((r, i) => (
                   <tr key={r._id} className={`hover:bg-surface-50 transition-colors ${selected.has(r._id) ? 'bg-brand-primary/5' : ''}`}>
                     <td className="px-4 py-3">
                       <button onClick={() => toggleSelect(r._id)} className="text-ink-400 hover:text-ink-700">
                         {selected.has(r._id) ? <CheckSquare size={16} className="text-brand-primary" /> : <Square size={16} />}
                       </button>
                     </td>
+                    <td className="px-4 py-3 text-ink-400 text-xs">{(page - 1) * 20 + i + 1}</td>
                     <td className="px-4 py-3 font-medium text-ink-900">{r.name}</td>
                     <td className="px-4 py-3 text-ink-600">{r.regNo}</td>
                     <td className="px-4 py-3">
