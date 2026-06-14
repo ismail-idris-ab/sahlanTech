@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStudentAuth } from '../../context/StudentAuthContext';
 import { checkIn, getMyCheckIns } from '../../services/dailyCheckIn.service';
+import { getContent } from '../../services/siteContent.service';
 import { CalendarCheck, CheckCircle2, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -10,14 +11,19 @@ export default function StudentAttendance() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [marking, setMarking] = useState(false);
+  const [attendanceEnabled, setAttendanceEnabled] = useState(true);
 
   useEffect(() => {
-    getMyCheckIns()
-      .then(({ checkedInToday: done, records: recs }) => {
-        setCheckedInToday(done);
-        setRecords(recs);
-      })
-      .catch(() => toast.error('Failed to load attendance'))
+    Promise.all([
+      getMyCheckIns(),
+      getContent('attendance_enabled').catch(() => null),
+    ]).then(([{ checkedInToday: done, records: recs }, enabledData]) => {
+      setCheckedInToday(done);
+      setRecords(recs);
+      if (enabledData && typeof enabledData.enabled === 'boolean') {
+        setAttendanceEnabled(enabledData.enabled);
+      }
+    }).catch(() => toast.error('Failed to load attendance'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -59,6 +65,17 @@ export default function StudentAttendance() {
 
         {loading ? (
           <div className="h-10 w-36 bg-surface-100 rounded-lg animate-pulse" />
+        ) : !attendanceEnabled ? (
+          <div className="flex items-center gap-2">
+            <button
+              disabled
+              className="px-6 py-2.5 bg-ink-200 text-ink-400 text-sm font-semibold rounded-lg cursor-not-allowed flex items-center gap-2"
+            >
+              <CheckCircle2 size={16} />
+              Mark Present
+            </button>
+            <span className="text-xs text-ink-400">Attendance is currently closed</span>
+          </div>
         ) : checkedInToday ? (
           <div className="flex items-center gap-2 text-sm text-ink-500">
             <CheckCircle2 size={16} className="text-green-500 flex-shrink-0" />

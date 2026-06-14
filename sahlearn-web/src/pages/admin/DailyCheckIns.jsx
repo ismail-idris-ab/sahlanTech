@@ -8,6 +8,7 @@ import {
   deleteAllCheckIns,
   exportCheckIns,
 } from '../../services/dailyCheckIn.service';
+import { getContent, updateContent } from '../../services/siteContent.service';
 
 function ConfirmModal({ message, onConfirm, onCancel }) {
   return (
@@ -50,7 +51,29 @@ export default function DailyCheckIns() {
   const [selected, setSelected] = useState(new Set());
   const [confirm, setConfirm] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [attendanceEnabled, setAttendanceEnabled] = useState(true);
+  const [toggling, setToggling] = useState(false);
   const searchTimeout = useRef(null);
+
+  useEffect(() => {
+    getContent('attendance_enabled')
+      .then((data) => { if (typeof data?.enabled === 'boolean') setAttendanceEnabled(data.enabled); })
+      .catch(() => {});
+  }, []);
+
+  const handleToggle = async () => {
+    const next = !attendanceEnabled;
+    setToggling(true);
+    try {
+      await updateContent('attendance_enabled', { enabled: next });
+      setAttendanceEnabled(next);
+      toast.success(`Attendance ${next ? 'enabled' : 'disabled'}`);
+    } catch {
+      toast.error('Failed to update attendance status');
+    } finally {
+      setToggling(false);
+    }
+  };
 
   const load = useCallback(async (p = 1, q = search) => {
     setLoading(true);
@@ -164,9 +187,24 @@ export default function DailyCheckIns() {
         />
       )}
 
-      <div>
-        <h1 className="text-2xl font-display text-ink-900">Daily Check-ins</h1>
-        <p className="text-xs text-ink-400 mt-0.5">Student attendance records</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display text-ink-900">Daily Check-ins</h1>
+          <p className="text-xs text-ink-400 mt-0.5">Student attendance records</p>
+        </div>
+        <div className="flex items-center gap-3 bg-white border border-surface-200 rounded-xl px-4 py-2.5 shadow-sm">
+          <div>
+            <p className="text-sm font-semibold text-ink-900">Attendance</p>
+            <p className="text-xs text-ink-400">{attendanceEnabled ? 'Students can check in' : 'Check-in disabled'}</p>
+          </div>
+          <button
+            onClick={handleToggle}
+            disabled={toggling}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-60 ${attendanceEnabled ? 'bg-green-500' : 'bg-ink-300'}`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${attendanceEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
       </div>
 
       {/* Toolbar */}
