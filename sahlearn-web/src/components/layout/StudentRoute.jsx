@@ -12,7 +12,7 @@ export default function StudentRoute({ children }) {
     );
   }
 
-  if (!student) return <Navigate to="/student/login" replace />;
+  if (!student) return <Navigate to="/" replace />;
 
   if (student.mustChangePassword) return <Navigate to="/student/change-password" replace />;
 
