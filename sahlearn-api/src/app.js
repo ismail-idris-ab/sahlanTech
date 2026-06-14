@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 
+const { globalLimiter } = require('./middleware/rateLimit');
 const authRoutes = require('./routes/auth.routes');
 const coursesRoutes = require('./routes/courses.routes');
 const postsRoutes = require('./routes/posts.routes');
@@ -39,9 +40,10 @@ const corsOrigins = process.env.CORS_ORIGIN
 app.use(helmet());
 app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(compression());
+app.use(globalLimiter);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50kb' }));
+app.use(express.urlencoded({ extended: true, limit: '50kb' }));
 
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
