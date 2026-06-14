@@ -137,6 +137,19 @@ const getStudentProgress = async (req, res) => {
   success(res, Object.values(courseMap));
 };
 
+const impersonateStudent = async (req, res) => {
+  const jwt = require('jsonwebtoken');
+  const student = await Student.findById(req.params.id);
+  if (!student) return notFound(res, 'Student not found');
+  if (!student.isActive) return res.status(403).json({ status: 'error', message: 'Student account is inactive' });
+  const token = jwt.sign(
+    { id: student._id, role: 'student' },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+  success(res, { token, student: { fullName: student.fullName, studentId: student.studentId } });
+};
+
 const deleteStudent = async (req, res) => {
   const Student = require('../models/Student');
   await Student.findByIdAndDelete(req.params.id);
@@ -151,4 +164,4 @@ const deleteStudents = async (req, res) => {
   success(res, { deleted: result.deletedCount });
 };
 
-module.exports = { list, getById, resetPassword, updateStatus, getStudentProgress, deleteStudent, deleteStudents };
+module.exports = { list, getById, resetPassword, updateStatus, getStudentProgress, impersonateStudent, deleteStudent, deleteStudents };

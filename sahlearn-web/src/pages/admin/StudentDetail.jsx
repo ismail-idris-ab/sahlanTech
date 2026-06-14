@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getStudentById, triggerPasswordReset, toggleStudentStatus, getStudentProgress } from '../../services/adminStudents.service';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useStudentAuth } from '../../context/StudentAuthContext';
+import { getStudentById, triggerPasswordReset, toggleStudentStatus, getStudentProgress, impersonateStudent } from '../../services/adminStudents.service';
 import { getStudentAttendance } from '../../services/adminAttendance.service';
-import { RefreshCw, UserCheck, UserX, MessageCircle, ClipboardCheck, ClipboardList, Clock, CalendarCheck, CheckCircle2, XCircle, ShieldCheck, Download } from 'lucide-react';
+import { RefreshCw, UserCheck, UserX, MessageCircle, ClipboardCheck, ClipboardList, Clock, CalendarCheck, CheckCircle2, XCircle, ShieldCheck, Download, ExternalLink } from 'lucide-react';
 import StatusBadge from '../../components/common/StatusBadge';
 import { downloadFile } from '../../utils/download';
 import toast from 'react-hot-toast';
@@ -24,10 +25,13 @@ const ScoreBar = ({ score, max }) => {
 
 export default function StudentDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { loginStudent } = useStudentAuth();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [impersonating, setImpersonating] = useState(false);
   const [progress, setProgress] = useState([]);
   const [progressLoading, setProgressLoading] = useState(true);
   const [attendance, setAttendance] = useState([]);
@@ -49,6 +53,19 @@ export default function StudentDetail() {
       toast.error(err?.response?.data?.message || 'Failed to send reset link');
     } finally {
       setResetting(false);
+    }
+  };
+
+  const handleImpersonate = async () => {
+    setImpersonating(true);
+    try {
+      const { token, student: s } = await impersonateStudent(id);
+      loginStudent(token, s);
+      navigate('/student/dashboard');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to access student dashboard');
+    } finally {
+      setImpersonating(false);
     }
   };
 
@@ -100,6 +117,15 @@ export default function StudentDetail() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2 flex-shrink-0">
+          <button
+            onClick={handleImpersonate}
+            disabled={impersonating || !student.isActive}
+            title={!student.isActive ? 'Student account is inactive' : 'Open student dashboard'}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition disabled:opacity-40"
+          >
+            <ExternalLink size={13} className={impersonating ? 'animate-pulse' : ''} />
+            {impersonating ? 'Opening…' : 'View Dashboard'}
+          </button>
           <button
             onClick={async () => {
               try {

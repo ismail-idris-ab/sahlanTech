@@ -28,6 +28,11 @@ export const getStudentProgress = async (id) => {
   return data.data; // CourseGroup[]
 };
 
+export const impersonateStudent = async (id) => {
+  const { data } = await api.post(`/api/admin/students/${id}/impersonate`);
+  return data.data;
+};
+
 export const deleteStudent = async (id) =>
   api.delete(`/api/admin/students/${id}`);
 
