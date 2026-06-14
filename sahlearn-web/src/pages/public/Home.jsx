@@ -380,20 +380,20 @@ export default function Home() {
       <section className="bg-white py-16 md:py-20 border-y border-ink-300/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div
-              className="rounded-2xl overflow-hidden h-72 lg:h-96 flex flex-col items-center justify-center gap-4"
-              style={{
-                background: "linear-gradient(145deg, #013F4A 0%, #011F28 100%)",
-              }}
-            >
+            <div className="relative rounded-2xl overflow-hidden h-72 lg:h-96 shadow-xl">
               <img
-                src="/sahlearn-icon.svg"
+                src="/salan.jpg"
                 alt="Sahlearn"
-                className="w-24 h-24 opacity-90"
+                className="w-full h-full object-cover object-center"
               />
-              <p className="text-sm font-medium" style={{ color: "#71B280" }}>
-                sahlearn
-              </p>
+              <div
+                className="absolute inset-0"
+                style={{ background: "linear-gradient(to top, rgba(1,31,40,0.72) 0%, rgba(1,31,40,0.18) 55%, transparent 100%)" }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
+                <p className="text-white font-display text-xl font-bold tracking-wide drop-shadow">sahlearn.</p>
+                <p className="text-sm mt-0.5 drop-shadow" style={{ color: "#71B280" }}>We command computer and it obeys</p>
+              </div>
             </div>
             <div>
               <span className="text-xs font-semibold text-brand-primary uppercase tracking-wider">
