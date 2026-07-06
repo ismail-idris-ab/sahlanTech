@@ -184,7 +184,7 @@ export default function ExamForm() {
         setForm({
           title: exam.title || '',
           description: exam.description || '',
-          course: exam.course?._id || exam.course || '',
+          course: exam.isGeneral ? '__general__' : (exam.course?._id || exam.course || ''),
           duration: exam.duration || '',
           dueDate: exam.dueDate ? new Date(exam.dueDate).toISOString().slice(0, 16) : '',
           enrollmentCutoff: exam.enrollmentCutoff ? new Date(exam.enrollmentCutoff).toISOString().slice(0, 16) : '',
@@ -206,8 +206,11 @@ export default function ExamForm() {
     const unset = questions.findIndex((q) => q.type === 'mcq' && q.correctIndex === null);
     if (unset !== -1) { toast.error(`Q${unset + 1}: select the correct answer`); return; }
 
+    const isGeneral = form.course === '__general__';
     const payload = {
       ...form,
+      isGeneral,
+      course: isGeneral ? undefined : form.course,
       duration: form.duration ? Number(form.duration) : undefined,
       dueDate: form.dueDate || undefined,
       enrollmentCutoff: form.enrollmentCutoff || undefined,
@@ -268,6 +271,7 @@ export default function ExamForm() {
                 className="w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
               >
                 <option value="">Select course...</option>
+                <option value="__general__">⭐ General (All Students)</option>
                 {courses.map((c) => (
                   <option key={c._id || c.id} value={c._id || c.id}>{c.title}</option>
                 ))}

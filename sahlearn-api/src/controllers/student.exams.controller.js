@@ -33,13 +33,17 @@ function isEligible(enrolledAt, exam) {
 const listExams = async (req, res) => {
   const courseIds = req.student.enrolledCourses.filter((ec) => ec.course).map((ec) => ec.course);
 
-  const exams = await Exam.find({ course: { $in: courseIds }, isPublished: true })
+  const exams = await Exam.find({
+    isPublished: true,
+    $or: [{ isGeneral: true }, { course: { $in: courseIds } }],
+  })
     .sort({ createdAt: -1 })
     .populate('course', 'title slug');
 
   const enrollmentDateMap = buildEnrollmentDateMap(req.student);
 
   const eligibleExams = exams.filter((exam) => {
+    if (exam.isGeneral) return true;
     const enrolledAt = enrollmentDateMap[exam.course._id.toString()];
     return isEligible(enrolledAt, exam);
   });
@@ -78,14 +82,15 @@ const getExam = async (req, res) => {
   const exam = await Exam.findById(req.params.id).populate('course', 'title slug');
   if (!exam || !exam.isPublished) return notFound(res, 'Exam not found');
 
-  if (!courseIds.includes(exam.course._id.toString())) {
-    return res.status(403).json({ status: 'error', message: 'You are not enrolled in this course' });
-  }
-
-  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
-  const enrolledAt = enrollmentDateMap[exam.course._id.toString()];
-  if (!isEligible(enrolledAt, exam)) {
-    return res.status(403).json({ status: 'error', message: 'You are not eligible for this exam' });
+  if (!exam.isGeneral) {
+    if (!courseIds.includes(exam.course._id.toString())) {
+      return res.status(403).json({ status: 'error', message: 'You are not enrolled in this course' });
+    }
+    const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+    const enrolledAt = enrollmentDateMap[exam.course._id.toString()];
+    if (!isEligible(enrolledAt, exam)) {
+      return res.status(403).json({ status: 'error', message: 'You are not eligible for this exam' });
+    }
   }
 
   const myAttempt = await ExamAttempt.findOne({ exam: exam._id, student: req.student._id });
@@ -109,14 +114,15 @@ const submitExam = async (req, res) => {
   const exam = await Exam.findById(req.params.id);
   if (!exam || !exam.isPublished) return notFound(res, 'Exam not found');
 
-  if (!courseIds.includes(exam.course.toString())) {
-    return res.status(403).json({ status: 'error', message: 'You are not enrolled in this course' });
-  }
-
-  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
-  const enrolledAt = enrollmentDateMap[exam.course.toString()];
-  if (!isEligible(enrolledAt, exam)) {
-    return res.status(403).json({ status: 'error', message: 'You are not eligible for this exam' });
+  if (!exam.isGeneral) {
+    if (!courseIds.includes(exam.course.toString())) {
+      return res.status(403).json({ status: 'error', message: 'You are not enrolled in this course' });
+    }
+    const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+    const enrolledAt = enrollmentDateMap[exam.course.toString()];
+    if (!isEligible(enrolledAt, exam)) {
+      return res.status(403).json({ status: 'error', message: 'You are not eligible for this exam' });
+    }
   }
 
   const existing = await ExamAttempt.findOne({ exam: exam._id, student: req.student._id });

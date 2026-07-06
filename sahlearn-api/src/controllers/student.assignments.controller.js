@@ -30,7 +30,10 @@ const listAssignments = async (req, res) => {
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
   const skip = (page - 1) * limit;
 
-  const filter = { course: { $in: courseIds }, isPublished: true };
+  const filter = {
+    isPublished: true,
+    $or: [{ isGeneral: true }, { course: { $in: courseIds } }],
+  };
 
   const [assignments, total] = await Promise.all([
     Assignment.find(filter)
@@ -45,6 +48,7 @@ const listAssignments = async (req, res) => {
   const enrollmentDateMap = buildEnrollmentDateMap(req.student);
 
   const eligibleAssignments = assignments.filter((a) => {
+    if (a.isGeneral) return true;
     const enrolledAt = enrollmentDateMap[a.course._id.toString()];
     return isEligible(enrolledAt, a);
   });
@@ -76,14 +80,16 @@ const getAssignment = async (req, res) => {
 
   if (!assignment) return notFound(res, 'Assignment not found');
   if (!assignment.isPublished) return notFound(res, 'Assignment not found');
-  if (!courseIds.includes(assignment.course._id.toString())) {
-    return res.status(403).json({ status: 'error', message: 'Not enrolled in this course' });
-  }
 
-  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
-  const enrolledAt = enrollmentDateMap[assignment.course._id.toString()];
-  if (!isEligible(enrolledAt, assignment)) {
-    return res.status(403).json({ status: 'error', message: 'You are not eligible for this assignment' });
+  if (!assignment.isGeneral) {
+    if (!courseIds.includes(assignment.course._id.toString())) {
+      return res.status(403).json({ status: 'error', message: 'Not enrolled in this course' });
+    }
+    const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+    const enrolledAt = enrollmentDateMap[assignment.course._id.toString()];
+    if (!isEligible(enrolledAt, assignment)) {
+      return res.status(403).json({ status: 'error', message: 'You are not eligible for this assignment' });
+    }
   }
 
   const mySubmission = await Submission.findOne({
@@ -101,14 +107,16 @@ const submitAssignment = async (req, res) => {
 
   const assignment = await Assignment.findById(req.params.id).lean();
   if (!assignment || !assignment.isPublished) return notFound(res, 'Assignment not found');
-  if (!courseIds.includes(assignment.course.toString())) {
-    return res.status(403).json({ status: 'error', message: 'Not enrolled in this course' });
-  }
 
-  const enrollmentDateMap = buildEnrollmentDateMap(req.student);
-  const enrolledAt = enrollmentDateMap[assignment.course.toString()];
-  if (!isEligible(enrolledAt, assignment)) {
-    return res.status(403).json({ status: 'error', message: 'You are not eligible for this assignment' });
+  if (!assignment.isGeneral) {
+    if (!courseIds.includes(assignment.course.toString())) {
+      return res.status(403).json({ status: 'error', message: 'Not enrolled in this course' });
+    }
+    const enrollmentDateMap = buildEnrollmentDateMap(req.student);
+    const enrolledAt = enrollmentDateMap[assignment.course.toString()];
+    if (!isEligible(enrolledAt, assignment)) {
+      return res.status(403).json({ status: 'error', message: 'You are not eligible for this assignment' });
+    }
   }
 
   const existing = await Submission.findOne({ assignment: req.params.id, student: req.student._id });

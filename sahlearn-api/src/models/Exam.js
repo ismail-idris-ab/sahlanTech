@@ -32,7 +32,8 @@ const questionSchema = new mongoose.Schema(
 
 const examSchema = new mongoose.Schema(
   {
-    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true, index: true },
+    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', index: true, default: null },
+    isGeneral: { type: Boolean, default: false, index: true },
     title: { type: String, required: true, trim: true, maxlength: 200 },
     description: { type: String, trim: true, maxlength: 2000 },
     duration: { type: Number, min: 1 },

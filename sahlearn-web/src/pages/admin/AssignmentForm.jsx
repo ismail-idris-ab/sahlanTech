@@ -29,7 +29,7 @@ export default function AssignmentForm() {
       getAssignment(id)
         .then((a) => {
           setForm({
-            course: a.course?.id || a.course?._id || a.course || '',
+            course: a.isGeneral ? '__general__' : (a.course?.id || a.course?._id || a.course || ''),
             title: a.title,
             description: a.description || '',
             dueDate: a.dueDate ? new Date(a.dueDate).toISOString().slice(0, 16) : '',
@@ -47,9 +47,12 @@ export default function AssignmentForm() {
     e.preventDefault();
     if (!form.course) { toast.error('Please select a course'); return; }
     setSaving(true);
+    const isGeneral = form.course === '__general__';
     try {
       const payload = {
         ...form,
+        isGeneral,
+        course: isGeneral ? undefined : form.course,
         dueDate: form.dueDate || undefined,
         enrollmentCutoff: form.enrollmentCutoff || undefined,
         description: form.description || undefined,
@@ -90,6 +93,7 @@ export default function AssignmentForm() {
               className="w-full px-3 py-2.5 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white"
             >
               <option value="">Select a course...</option>
+              <option value="__general__">⭐ General (All Students)</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>{c.title}</option>
               ))}

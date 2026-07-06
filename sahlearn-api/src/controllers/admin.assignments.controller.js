@@ -5,10 +5,11 @@ const cloudinary = require('../config/cloudinary');
 const { success, successList, notFound } = require('../utils/apiResponse');
 
 const createAssignment = async (req, res) => {
-  const { course, title, description, dueDate, enrollmentCutoff, isPublished, totalPoints } = req.body;
+  const { course, isGeneral, title, description, dueDate, enrollmentCutoff, isPublished, totalPoints } = req.body;
 
   const assignment = await Assignment.create({
-    course,
+    course: isGeneral ? null : course,
+    isGeneral: !!isGeneral,
     title,
     description,
     dueDate: dueDate || undefined,
@@ -62,6 +63,12 @@ const updateAssignment = async (req, res) => {
   const updates = {};
   for (const key of allowed) {
     if (req.body[key] !== undefined) updates[key] = req.body[key];
+  }
+  if (req.body.isGeneral !== undefined) {
+    updates.isGeneral = !!req.body.isGeneral;
+    updates.course = req.body.isGeneral ? null : (req.body.course || undefined);
+  } else if (req.body.course !== undefined) {
+    updates.course = req.body.course;
   }
 
   const assignment = await Assignment.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).populate('course', 'title slug');
