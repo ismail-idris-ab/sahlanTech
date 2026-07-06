@@ -162,7 +162,7 @@ export default function AdminStudents() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-surface-200 bg-surface-50 text-left">
-                <th className="px-4 py-3 w-10">
+                <th className="px-4 py-3 w-10 hidden sm:table-cell">
                   <button onClick={toggleAll} className="text-ink-400 hover:text-ink-700">
                     {allSelected ? <CheckSquare size={16} className="text-brand-primary" /> : <Square size={16} />}
                   </button>
@@ -181,14 +181,15 @@ export default function AdminStudents() {
                 const initials = s.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || '?';
                 return (
                   <tr key={s.id} className={`hover:bg-surface-50 transition-colors ${selected.has(s.id) ? 'bg-brand-primary/5' : ''}`}>
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-3.5 hidden sm:table-cell">
                       <button onClick={() => toggleSelect(s.id)} className="text-ink-400 hover:text-ink-700">
                         {selected.has(s.id) ? <CheckSquare size={16} className="text-brand-primary" /> : <Square size={16} />}
                       </button>
                     </td>
                     <td className="px-4 py-3.5 text-ink-400 text-xs">{(page - 1) * PAGE_SIZE + i + 1}</td>
                     <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-2.5">
+                      {/* Desktop: avatar + name + email */}
+                      <div className="hidden sm:flex items-center gap-2.5">
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
                           style={{ background: avatarGrad(s.fullName) }}
@@ -199,6 +200,11 @@ export default function AdminStudents() {
                           <p className="font-semibold text-ink-900">{s.fullName}</p>
                           <p className="text-xs text-ink-400">{s.email}</p>
                         </div>
+                      </div>
+                      {/* Mobile: status dot + name only */}
+                      <div className="flex sm:hidden items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${s.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
+                        <span className="font-medium text-ink-900 text-sm">{s.fullName}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3.5 text-ink-500 hidden sm:table-cell font-mono text-xs">{s.studentId}</td>
