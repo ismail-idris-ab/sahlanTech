@@ -82,6 +82,11 @@ const DOC_MIMES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/zip',
   'application/x-zip-compressed',
+  'application/x-rar-compressed',
+  'application/vnd.rar',
+  'application/x-msdownload',
+  'application/x-msdos-program',
+  'application/vnd.android.package-archive',
 ];
 
 const docStorage = new CloudinaryStorage({
@@ -114,14 +119,14 @@ const docFilter = (_req, file, cb) => {
   if (DOC_MIMES.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Unsupported file type'), false);
+    cb(new Error('Unsupported file type. Allowed: images, PDF, Word, Excel, ZIP, RAR, EXE, APK'), false);
   }
 };
 
 const uploadDoc = multer({
   storage: docStorage,
   fileFilter: docFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
 module.exports = { upload, uploadAssignment, uploadDoc };
