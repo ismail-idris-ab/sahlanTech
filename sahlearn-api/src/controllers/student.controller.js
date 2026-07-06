@@ -54,14 +54,12 @@ const deleteAvatar = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-
-  const student = await Student.findById(req.student._id).select('+password');
-  const match = await student.comparePassword(currentPassword);
-  if (!match) {
-    return res.status(400).json({ status: 'error', message: 'Current password is incorrect' });
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 8) {
+    return res.status(422).json({ status: 'error', message: 'Password must be at least 8 characters.' });
   }
 
+  const student = await Student.findById(req.student._id).select('+password');
   student.password = newPassword;
   student.tempPassword = undefined;
   student.mustChangePassword = false;

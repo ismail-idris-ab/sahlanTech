@@ -28,8 +28,8 @@ export const deleteAvatar = async () => {
   return data.data;
 };
 
-export const changePassword = async ({ currentPassword, newPassword }) => {
-  const { data } = await api.patch('/api/student/me/password', { currentPassword, newPassword }, { headers: authHeader() });
+export const changePassword = async ({ newPassword }) => {
+  const { data } = await api.patch('/api/student/me/password', { newPassword }, { headers: authHeader() });
   return data.data;
 };
 

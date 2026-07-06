@@ -15,7 +15,7 @@ export default function StudentProfile() {
     academicLevel: student?.academicLevel || '',
   });
   const [saving, setSaving] = useState(false);
-  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
+  const [pwForm, setPwForm] = useState({ newPassword: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
   const fileRef = useRef(null);
 
@@ -60,9 +60,9 @@ export default function StudentProfile() {
     if (pwForm.newPassword !== pwForm.confirm) { toast.error('Passwords do not match'); return; }
     setPwSaving(true);
     try {
-      await changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
+      await changePassword({ newPassword: pwForm.newPassword });
       toast.success('Password changed');
-      setPwForm({ currentPassword: '', newPassword: '', confirm: '' });
+      setPwForm({ newPassword: '', confirm: '' });
     } catch (err) {
       toast.error(err?.response?.data?.message || err?.message || 'Failed to change password');
     } finally {
@@ -187,14 +187,6 @@ export default function StudentProfile() {
       <div className="bg-white rounded-2xl border border-surface-200 p-6 shadow-card">
         <h2 className="font-semibold text-ink-900 mb-4 flex items-center gap-2"><Lock size={16} /> Change Password</h2>
         <form onSubmit={handleChangePassword} className="space-y-3">
-          <input
-            type="password"
-            required
-            value={pwForm.currentPassword}
-            onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
-            placeholder="Current password"
-            className="w-full px-3 py-2 border border-surface-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
-          />
           <input
             type="password"
             required
