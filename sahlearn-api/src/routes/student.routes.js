@@ -32,7 +32,6 @@ router.patch('/me/set-password', setFirstPassword);
 router.patch(
   '/me/password',
   [
-    body('currentPassword').notEmpty(),
     body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
   ],
   validate,
