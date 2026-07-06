@@ -79,6 +79,16 @@ async function _confirmEnrollment(enrollment, { amountPaid } = {}) {
     const studentId = `SAH-${year}-${String(studentSeq).padStart(4, '0')}`;
     tempPassword = generateTempPassword();
 
+    const generalCourse = await Course.findOne({ title: /^general$/i, isPublished: true }).lean();
+
+    const initialCourses = [];
+    if (generalCourse) {
+      initialCourses.push({ course: generalCourse._id, enrolledAt: new Date() });
+    }
+    if (enrollment.course) {
+      initialCourses.push({ course: enrollment.course._id, enrollmentId: enrollment._id, enrolledAt: new Date() });
+    }
+
     student = await Student.create({
       studentId,
       fullName: enrollment.fullName,
@@ -87,11 +97,22 @@ async function _confirmEnrollment(enrollment, { amountPaid } = {}) {
       password: tempPassword,
       tempPassword,
       mustChangePassword: true,
-      enrolledCourses: enrollment.course
-        ? [{ course: enrollment.course._id, enrollmentId: enrollment._id, enrolledAt: new Date() }]
-        : [],
+      enrolledCourses: initialCourses,
     });
   } else {
+    const generalCourse = await Course.findOne({ title: /^general$/i, isPublished: true }).lean();
+    let changed = false;
+
+    if (generalCourse) {
+      const hasGeneral = student.enrolledCourses.some(
+        (e) => e.course?.toString() === generalCourse._id.toString()
+      );
+      if (!hasGeneral) {
+        student.enrolledCourses.push({ course: generalCourse._id, enrolledAt: new Date() });
+        changed = true;
+      }
+    }
+
     const alreadyLinked = student.enrolledCourses.some(
       (e) => e.enrollmentId?.toString() === enrollment._id.toString()
     );
@@ -101,8 +122,9 @@ async function _confirmEnrollment(enrollment, { amountPaid } = {}) {
         enrollmentId: enrollment._id,
         enrolledAt: new Date(),
       });
-      await student.save();
+      changed = true;
     }
+    if (changed) await student.save();
   }
 
   // Update enrollment
