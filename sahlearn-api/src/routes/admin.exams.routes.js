@@ -25,7 +25,7 @@ router.get('/', listExams);
 router.post(
   '/',
   [
-    body('course').notEmpty().withMessage('Course ID is required'),
+    body('course').if(body('isGeneral').not().equals(true)).notEmpty().withMessage('Course ID is required'),
     body('title').trim().notEmpty().isLength({ max: 200 }),
     body('description').optional().isLength({ max: 2000 }),
     body('duration').optional().isInt({ min: 1 }),

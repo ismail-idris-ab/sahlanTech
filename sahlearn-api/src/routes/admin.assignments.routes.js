@@ -20,7 +20,7 @@ router.get('/', listAssignments);
 router.post(
   '/',
   [
-    body('course').notEmpty().withMessage('Course ID is required'),
+    body('course').if(body('isGeneral').not().equals(true)).notEmpty().withMessage('Course ID is required'),
     body('title').trim().notEmpty().isLength({ max: 200 }),
     body('description').optional().isLength({ max: 3000 }),
     body('dueDate').optional().isISO8601(),
