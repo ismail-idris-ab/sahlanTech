@@ -10,6 +10,12 @@ const LINKS = [
   { to: '/contact', label: 'Contact' },
 ];
 
+const EXT_LINKS = [
+  { href: 'https://sahlearn.com.ng/store.php', label: 'Store' },
+  { href: 'https://sahlearn.com.ng/sahleanTV.php', label: 'TV' },
+  { href: 'https://sahlearn.com.ng/sahlearnRadio.php', label: 'Radio' },
+];
+
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -45,6 +51,17 @@ export default function Navbar() {
               >
                 {label}
               </NavLink>
+            ))}
+            {EXT_LINKS.map(({ href, label }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-ink-700 hover:text-brand-primary transition-colors"
+              >
+                {label}
+              </a>
             ))}
           </nav>
 
@@ -110,6 +127,18 @@ export default function Navbar() {
             >
               {label}
             </NavLink>
+          ))}
+          {EXT_LINKS.map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={close}
+              className="block px-4 py-3 rounded-lg text-sm font-medium text-ink-700 hover:bg-surface-100 transition-colors"
+            >
+              {label}
+            </a>
           ))}
           <div className="pt-4 space-y-2">
             <Link
