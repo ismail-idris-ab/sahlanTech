@@ -57,7 +57,7 @@ const listAssignments = async (req, res) => {
   const mySubmissions = await Submission.find({
     assignment: { $in: ids },
     student: req.student._id,
-  }).select('assignment status grade gradedAt').lean();
+  }).select('assignment status score maxScore gradedAt').lean();
 
   const submissionMap = Object.fromEntries(mySubmissions.map((s) => [s.assignment.toString(), s]));
 
@@ -66,7 +66,7 @@ const listAssignments = async (req, res) => {
     mySubmission: submissionMap[a._id.toString()] || null,
   }));
 
-  successList(res, data, { page, limit, total: eligibleAssignments.length, totalPages: Math.ceil(eligibleAssignments.length / limit) });
+  successList(res, data, { page, limit, total, totalPages: Math.ceil(total / limit) });
 };
 
 const getAssignment = async (req, res) => {

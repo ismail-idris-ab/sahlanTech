@@ -21,7 +21,7 @@ function StatusBadge({ submission, dueDate }) {
   if (submission.status === 'graded' || submission.status === 'returned') {
     return (
       <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-50 text-green-700">
-        <CheckCircle2 size={11} /> {submission.grade ? `Graded: ${submission.grade}` : 'Graded'}
+        <CheckCircle2 size={11} /> {submission.score != null ? `Score: ${submission.score}/${submission.maxScore ?? '?'}` : 'Graded'}
       </span>
     );
   }
@@ -102,8 +102,8 @@ export default function StudentAssignments() {
                   <span className="text-[10px] text-ink-400">
                     {a.dueDate ? new Date(a.dueDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : 'No due date'}
                   </span>
-                  {a.mySubmission?.grade && (
-                    <span className="text-[10px] font-semibold text-green-600">Score: {a.mySubmission.grade}</span>
+                  {a.mySubmission?.score != null && (
+                    <span className="text-[10px] font-semibold text-green-600">Score: {a.mySubmission.score}/{a.mySubmission.maxScore ?? '?'}</span>
                   )}
                 </div>
               </div>
