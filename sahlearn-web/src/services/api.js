@@ -23,13 +23,17 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       const url = err.config?.url || '';
       if (url.includes('/student/')) {
+        const hadToken = !!localStorage.getItem('sahlearn_student_token');
         localStorage.removeItem('sahlearn_student_token');
-        if (!url.includes('/auth/login')) {
+        if (!url.includes('/auth/login') && hadToken) {
           window.location.href = '/student/login';
         }
       } else {
+        const hadToken = !!localStorage.getItem('sahlearn_token');
         localStorage.removeItem('sahlearn_token');
-        window.location.href = '/admin/login';
+        if (hadToken) {
+          window.location.href = '/admin/login';
+        }
       }
     }
     return Promise.reject(err);
