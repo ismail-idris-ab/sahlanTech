@@ -159,8 +159,10 @@ const deleteStudent = async (req, res) => {
 const deleteStudents = async (req, res) => {
   const Student = require('../models/Student');
   const { ids } = req.body;
-  const filter = Array.isArray(ids) && ids.length ? { _id: { $in: ids } } : {};
-  const result = await Student.deleteMany(filter);
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ status: 'error', message: 'ids must be a non-empty array' });
+  }
+  const result = await Student.deleteMany({ _id: { $in: ids } });
   success(res, { deleted: result.deletedCount });
 };
 
