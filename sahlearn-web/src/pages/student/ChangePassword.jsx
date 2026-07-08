@@ -8,6 +8,11 @@ import api from '../../services/api';
 export default function StudentChangePassword() {
   const { student, setStudent, getToken } = useStudentAuth();
   const navigate = useNavigate();
+
+  if (!student) {
+    navigate('/student/login', { replace: true });
+    return null;
+  }
   const [form, setForm] = useState({ password: '', confirm: '' });
   const [show, setShow] = useState({ password: false, confirm: false });
   const [loading, setLoading] = useState(false);
