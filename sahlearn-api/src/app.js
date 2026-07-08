@@ -103,24 +103,29 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/enrollments', enrollmentsRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/admin', adminRoutes);
+// Specific sub-routes must be mounted BEFORE the generic /api/admin and /api/student
+// routers — otherwise Express hits the generic router first (which runs auth), finds no
+// matching route, then hits the specific router (which runs auth again): double DB query.
 app.use('/api/student/auth', studentAuthRoutes);
 app.use('/api/student/messages', studentMessagesRoutes);
-app.use('/api/student', studentRoutes);
-app.use('/api/admin/students', adminStudentsRoutes);
-app.use('/api/admin/student-messages', adminStudentMessagesRoutes);
 app.use('/api/student/assignments', studentAssignmentsRoutes);
 app.use('/api/student/exams', studentExamsRoutes);
+app.use('/api/student/attendance', studentAttendanceRoutes);
+app.use('/api/student/announcements', studentAnnouncementsRoutes);
+app.use('/api/student/checkin', studentCheckinRoutes);
+app.use('/api/student', studentRoutes);
+
+app.use('/api/admin/students', adminStudentsRoutes);
+app.use('/api/admin/student-messages', adminStudentMessagesRoutes);
 app.use('/api/admin/assignments', adminAssignmentsRoutes);
 app.use('/api/admin/exams', adminExamsRoutes);
 app.use('/api/admin/attendance', adminAttendanceRoutes);
-app.use('/api/student/attendance', studentAttendanceRoutes);
 app.use('/api/admin/exports', exportsRoutes);
 app.use('/api/admin/announcements', adminAnnouncementsRoutes);
-app.use('/api/student/announcements', studentAnnouncementsRoutes);
-app.use('/api/content', siteContentRoutes);
-app.use('/api/student/checkin', studentCheckinRoutes);
 app.use('/api/admin/checkins', adminCheckinRoutes);
+app.use('/api/admin', adminRoutes);
+
+app.use('/api/content', siteContentRoutes);
 
 // 404
 app.use((_req, res) => {
@@ -132,7 +137,7 @@ app.use((_req, res) => {
 app.use((err, _req, res, _next) => {
   // Handle multer file size error
   if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(400).json({ status: 'error', message: 'File too large. Maximum size is 10MB.' });
+    return res.status(400).json({ status: 'error', message: 'File too large.' });
   }
 
   const status = err.statusCode || err.status || 500;
