@@ -33,6 +33,10 @@ const adminCheckinRoutes = require('./routes/admin.checkin.routes');
 
 const app = express();
 
+// Render/Vercel/any reverse proxy sits in front — trust the first hop so
+// req.ip is the real client IP (rate limiting keys on it).
+app.set('trust proxy', 1);
+
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
   : ['http://localhost:5173'];
