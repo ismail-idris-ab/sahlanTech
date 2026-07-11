@@ -11,7 +11,7 @@ const { login, forgotPassword, resetPassword } = require('../controllers/student
 // class behind one NAT/wifi IP shares a single bucket and locks each other out.
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${(req.body?.email || '').toLowerCase().trim()}`,
