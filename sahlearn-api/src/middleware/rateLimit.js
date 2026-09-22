@@ -7,6 +7,9 @@ const makeRateLimiter = (max, windowMinutes, message) =>
     standardHeaders: true,
     legacyHeaders: false,
     message: { status: 'error', message },
+    // Tests share one process and would trip the limiter on unrelated requests.
+    // A test that specifically asserts 429 sets TEST_RATE_LIMIT=1.
+    skip: () => process.env.NODE_ENV === 'test' && process.env.TEST_RATE_LIMIT !== '1',
   });
 
 const globalLimiter = makeRateLimiter(1000, 15, 'Too many requests. Please slow down.');
