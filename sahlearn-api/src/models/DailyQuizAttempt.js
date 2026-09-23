@@ -4,7 +4,16 @@ const mongoose = require('mongoose');
 const answerSchema = new mongoose.Schema(
   {
     questionIndex: { type: Number, required: true },
+    // mcq answers
     selectedIndex: { type: Number },
+    // essay answers
+    text: { type: String, maxlength: 2000 },
+    // What this answer is worth so far. mcq answers are settled at submit;
+    // an essay stays null until the admin marks it.
+    awardedPoints: { type: Number, default: null },
+    // Distinguishes "marked zero" from "not marked yet" — awardedPoints alone
+    // cannot, since a wrong mcq and an unmarked essay both read as falsy.
+    graded: { type: Boolean, default: false },
   },
   { _id: false }
 );
@@ -16,8 +25,14 @@ const dailyQuizAttemptSchema = new mongoose.Schema(
     quizDate: { type: String, required: true },
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     answers: { type: [answerSchema], default: [] },
+    // Points awarded SO FAR. On a quiz with essays this climbs as the admin
+    // marks, so the leaderboard reflects grading progress rather than waiting
+    // for it.
     score: { type: Number, default: 0 },
     maxScore: { type: Number, default: 0 },
+    // Essay answers still waiting on the admin. 0 means fully marked, which is
+    // every mcq-only attempt from the moment it is submitted.
+    pendingEssays: { type: Number, default: 0 },
     startedAt: { type: Date, required: true },
     submittedAt: { type: Date },
     durationMs: { type: Number },

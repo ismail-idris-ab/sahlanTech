@@ -5,6 +5,7 @@ const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const { quizReadLimiter, quizStartLimiter, quizSubmitLimiter } = require('../middleware/rateLimit');
 const { getToday, startAttempt, submitAttempt, getLeaderboard } = require('../controllers/dailyQuiz.controller');
+const { ESSAY_MAX_LENGTH } = require('../utils/scoreQuiz');
 
 router.get('/today', quizReadLimiter, getToday);
 
@@ -33,6 +34,18 @@ router.post(
   [
     body('attemptToken').isString().notEmpty().withMessage('Missing quiz session'),
     body('answers').optional().isArray({ max: 50 }).withMessage('answers must be an array'),
+    // Essay text is the only unbounded field a public caller can send. Capped
+    // here rather than truncated silently, so a student who genuinely wrote too
+    // much is told instead of losing the tail of their answer.
+    body('answers').optional().custom((answers) => {
+      if (!Array.isArray(answers)) return true;
+      for (const a of answers) {
+        if (a && typeof a === 'object' && typeof a.text === 'string' && a.text.length > ESSAY_MAX_LENGTH) {
+          throw new Error(`Written answers are limited to ${ESSAY_MAX_LENGTH} characters`);
+        }
+      }
+      return true;
+    }),
   ],
   validate,
   submitAttempt

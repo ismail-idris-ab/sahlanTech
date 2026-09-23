@@ -16,7 +16,7 @@ const getMyHistory = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit)
       .populate('quiz', 'title')
-      .select('quizDate score maxScore durationMs submittedAt quiz')
+      .select('quizDate score maxScore durationMs submittedAt pendingEssays quiz')
       .lean(),
     DailyQuizAttempt.find(filter).select('quizDate').lean(),
     // Stats cover every attempt, not just this page.
@@ -43,6 +43,9 @@ const getMyHistory = async (req, res) => {
       maxScore: a.maxScore,
       durationMs: a.durationMs,
       submittedAt: a.submittedAt,
+      // > 0 means this row's score is provisional: the teacher has not finished
+      // marking its written answers.
+      pendingEssays: a.pendingEssays || 0,
     })),
     meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     stats,

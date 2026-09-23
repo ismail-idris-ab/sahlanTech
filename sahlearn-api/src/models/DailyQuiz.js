@@ -1,30 +1,47 @@
 // sahlearn-api/src/models/DailyQuiz.js
 const mongoose = require('mongoose');
 
-// MCQ only, unlike Exam's questionSchema — the daily quiz must be auto-scorable
-// so the score can be written to the student dashboard with no admin grading.
+// Two kinds of question, unlike Exam's schema:
+//   mcq   — auto-scored the moment the student submits.
+//   essay — stored unscored and marked by the admin later.
+// An mcq-only quiz therefore still behaves exactly as it always has: the score
+// reaches the student dashboard with no admin grading at all.
+const isMcq = function () {
+  return this.type !== 'essay';
+};
+
 const questionSchema = new mongoose.Schema(
   {
+    // Defaulted rather than required so quizzes written before essay support
+    // read back as mcq with no migration.
+    type: { type: String, enum: ['mcq', 'essay'], default: 'mcq' },
     text: { type: String, required: true, trim: true, maxlength: 1000 },
     options: {
       type: [String],
-      required: true,
+      required: isMcq,
       validate: [
         {
-          validator: (v) => Array.isArray(v) && v.length >= 2 && v.length <= 4,
+          validator(v) {
+            if (!isMcq.call(this)) return true; // essays carry no options
+            return Array.isArray(v) && v.length >= 2 && v.length <= 4;
+          },
           message: 'Each question must have between 2 and 4 options',
         },
         {
-          validator: (v) => v.every((o) => typeof o === 'string' && o.trim().length > 0),
+          validator(v) {
+            if (!isMcq.call(this)) return true;
+            return v.every((o) => typeof o === 'string' && o.trim().length > 0);
+          },
           message: 'Options cannot be blank',
         },
       ],
     },
     correctIndex: {
       type: Number,
-      required: true,
+      required: isMcq,
       validate: {
         validator(v) {
+          if (!isMcq.call(this)) return v == null; // an essay has no correct answer
           return Number.isInteger(v) && v >= 0 && v < (this.options?.length || 0);
         },
         message: 'correctIndex must point at one of the options',
@@ -34,6 +51,16 @@ const questionSchema = new mongoose.Schema(
   },
   { _id: true }
 );
+
+// An essay reaching the database with leftover options or a correctIndex would
+// make it look auto-scorable to every consumer downstream. Strip them here, at
+// the one point every write passes through.
+questionSchema.pre('validate', function () {
+  if (this.type === 'essay') {
+    this.options = [];
+    this.correctIndex = undefined;
+  }
+});
 
 const dailyQuizSchema = new mongoose.Schema(
   {
