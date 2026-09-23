@@ -5,12 +5,14 @@ import { useStudentAuth } from '../../context/StudentAuthContext';
 import { getMe, getStats } from '../../services/student.service';
 import { getAssignments } from '../../services/studentAssignments.service';
 import { getExams } from '../../services/studentExams.service';
-import { BookOpen, ClipboardList, FileText, TrendingUp, ChevronRight } from 'lucide-react';
+import { getMyQuizHistory } from '../../services/dailyQuiz.service';
+import { BookOpen, ClipboardList, FileText, TrendingUp, ChevronRight, CalendarClock } from 'lucide-react';
 
 export default function StudentDashboard() {
   const { student, setStudent } = useStudentAuth();
   const [stats, setStats] = useState(null);
   const [upcoming, setUpcoming] = useState([]);
+  const [quizStats, setQuizStats] = useState(null);
   const [loading, setLoading] = useState(!student?.enrolledCourses);
 
   const hour = new Date().getHours();
@@ -19,14 +21,16 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [me, s, assignRes, examRes] = await Promise.all([
+        const [me, s, assignRes, examRes, quizRes] = await Promise.all([
           student?.enrolledCourses ? Promise.resolve(student) : getMe(),
           getStats(),
           getAssignments({ limit: 20 }).catch(() => ({ data: [] })),
           getExams().catch(() => ({ data: [] })),
+          getMyQuizHistory({ limit: 1 }).catch(() => null),
         ]);
         setStudent(me);
         setStats(s);
+        setQuizStats(quizRes?.stats || null);
 
         const now = new Date();
         const pendingAssignments = (assignRes.data || [])
@@ -121,7 +125,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Link to="/student/courses" className="bg-white rounded-2xl border border-surface-200 p-4 sm:p-5 hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5">
           <div className="flex items-start justify-between mb-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(6,133,98,0.1)' }}>
@@ -167,6 +171,23 @@ export default function StudentDashboard() {
             {stats ? stats.exams.taken : '—'}
           </p>
           <p className="text-xs font-medium text-ink-500">Exams Taken</p>
+        </Link>
+
+        <Link to="/student/daily-quiz" className="bg-white rounded-2xl border border-surface-200 p-4 sm:p-5 hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-orange-50">
+              <CalendarClock size={18} className="text-orange-600" />
+            </div>
+            {quizStats?.bestScore != null && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-600 flex items-center gap-0.5">
+                <TrendingUp size={9} /> Best {quizStats.bestScore}
+              </span>
+            )}
+          </div>
+          <p className="text-3xl font-display text-ink-900 leading-none mb-1">
+            {quizStats ? `${quizStats.currentStreak} days` : '—'}
+          </p>
+          <p className="text-xs font-medium text-ink-500">Daily Quiz Streak</p>
         </Link>
       </div>
 

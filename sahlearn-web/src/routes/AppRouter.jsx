@@ -54,6 +54,7 @@ const StudentExams = lazy(() => import('../pages/student/Exams'));
 const StudentExamTake = lazy(() => import('../pages/student/ExamTake'));
 const StudentProgress = lazy(() => import('../pages/student/Progress'));
 const StudentAttendance = lazy(() => import('../pages/student/Attendance'));
+const StudentDailyQuiz = lazy(() => import('../pages/student/DailyQuizHistory'));
 const AdminDailyCheckIns = lazy(() => import('../pages/admin/DailyCheckIns'));
 const AdminAnnouncements = lazy(() => import('../pages/admin/Announcements'));
 const AdminSiteContent = lazy(() => import('../pages/admin/SiteContent'));
@@ -178,6 +179,7 @@ export default function AppRouter() {
               <Route path="exams/:id" element={<StudentExamTake />} />
               <Route path="progress" element={<StudentProgress />} />
               <Route path="attendance" element={<StudentAttendance />} />
+              <Route path="daily-quiz" element={<StudentDailyQuiz />} />
               <Route path="announcements" element={<StudentAnnouncements />} />
             </Route>
           </Routes>
