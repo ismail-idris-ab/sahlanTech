@@ -72,7 +72,7 @@ app.get('/sitemap.xml', async (_req, res) => {
     Post.find({ status: 'published' }).select('slug updatedAt').lean(),
   ]);
 
-  const staticUrls = ['', '/about', '/courses', '/blog', '/contact'].map((path) => `
+  const staticUrls = ['', '/about', '/courses', '/blog', '/contact', '/quiz'].map((path) => `
   <url>
     <loc>${base}${path}</loc>
     <changefreq>weekly</changefreq>
