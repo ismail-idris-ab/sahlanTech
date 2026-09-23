@@ -17,5 +17,17 @@ const loginLimiter = makeRateLimiter(30, 15, 'Too many login attempts. Try again
 const contactLimiter = makeRateLimiter(5, 60, 'Too many contact submissions. Try again later.');
 const enrollmentLimiter = makeRateLimiter(3, 60, 'Too many enrollment submissions. Try again later.');
 const checkinLimiter = makeRateLimiter(5, 60, 'Too many check-in attempts. Try again later.');
+const quizReadLimiter = makeRateLimiter(60, 15, 'Too many requests. Please slow down.');
+const quizStartLimiter = makeRateLimiter(10, 60, 'Too many quiz attempts from this network. Try again later.');
+const quizSubmitLimiter = makeRateLimiter(20, 60, 'Too many submissions. Try again later.');
 
-module.exports = { globalLimiter, loginLimiter, contactLimiter, enrollmentLimiter, checkinLimiter };
+module.exports = {
+  globalLimiter,
+  loginLimiter,
+  contactLimiter,
+  enrollmentLimiter,
+  checkinLimiter,
+  quizReadLimiter,
+  quizStartLimiter,
+  quizSubmitLimiter,
+};
