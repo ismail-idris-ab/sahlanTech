@@ -45,6 +45,43 @@ describe('admin daily quizzes', () => {
     expect(res.status).toBe(422);
   });
 
+  test('422 for questions that are not objects', async () => {
+    const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
+      title: 'Bad shape',
+      questions: [1, 2, 3, 4, 5],
+    });
+    expect(res.status).toBe(422);
+  });
+
+  test('422 for questions missing correctIndex', async () => {
+    const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
+      title: 'Missing correctIndex',
+      questions: Array.from({ length: 5 }, (_, i) => ({
+        text: `Question ${i + 1}`,
+        options: ['A', 'B', 'C', 'D'],
+      })),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  test('422 for a question with only one option', async () => {
+    const questions = makeQuestions();
+    questions[0].options = ['Only one'];
+    const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
+      title: 'Too few options',
+      questions,
+    });
+    expect(res.status).toBe(422);
+  });
+
+  test('422 for a malformed questions array on PATCH', async () => {
+    const quiz = await createQuiz();
+    const res = await auth(request(app).patch(`/api/admin/daily-quizzes/${quiz.id}`)).send({
+      questions: [1, 2, 3, 4, 5],
+    });
+    expect(res.status).toBe(422);
+  });
+
   test('409 for a duplicate date', async () => {
     await createQuiz({ date: '2026-09-22' });
     const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
