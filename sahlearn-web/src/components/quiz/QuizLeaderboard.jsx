@@ -41,11 +41,20 @@ export default function QuizLeaderboard({ date }) {
               <div className="flex items-center gap-4 text-ink-500 flex-shrink-0">
                 <span>
                   {entry.score}/{entry.maxScore}
+                  {/* This score can still rise: written answers on it are not marked yet. */}
+                  {entry.pending && (
+                    <span className="ml-1 text-xs text-amber-600" title="Written answers not marked yet">
+                      *
+                    </span>
+                  )}
                 </span>
                 <span>{formatDuration(entry.durationMs)}</span>
               </div>
             </div>
           ))}
+          {entries.some((e) => e.pending) && (
+            <p className="text-xs text-ink-400 pt-2">* still has written answers waiting to be marked</p>
+          )}
         </div>
       )}
     </div>

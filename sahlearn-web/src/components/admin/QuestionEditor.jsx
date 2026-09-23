@@ -2,14 +2,26 @@ import { useState } from 'react';
 import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 
 export const emptyMcqQuestion = () => ({
+  type: 'mcq',
   text: '',
   options: ['', '', '', ''],
   correctIndex: null,
   points: 1,
 });
 
-export default function McqQuestionEditor({ question, index, onChange, onRemove }) {
+// Essays carry no options and no answer key — the admin marks them by hand
+// after students submit.
+export const emptyEssayQuestion = () => ({
+  type: 'essay',
+  text: '',
+  options: [],
+  correctIndex: null,
+  points: 5,
+});
+
+export default function QuestionEditor({ question, index, onChange, onRemove }) {
   const [open, setOpen] = useState(true);
+  const isEssay = question.type === 'essay';
 
   const update = (field, value) => onChange({ ...question, [field]: value });
   const updateOption = (oi, value) => {
@@ -38,6 +50,13 @@ export default function McqQuestionEditor({ question, index, onChange, onRemove 
         onClick={() => setOpen((v) => !v)}
       >
         <GripVertical size={14} className="text-ink-300 flex-shrink-0" />
+        <span
+          className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0 ${
+            isEssay ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+          }`}
+        >
+          {isEssay ? 'Essay' : 'MCQ'}
+        </span>
         <span className="text-sm font-medium text-ink-700 flex-1 truncate">
           Q{index + 1}: {question.text || <span className="text-ink-300 italic">Untitled question</span>}
         </span>
@@ -76,6 +95,14 @@ export default function McqQuestionEditor({ question, index, onChange, onRemove 
             </div>
           </div>
 
+          {isEssay ? (
+            <div className="rounded-xl bg-purple-50 border border-purple-200 px-4 py-3">
+              <p className="text-xs text-purple-800">
+                Students type their answer (up to 2000 characters). Nothing is scored automatically — you
+                mark this question yourself from the quiz results page after they submit.
+              </p>
+            </div>
+          ) : (
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-xs font-medium text-ink-600">Options</label>
@@ -139,6 +166,7 @@ export default function McqQuestionEditor({ question, index, onChange, onRemove 
               )}
             </div>
           </div>
+          )}
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createDailyQuiz, getDailyQuiz, updateDailyQuiz } from '../../services/adminDailyQuizzes.service';
-import McqQuestionEditor, { emptyMcqQuestion } from '../../components/admin/McqQuestionEditor';
+import QuestionEditor, { emptyMcqQuestion, emptyEssayQuestion } from '../../components/admin/QuestionEditor';
 import { Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -59,9 +59,9 @@ export default function DailyQuizForm() {
       .finally(() => setLoading(false));
   }, [id, isEdit]);
 
-  const addQuestion = () => {
+  const addQuestion = (make) => {
     if (questions.length >= MAX_QUESTIONS) return;
-    setQuestions((prev) => [...prev, emptyMcqQuestion()]);
+    setQuestions((prev) => [...prev, make()]);
   };
   const updateQuestion = (i, q) => setQuestions((prev) => prev.map((item, idx) => (idx === i ? q : item)));
   const removeQuestion = (i) => {
@@ -84,6 +84,9 @@ export default function DailyQuizForm() {
         toast.error(`Q${i + 1}: enter the question text`);
         return false;
       }
+      // Essay questions have neither options nor an answer key — they are
+      // marked by hand later, so there is nothing more to check here.
+      if (q.type === 'essay') continue;
       if (q.options.some((opt) => !opt.trim())) {
         toast.error(`Q${i + 1}: fill in every option`);
         return false;
@@ -105,12 +108,21 @@ export default function DailyQuizForm() {
     if (!validate()) return;
 
     const normalizeQuestions = (qs) =>
-      qs.map((q) => ({
-        text: q.text.trim(),
-        options: q.options.map((opt) => opt.trim()),
-        correctIndex: q.correctIndex,
-        points: q.points || 1,
-      }));
+      qs.map((q) => {
+        const type = q.type === 'essay' ? 'essay' : 'mcq';
+        // The API rejects an essay that still carries options or a correctIndex,
+        // so they are dropped rather than sent as empty values.
+        if (type === 'essay') {
+          return { type, text: q.text.trim(), points: q.points || 1 };
+        }
+        return {
+          type,
+          text: q.text.trim(),
+          options: (q.options || []).map((opt) => opt.trim()),
+          correctIndex: q.correctIndex,
+          points: q.points || 1,
+        };
+      });
 
     const normalizedQuestions = normalizeQuestions(questions);
 
@@ -230,19 +242,29 @@ export default function DailyQuizForm() {
             <h2 className="font-semibold text-ink-900">
               Questions <span className="text-ink-400 font-normal text-sm">({questions.length} / {MAX_QUESTIONS})</span>
             </h2>
-            <button
-              type="button"
-              onClick={addQuestion}
-              disabled={questions.length >= MAX_QUESTIONS}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-surface-100 text-ink-700 rounded-xl hover:bg-surface-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Plus size={13} /> Add Question
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => addQuestion(emptyMcqQuestion)}
+                disabled={questions.length >= MAX_QUESTIONS}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-surface-100 text-ink-700 rounded-xl hover:bg-surface-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Plus size={13} /> Multiple choice
+              </button>
+              <button
+                type="button"
+                onClick={() => addQuestion(emptyEssayQuestion)}
+                disabled={questions.length >= MAX_QUESTIONS}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-purple-50 text-purple-700 rounded-xl hover:bg-purple-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Plus size={13} /> Essay
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">
             {questions.map((q, i) => (
-              <McqQuestionEditor
+              <QuestionEditor
                 key={i}
                 question={q}
                 index={i}

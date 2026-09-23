@@ -4,6 +4,7 @@ import QuizLeaderboard from './QuizLeaderboard';
 
 export default function QuizResult({ result, questions }) {
   const hasReview = Array.isArray(result?.results) && Array.isArray(questions) && questions.length > 0;
+  const pending = result?.pendingEssays || 0;
 
   return (
     <div className="space-y-8">
@@ -11,6 +12,12 @@ export default function QuizResult({ result, questions }) {
         <p className="text-4xl font-bold text-brand-primary">
           {result.score} <span className="text-xl font-normal text-ink-400">/ {result.maxScore}</span>
         </p>
+        {pending > 0 && (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 mt-3 inline-block">
+            {pending} written answer{pending === 1 ? '' : 's'} still to be marked — your score will go up once
+            your teacher has read {pending === 1 ? 'it' : 'them'}.
+          </p>
+        )}
         <p className="text-sm text-ink-500 mt-2">Time: {formatDuration(result.durationMs)}</p>
 
         {result.alreadySubmitted && (
@@ -27,6 +34,26 @@ export default function QuizResult({ result, questions }) {
           {questions.map((q, i) => {
             const r = result.results.find((x) => x.questionIndex === i);
             if (!r) return null;
+
+            if (r.type === 'essay') {
+              return (
+                <div key={q.id || i} className="bg-white rounded-2xl border border-ink-300/40 p-5">
+                  <p className="text-sm font-medium text-ink-900 mb-3">
+                    Q{i + 1}. {q.text}
+                  </p>
+                  <p className="text-xs font-medium text-ink-400 mb-1">Your answer</p>
+                  <p className="text-sm text-ink-700 whitespace-pre-wrap bg-surface-50 border border-ink-300/40 rounded-xl px-4 py-3">
+                    {r.text || <span className="text-ink-400 italic">You left this one blank.</span>}
+                  </p>
+                  <p className="text-xs text-amber-700 mt-2">
+                    {r.graded
+                      ? `Marked: ${r.awardedPoints} / ${r.points}`
+                      : `Awaiting marking · worth ${r.points} point${r.points === 1 ? '' : 's'}`}
+                  </p>
+                </div>
+              );
+            }
+
             return (
               <div key={q.id || i} className="bg-white rounded-2xl border border-ink-300/40 p-5">
                 <p className="text-sm font-medium text-ink-900 mb-3">

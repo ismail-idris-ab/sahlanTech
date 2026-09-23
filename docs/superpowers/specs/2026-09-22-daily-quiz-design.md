@@ -289,3 +289,48 @@ These are deliberately excluded and require a separate request:
 - Per-course quizzes, scheduled auto-publish, enforced time limits, and
   time-weighted scoring. All four were considered and rejected.
 - Migrating the existing daily check-in to `lagosDateKey`.
+
+---
+
+## Addendum — essay questions (2026-09-23)
+
+Added at the owner's request, after the MCQ-only build shipped.
+
+**Question types.** `DailyQuiz.questions[].type` is `'mcq'` or `'essay'`,
+defaulting to `'mcq'` so existing quizzes read back unchanged with no
+migration. An essay carries no `options` and no `correctIndex` — both are
+stripped in a pre-validate hook so nothing downstream can mistake one for
+auto-scorable.
+
+**Scoring becomes progressive.** `DailyQuizAttempt.score` now means "points
+awarded so far". MCQ points land at submit; each essay adds to the total when
+the admin marks it. `maxScore` always counts every question. New fields:
+`answers[].text`, `answers[].awardedPoints`, `answers[].graded`, and
+`pendingEssays` on the attempt. `graded` exists because `awardedPoints` alone
+cannot distinguish "marked zero" from "not marked yet".
+
+**Decisions taken** (owner, 2026-09-23):
+
+| Question | Decision |
+|---|---|
+| Who grades | Admin, by hand, in the dashboard |
+| Student sees after submit | MCQ score immediately, essays flagged pending |
+| Leaderboard | Ranks on total, reordering as marking happens |
+| Essay answer limit | 2000 characters, no minimum |
+
+**Known consequence of the leaderboard choice.** On a day with essays the board
+is provisional until marking finishes, and a student watching it will see
+positions move. Mitigated only by a `pending` flag per row and a footnote; the
+ordering itself was the owner's explicit choice over hiding the board until
+marking completes.
+
+**New endpoints.**
+- `GET /api/admin/daily-quizzes/:id/attempts/:attemptId` — one attempt in full.
+  Admin-only, so unlike every public endpoint it does return `correctIndex`.
+- `PATCH /api/admin/daily-quizzes/:id/attempts/:attemptId/grades` —
+  `{ grades: [{ questionIndex, awardedPoints }] }`. Every mark is validated
+  before any is written, and the total is recomputed from the stored answers
+  rather than incremented.
+
+**Still out of scope:** per-question marking guidance for the admin, partial
+credit on MCQ, and any bulk-marking screen.
