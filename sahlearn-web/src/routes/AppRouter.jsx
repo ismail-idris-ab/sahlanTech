@@ -35,6 +35,9 @@ const AdminAssignmentDetail = lazy(() => import('../pages/admin/AssignmentDetail
 const AdminExams = lazy(() => import('../pages/admin/Exams'));
 const AdminExamForm = lazy(() => import('../pages/admin/ExamForm'));
 const AdminExamDetail = lazy(() => import('../pages/admin/ExamDetail'));
+const AdminDailyQuizzes = lazy(() => import('../pages/admin/DailyQuizzes'));
+const AdminDailyQuizForm = lazy(() => import('../pages/admin/DailyQuizForm'));
+const AdminDailyQuizResults = lazy(() => import('../pages/admin/DailyQuizResults'));
 
 // Student pages — lazy loaded
 const StudentLogin = lazy(() => import('../pages/student/Login'));
@@ -138,6 +141,10 @@ export default function AppRouter() {
               <Route path="exams/new" element={<AdminExamForm />} />
               <Route path="exams/:id" element={<AdminExamDetail />} />
               <Route path="exams/:id/edit" element={<AdminExamForm />} />
+              <Route path="daily-quizzes" element={<AdminDailyQuizzes />} />
+              <Route path="daily-quizzes/new" element={<AdminDailyQuizForm />} />
+              <Route path="daily-quizzes/:id/edit" element={<AdminDailyQuizForm />} />
+              <Route path="daily-quizzes/:id/results" element={<AdminDailyQuizResults />} />
               <Route path="attendance" element={<AdminDailyCheckIns />} />
               <Route path="announcements" element={<AdminAnnouncements />} />
               <Route path="site-content" element={<AdminSiteContent />} />
