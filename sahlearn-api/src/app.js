@@ -32,6 +32,7 @@ const studentCheckinRoutes = require('./routes/student.checkin.routes');
 const studentDailyQuizRoutes = require('./routes/student.dailyQuiz.routes');
 const adminCheckinRoutes = require('./routes/admin.checkin.routes');
 const dailyQuizRoutes = require('./routes/dailyQuiz.routes');
+const adminDailyQuizzesRoutes = require('./routes/admin.dailyQuizzes.routes');
 
 const app = express();
 
@@ -131,6 +132,7 @@ app.use('/api/admin/attendance', adminAttendanceRoutes);
 app.use('/api/admin/exports', exportsRoutes);
 app.use('/api/admin/announcements', adminAnnouncementsRoutes);
 app.use('/api/admin/checkins', adminCheckinRoutes);
+app.use('/api/admin/daily-quizzes', adminDailyQuizzesRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use('/api/content', siteContentRoutes);
