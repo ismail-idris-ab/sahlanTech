@@ -8,13 +8,16 @@ import toast from 'react-hot-toast';
 const MIN_QUESTIONS = 5;
 const MAX_QUESTIONS = 10;
 
-const todayDateKey = () => {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+// Mirrors sahlearn-api/src/utils/dateKey.js — the backend keys daily quizzes
+// on Africa/Lagos, not the admin's browser timezone.
+const LAGOS_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Africa/Lagos',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+const todayDateKey = () => LAGOS_FORMATTER.format(new Date());
 
 export default function DailyQuizForm() {
   const { id } = useParams();
@@ -32,6 +35,11 @@ export default function DailyQuizForm() {
   );
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
+  // Pristine copy of the questions as loaded from the server, used to detect
+  // whether the admin actually changed them before including `questions` in
+  // a PATCH — the backend rejects any PATCH containing `questions` once a
+  // student has submitted an attempt, even when the array is unchanged.
+  const [loadedQuestions, setLoadedQuestions] = useState(null);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -43,9 +51,9 @@ export default function DailyQuizForm() {
           description: quiz.description || '',
           isPublished: quiz.isPublished ?? false,
         });
-        setQuestions(
-          quiz.questions?.length ? quiz.questions : Array.from({ length: MIN_QUESTIONS }, emptyMcqQuestion)
-        );
+        const loaded = quiz.questions?.length ? quiz.questions : Array.from({ length: MIN_QUESTIONS }, emptyMcqQuestion);
+        setQuestions(loaded);
+        setLoadedQuestions(loaded);
       })
       .catch(() => toast.error('Failed to load quiz'))
       .finally(() => setLoading(false));
@@ -96,18 +104,34 @@ export default function DailyQuizForm() {
     }
     if (!validate()) return;
 
-    const payload = {
-      title: form.title.trim(),
-      description: form.description.trim() || undefined,
-      isPublished: form.isPublished,
-      questions: questions.map((q) => ({
+    const normalizeQuestions = (qs) =>
+      qs.map((q) => ({
         text: q.text.trim(),
         options: q.options.map((opt) => opt.trim()),
         correctIndex: q.correctIndex,
         points: q.points || 1,
-      })),
+      }));
+
+    const normalizedQuestions = normalizeQuestions(questions);
+
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim() || undefined,
+      isPublished: form.isPublished,
     };
-    if (!isEdit) payload.date = form.date;
+
+    // On create, questions are always sent. On edit, only send them when they
+    // actually changed from what was loaded — otherwise a title/description/
+    // isPublished-only edit gets rejected with 409 once a student has already
+    // submitted an attempt for this quiz.
+    if (!isEdit) {
+      payload.questions = normalizedQuestions;
+      payload.date = form.date;
+    } else if (
+      JSON.stringify(normalizedQuestions) !== JSON.stringify(normalizeQuestions(loadedQuestions || []))
+    ) {
+      payload.questions = normalizedQuestions;
+    }
 
     setSaving(true);
     try {
