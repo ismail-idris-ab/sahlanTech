@@ -100,10 +100,17 @@ export default function DailyQuizGrade() {
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display text-ink-900">{attempt.fullName}</h1>
+          <h1 className="text-2xl font-display text-ink-900">
+            {attempt.fullName}
+            {!attempt.isStudent && (
+              <span className="ml-2 align-middle text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-surface-100 text-ink-500">
+                Guest
+              </span>
+            )}
+          </h1>
           <p className="text-xs text-ink-400 mt-0.5">
-            <span className="font-mono">{attempt.studentId}</span> · {attempt.date} ·{' '}
-            {formatDuration(attempt.durationMs)}
+            <span className="font-mono">{attempt.isStudent ? attempt.studentId : attempt.phone || '—'}</span> ·{' '}
+            {attempt.date} · {formatDuration(attempt.durationMs)}
           </p>
         </div>
         <div className="text-right">

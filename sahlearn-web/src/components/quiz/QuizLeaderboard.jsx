@@ -37,6 +37,12 @@ export default function QuizLeaderboard({ date }) {
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-ink-400 font-medium w-6 flex-shrink-0">{entry.rank}</span>
                 <span className="text-ink-900 truncate">{entry.fullName}</span>
+                {/* Tells two people with the same name apart. Never the full number. */}
+                {entry.maskedPhone && (
+                  <span className="text-xs text-ink-400 flex-shrink-0 hidden sm:inline">
+                    {entry.maskedPhone}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-4 text-ink-500 flex-shrink-0">
                 <span>

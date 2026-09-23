@@ -25,7 +25,7 @@ export default function QuizResult({ result, questions }) {
         )}
 
         <Link to="/student/login" className="inline-block mt-4 text-brand-primary hover:underline text-sm">
-          Log in to see your full quiz history.
+          Sahlearn student? Log in to see your full quiz history.
         </Link>
       </div>
 
