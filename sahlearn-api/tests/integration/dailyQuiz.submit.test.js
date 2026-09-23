@@ -4,7 +4,7 @@ const app = require('../../src/app');
 const DailyQuiz = require('../../src/models/DailyQuiz');
 const DailyQuizAttempt = require('../../src/models/DailyQuizAttempt');
 const Student = require('../../src/models/Student');
-const { createQuiz, createStudent, createStudentToken } = require('../factories');
+const { createQuiz, createStudent, createStudentToken, makeQuestions } = require('../factories');
 const { signAttemptToken } = require('../../src/utils/attemptToken');
 
 // The factory sets correctIndex = i % 4, so all-correct answers are i % 4.
@@ -137,8 +137,11 @@ describe('POST /api/daily-quiz/submit', () => {
 
   test('a token whose attempt belongs to another day scores against that day\'s quiz', async () => {
     // A token lives 3 hours and can cross midnight Lagos. The attempt carries
-    // its own quiz reference, so it must never bind to "today".
-    const oldQuiz = await createQuiz({ date: '2026-09-21', isPublished: true });
+    // its own quiz reference, so it must never bind to "today". The old quiz's
+    // correct answers are deliberately shifted so that scoring against the
+    // wrong quiz (today's) would produce a different — nonzero — score.
+    const shiftedQuestions = makeQuestions().map((q) => ({ ...q, correctIndex: (q.correctIndex + 1) % 4 }));
+    const oldQuiz = await createQuiz({ date: '2026-09-21', isPublished: true, questions: shiftedQuestions });
     const student = await createStudent();
     const attempt = await DailyQuizAttempt.create({
       quiz: oldQuiz._id,
@@ -147,10 +150,13 @@ describe('POST /api/daily-quiz/submit', () => {
       startedAt: new Date(Date.now() - 60000),
       maxScore: oldQuiz.totalPoints,
     });
-    await createQuiz(); // today's quiz also exists
+    await createQuiz(); // today's quiz also exists, with the original (unshifted) answers
 
+    // correctAnswers() matches TODAY's quiz, not the old one. If submitAttempt
+    // scored against findTodaysQuiz() instead of attempt.quiz, this would be 5.
     const res = await submit(signAttemptToken(attempt._id), correctAnswers());
     expect(res.status).toBe(200);
+    expect(res.body.data.score).toBe(0);
     const saved = await DailyQuizAttempt.findById(attempt._id).lean();
     expect(saved.quizDate).toBe('2026-09-21');
     expect(String(saved.quiz)).toBe(String(oldQuiz._id));
