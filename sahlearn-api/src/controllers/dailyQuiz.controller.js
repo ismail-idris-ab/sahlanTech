@@ -11,6 +11,9 @@ const { scoreQuiz } = require('../utils/scoreQuiz');
 
 const findTodaysQuiz = () => DailyQuiz.findOne({ date: lagosDateKey(), isPublished: true });
 
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
+const LEADERBOARD_SIZE = 20;
+
 // The one place questions are shaped for a client. Never add correctIndex here.
 const publicQuestions = (quiz) =>
   quiz.questions.map((q) => ({
@@ -145,4 +148,38 @@ const submitAttempt = async (req, res) => {
   });
 };
 
-module.exports = { getToday, startAttempt, submitAttempt, findTodaysQuiz, publicQuestions };
+/* ── GET /api/daily-quiz/leaderboard ── */
+const getLeaderboard = async (req, res) => {
+  const requested = (req.query.date || '').trim();
+  // A junk date is not an error — it is simply a day with no board.
+  const date = DATE_KEY.test(requested) ? requested : requested ? null : lagosDateKey();
+
+  if (!date) {
+    return success(res, { date: requested, entries: [] });
+  }
+
+  // Only published quizzes have a public board. An admin unpublishing a day
+  // pulls it off the board without touching the recorded attempts.
+  const quiz = await DailyQuiz.findOne({ date, isPublished: true }).select('_id').lean();
+  if (!quiz) return success(res, { date, entries: [] });
+
+  const attempts = await DailyQuizAttempt.find({ quizDate: date, status: 'submitted' })
+    .sort({ score: -1, durationMs: 1 })
+    .limit(LEADERBOARD_SIZE)
+    .populate('student', 'fullName')
+    .select('score maxScore durationMs student')
+    .lean();
+
+  success(res, {
+    date,
+    entries: attempts.map((a, i) => ({
+      rank: i + 1,
+      fullName: a.student?.fullName || 'Student',
+      score: a.score,
+      maxScore: a.maxScore,
+      durationMs: a.durationMs,
+    })),
+  });
+};
+
+module.exports = { getToday, startAttempt, submitAttempt, getLeaderboard, findTodaysQuiz, publicQuestions };

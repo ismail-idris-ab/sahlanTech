@@ -4,9 +4,11 @@ const router = express.Router();
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const { quizReadLimiter, quizStartLimiter, quizSubmitLimiter } = require('../middleware/rateLimit');
-const { getToday, startAttempt, submitAttempt } = require('../controllers/dailyQuiz.controller');
+const { getToday, startAttempt, submitAttempt, getLeaderboard } = require('../controllers/dailyQuiz.controller');
 
 router.get('/today', quizReadLimiter, getToday);
+
+router.get('/leaderboard', quizReadLimiter, getLeaderboard);
 
 router.post(
   '/start',
