@@ -24,7 +24,11 @@ export default function McqQuestionEditor({ question, index, onChange, onRemove 
   const removeOption = (oi) => {
     if (question.options.length <= 2) return;
     const opts = question.options.filter((_, i) => i !== oi);
-    onChange({ ...question, options: opts, correctIndex: Math.min(question.correctIndex, opts.length - 1) });
+    let ci = question.correctIndex;
+    if (ci == null) ci = null;
+    else if (ci === oi) ci = null;   // the correct option itself was deleted
+    else if (ci > oi) ci -= 1;       // shift down
+    onChange({ ...question, options: opts, correctIndex: ci });
   };
 
   return (
