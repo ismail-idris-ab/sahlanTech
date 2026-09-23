@@ -7,6 +7,7 @@ const Student = require('../models/Student');
 const { lagosDateKey } = require('../utils/dateKey');
 const { success } = require('../utils/apiResponse');
 const { signAttemptToken, verifyAttemptToken, hashIp } = require('../utils/attemptToken');
+const { phoneKey, maskPhone } = require('../utils/phone');
 const { scoreQuiz } = require('../utils/scoreQuiz');
 
 const findTodaysQuiz = () => DailyQuiz.findOne({ date: lagosDateKey(), isPublished: true });
@@ -41,26 +42,50 @@ const getToday = async (_req, res) => {
 };
 
 /* ── POST /api/daily-quiz/start ── */
+// Open to anyone: name and phone identify the taker, and an optional student ID
+// links the score to a dashboard. The phone is the identity key either way.
 const startAttempt = async (req, res) => {
-  const { studentId } = req.body;
+  const { fullName, phone, studentId } = req.body;
 
-  // Checked before looking up the student: otherwise, on any day with no
-  // published quiz, this endpoint would still distinguish real student IDs
-  // from fake ones by which 404 message it returns — a 24/7 enumeration
-  // oracle rather than one that only exists on quiz days.
+  // Checked before any lookup: otherwise, on any day with no published quiz,
+  // this endpoint would still distinguish real student IDs from fake ones by
+  // which 404 message it returns — a 24/7 enumeration oracle rather than one
+  // that only exists on quiz days.
   const quiz = await findTodaysQuiz();
   if (!quiz) {
     return res.status(404).json({ status: 'error', message: 'There is no quiz today. Check back tomorrow.' });
   }
 
-  const student = await Student.findOne({ studentId: studentId.trim() });
-  // Same message for unknown and inactive, so this cannot be used to confirm
-  // which IDs exist.
-  if (!student || !student.isActive) {
-    return res.status(404).json({ status: 'error', message: 'We could not find that student ID.' });
+  const key = phoneKey(phone);
+  if (!key) {
+    return res.status(422).json({
+      status: 'error',
+      message: 'Validation failed',
+      errors: [{ field: 'phone', message: 'Enter a valid Nigerian phone number, e.g. 08012345678' }],
+    });
   }
 
-  const existing = await DailyQuizAttempt.findOne({ quizDate: quiz.date, student: student._id });
+  // A student ID is optional, but a WRONG one is refused rather than quietly
+  // treated as a guest — otherwise a typo costs the student their dashboard
+  // credit with nothing on screen to explain why.
+  let student = null;
+  const trimmedId = typeof studentId === 'string' ? studentId.trim() : '';
+  if (trimmedId) {
+    student = await Student.findOne({ studentId: trimmedId });
+    if (!student || !student.isActive) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'We could not find that student ID. Leave it blank to take the quiz as a guest.',
+      });
+    }
+  }
+
+  // Keyed on the phone, so one person cannot take it twice by adding or
+  // dropping their student ID the second time.
+  const existing = await DailyQuizAttempt.findOne({
+    quizDate: quiz.date,
+    'participant.phoneKey': key,
+  });
 
   if (existing?.status === 'submitted') {
     return res.status(409).json({
@@ -82,7 +107,8 @@ const startAttempt = async (req, res) => {
     (await DailyQuizAttempt.create({
       quiz: quiz._id,
       quizDate: quiz.date,
-      student: student._id,
+      student: student ? student._id : null,
+      participant: { fullName: fullName.trim(), phone: phone.trim(), phoneKey: key },
       startedAt: new Date(),
       maxScore: quiz.totalPoints,
       ipHash: hashIp(req.ip),
@@ -118,9 +144,12 @@ const submitAttempt = async (req, res) => {
   }
 
   // Re-check the student: /start validated them, but that was up to 3 hours ago.
-  const student = await Student.findById(attempt.student);
-  if (!student || !student.isActive) {
-    return res.status(403).json({ status: 'error', message: 'This account can no longer take the quiz.' });
+  // Only applies to attempts linked to an account — a guest has none to check.
+  if (attempt.student) {
+    const student = await Student.findById(attempt.student);
+    if (!student || !student.isActive) {
+      return res.status(403).json({ status: 'error', message: 'This account can no longer take the quiz.' });
+    }
   }
 
   // Score against the attempt's own quiz, never "today's" — a token can cross
@@ -179,14 +208,20 @@ const getLeaderboard = async (req, res) => {
     .sort({ score: -1, durationMs: 1 })
     .limit(LEADERBOARD_SIZE)
     .populate('student', 'fullName')
-    .select('score maxScore durationMs pendingEssays student')
+    .select('score maxScore durationMs pendingEssays student participant')
     .lean();
 
   success(res, {
     date,
     entries: attempts.map((a, i) => ({
       rank: i + 1,
-      fullName: a.student?.fullName || 'Student',
+      // The name they gave wins: it is what they typed on the day. Attempts
+      // recorded before the quiz opened up have only the linked student.
+      fullName: a.participant?.fullName || a.student?.fullName || 'Student',
+      // Masked, never the full number — it only exists to tell two people with
+      // the same name apart. Empty for pre-existing attempts with no phone.
+      maskedPhone: maskPhone(a.participant?.phoneKey),
+      isStudent: !!a.student,
       score: a.score,
       maxScore: a.maxScore,
       durationMs: a.durationMs,
@@ -197,4 +232,57 @@ const getLeaderboard = async (req, res) => {
   });
 };
 
-module.exports = { getToday, startAttempt, submitAttempt, getLeaderboard, findTodaysQuiz, publicQuestions };
+/* ── POST /api/daily-quiz/my-scores ── */
+// Lets someone with no account see their own past results.
+//
+// POST rather than GET on purpose: a phone number in a query string ends up in
+// server logs, browser history and Referer headers. Three further guards:
+//   - an unknown number returns exactly what a known number with no attempts
+//     returns, so this cannot be used to test which numbers are in the database
+//   - no name is returned, so it never confirms whose number it is
+//   - it is rate limited per IP like the rest of the public quiz surface
+// What it does return is already public on the leaderboard for the same day.
+const MY_SCORES_LIMIT = 30;
+
+const getMyScoresByPhone = async (req, res) => {
+  const key = phoneKey(req.body.phone);
+  if (!key) {
+    return res.status(422).json({
+      status: 'error',
+      message: 'Validation failed',
+      errors: [{ field: 'phone', message: 'Enter a valid Nigerian phone number, e.g. 08012345678' }],
+    });
+  }
+
+  const attempts = await DailyQuizAttempt.find({
+    'participant.phoneKey': key,
+    status: 'submitted',
+  })
+    .sort({ quizDate: -1 })
+    .limit(MY_SCORES_LIMIT)
+    .populate('quiz', 'title')
+    .select('quizDate score maxScore durationMs submittedAt pendingEssays quiz')
+    .lean();
+
+  success(res, {
+    entries: attempts.map((a) => ({
+      date: a.quizDate,
+      title: a.quiz?.title || 'Daily quiz',
+      score: a.score,
+      maxScore: a.maxScore,
+      durationMs: a.durationMs,
+      pendingEssays: a.pendingEssays || 0,
+      submittedAt: a.submittedAt,
+    })),
+  });
+};
+
+module.exports = {
+  getToday,
+  startAttempt,
+  submitAttempt,
+  getLeaderboard,
+  getMyScoresByPhone,
+  findTodaysQuiz,
+  publicQuestions,
+};

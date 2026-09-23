@@ -128,7 +128,10 @@ const getResults = async (req, res) => {
     attempts.map((a, i) => ({
       id: a._id,
       rank: (page - 1) * limit + i + 1,
-      fullName: a.student?.fullName || '—',
+      fullName: a.participant?.fullName || a.student?.fullName || '—',
+      // Admin view, so the full number is shown — this is who to contact.
+      phone: a.participant?.phone || '',
+      isStudent: !!a.student,
       studentId: a.student?.studentId || '—',
       score: a.score,
       maxScore: a.maxScore,
@@ -164,7 +167,9 @@ const getAttempt = async (req, res) => {
     quizId: quiz._id,
     quizTitle: quiz.title,
     date: attempt.quizDate,
-    fullName: attempt.student?.fullName || '—',
+    fullName: attempt.participant?.fullName || attempt.student?.fullName || '—',
+    phone: attempt.participant?.phone || '',
+    isStudent: !!attempt.student,
     studentId: attempt.student?.studentId || '—',
     score: attempt.score,
     maxScore: attempt.maxScore,

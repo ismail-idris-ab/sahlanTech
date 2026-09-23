@@ -97,6 +97,10 @@ describe('GET /api/daily-quiz/leaderboard', () => {
       maxScore: quiz.totalPoints,
       durationMs: 1000,
       pending: false,
+      // This attempt was built straight through the model with no participant,
+      // the way every attempt recorded before the quiz opened up looks.
+      maskedPhone: '',
+      isStudent: true,
     });
     expect(attempt).toBeDefined();
   });

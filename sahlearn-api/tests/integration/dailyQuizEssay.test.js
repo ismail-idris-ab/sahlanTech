@@ -8,6 +8,7 @@ const {
   createAdminToken,
   makeQuestions,
   makeEssayQuestions,
+  startBody,
 } = require('../factories');
 
 let token;
@@ -18,7 +19,7 @@ const auth = (req) => req.set('Authorization', `Bearer ${token}`);
 
 // mcq questions come from makeQuestions, whose correctIndex is i % 4.
 const takeQuiz = async (student, answers) => {
-  const start = await request(app).post('/api/daily-quiz/start').send({ studentId: student.studentId });
+  const start = await request(app).post('/api/daily-quiz/start').send(startBody({ student }));
   return request(app)
     .post('/api/daily-quiz/submit')
     .send({ attemptToken: start.body.data.attemptToken, answers });
@@ -76,7 +77,7 @@ describe('essay questions', () => {
     test('the public question list carries the type and no options for essays', async () => {
       await createMixedQuiz({ mcq: 2, essay: 1 });
       const student = await createStudent();
-      const res = await request(app).post('/api/daily-quiz/start').send({ studentId: student.studentId });
+      const res = await request(app).post('/api/daily-quiz/start').send(startBody({ student }));
 
       expect(res.status).toBe(201);
       expect(res.body.data.questions[2]).toMatchObject({ type: 'essay', options: [] });

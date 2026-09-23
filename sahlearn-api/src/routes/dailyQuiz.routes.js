@@ -3,8 +3,19 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
-const { quizReadLimiter, quizStartLimiter, quizSubmitLimiter } = require('../middleware/rateLimit');
-const { getToday, startAttempt, submitAttempt, getLeaderboard } = require('../controllers/dailyQuiz.controller');
+const {
+  quizReadLimiter,
+  quizStartLimiter,
+  quizSubmitLimiter,
+  quizLookupLimiter,
+} = require('../middleware/rateLimit');
+const {
+  getToday,
+  startAttempt,
+  submitAttempt,
+  getLeaderboard,
+  getMyScoresByPhone,
+} = require('../controllers/dailyQuiz.controller');
 const { ESSAY_MAX_LENGTH } = require('../utils/scoreQuiz');
 
 router.get('/today', quizReadLimiter, getToday);
@@ -15,17 +26,49 @@ router.post(
   '/start',
   quizStartLimiter,
   [
-    body('studentId')
+    // .isString().bail() before .trim(): express-validator does not write a
+    // sanitized value back for non-string input, so trimming an array or object
+    // would otherwise reach the controller and throw a 500.
+    body('fullName')
       .isString()
-      .withMessage('Student ID is required')
+      .withMessage('Your name is required')
+      .bail()
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage('Enter your full name')
+      .isLength({ max: 100 })
+      .withMessage('That name is too long'),
+    body('phone')
+      .isString()
+      .withMessage('Your phone number is required')
       .bail()
       .trim()
       .notEmpty()
-      .withMessage('Student ID is required')
-      .isLength({ max: 50 }),
+      .withMessage('Your phone number is required')
+      .isLength({ max: 20 }),
+    // Optional: only registered students give one, and it is what links the
+    // score to their dashboard.
+    body('studentId').optional({ values: 'falsy' }).isString().bail().trim().isLength({ max: 50 }),
   ],
   validate,
   startAttempt
+);
+
+router.post(
+  '/my-scores',
+  quizLookupLimiter,
+  [
+    body('phone')
+      .isString()
+      .withMessage('Your phone number is required')
+      .bail()
+      .trim()
+      .notEmpty()
+      .withMessage('Your phone number is required')
+      .isLength({ max: 20 }),
+  ],
+  validate,
+  getMyScoresByPhone
 );
 
 router.post(
