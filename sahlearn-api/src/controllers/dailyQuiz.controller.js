@@ -42,16 +42,20 @@ const getToday = async (_req, res) => {
 const startAttempt = async (req, res) => {
   const { studentId } = req.body;
 
+  // Checked before looking up the student: otherwise, on any day with no
+  // published quiz, this endpoint would still distinguish real student IDs
+  // from fake ones by which 404 message it returns — a 24/7 enumeration
+  // oracle rather than one that only exists on quiz days.
+  const quiz = await findTodaysQuiz();
+  if (!quiz) {
+    return res.status(404).json({ status: 'error', message: 'There is no quiz today. Check back tomorrow.' });
+  }
+
   const student = await Student.findOne({ studentId: studentId.trim() });
   // Same message for unknown and inactive, so this cannot be used to confirm
   // which IDs exist.
   if (!student || !student.isActive) {
     return res.status(404).json({ status: 'error', message: 'We could not find that student ID.' });
-  }
-
-  const quiz = await findTodaysQuiz();
-  if (!quiz) {
-    return res.status(404).json({ status: 'error', message: 'There is no quiz today. Check back tomorrow.' });
   }
 
   const existing = await DailyQuizAttempt.findOne({ quizDate: quiz.date, student: student._id });
