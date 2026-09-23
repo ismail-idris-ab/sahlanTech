@@ -13,7 +13,16 @@ router.get('/leaderboard', quizReadLimiter, getLeaderboard);
 router.post(
   '/start',
   quizStartLimiter,
-  [body('studentId').trim().notEmpty().withMessage('Student ID is required').isLength({ max: 50 })],
+  [
+    body('studentId')
+      .isString()
+      .withMessage('Student ID is required')
+      .bail()
+      .trim()
+      .notEmpty()
+      .withMessage('Student ID is required')
+      .isLength({ max: 50 }),
+  ],
   validate,
   startAttempt
 );

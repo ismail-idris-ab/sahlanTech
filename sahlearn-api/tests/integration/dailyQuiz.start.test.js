@@ -13,6 +13,13 @@ describe('POST /api/daily-quiz/start', () => {
     expect(res.body.errors[0].field).toBe('studentId');
   });
 
+  test('422, not 500, when studentId is an array', async () => {
+    await createQuiz();
+    const res = await start(['SAH/1']);
+    expect(res.status).toBe(422);
+    expect(res.body.errors[0].field).toBe('studentId');
+  });
+
   test('404 for an unknown student ID', async () => {
     await createQuiz();
     const res = await start('SAH/nope');

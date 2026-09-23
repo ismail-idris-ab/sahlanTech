@@ -73,8 +73,8 @@ router.post(
   '/',
   [
     body('date').optional().matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('date must be YYYY-MM-DD'),
-    body('title').trim().notEmpty().isLength({ max: 200 }),
-    body('description').optional().isLength({ max: 2000 }),
+    body('title').isString().bail().trim().notEmpty().isLength({ max: 200 }),
+    body('description').optional().isString().bail().isLength({ max: 2000 }),
     body('isPublished').optional().isBoolean(),
     questionsValidator,
     ...questionShapeValidators,
@@ -86,8 +86,8 @@ router.get('/:id', getQuiz);
 router.patch(
   '/:id',
   [
-    body('title').optional().trim().notEmpty().isLength({ max: 200 }),
-    body('description').optional().isLength({ max: 2000 }),
+    body('title').optional().isString().bail().trim().notEmpty().isLength({ max: 200 }),
+    body('description').optional().isString().bail().isLength({ max: 2000 }),
     body('isPublished').optional().isBoolean(),
     body('questions').optional().isArray({ min: 5, max: 10 })
       .withMessage('A daily quiz needs between 5 and 10 questions'),
