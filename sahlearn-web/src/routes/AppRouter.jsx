@@ -69,6 +69,7 @@ const BlogDetail = lazy(() => import('../pages/public/BlogDetail'));
 const Contact = lazy(() => import('../pages/public/Contact'));
 const Enroll = lazy(() => import('../pages/public/Enroll'));
 const FAQ = lazy(() => import('../pages/public/FAQ'));
+const DailyQuizPage = lazy(() => import('../pages/public/DailyQuiz'));
 
 const PageSpinner = () => (
   <div className="flex justify-center py-24">
@@ -104,6 +105,7 @@ export default function AppRouter() {
               <Route path="/enroll" element={<Enroll />} />
               <Route path="/enroll/:courseSlug" element={<Enroll />} />
               <Route path="/faq" element={<FAQ />} />
+              <Route path="/quiz" element={<DailyQuizPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 
