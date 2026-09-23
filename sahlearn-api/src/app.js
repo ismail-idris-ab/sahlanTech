@@ -29,7 +29,10 @@ const adminAnnouncementsRoutes = require('./routes/admin.announcements.routes');
 const studentAnnouncementsRoutes = require('./routes/student.announcements.routes');
 const siteContentRoutes = require('./routes/siteContent.routes');
 const studentCheckinRoutes = require('./routes/student.checkin.routes');
+const studentDailyQuizRoutes = require('./routes/student.dailyQuiz.routes');
 const adminCheckinRoutes = require('./routes/admin.checkin.routes');
+const dailyQuizRoutes = require('./routes/dailyQuiz.routes');
+const adminDailyQuizzesRoutes = require('./routes/admin.dailyQuizzes.routes');
 
 const app = express();
 
@@ -69,7 +72,7 @@ app.get('/sitemap.xml', async (_req, res) => {
     Post.find({ status: 'published' }).select('slug updatedAt').lean(),
   ]);
 
-  const staticUrls = ['', '/about', '/courses', '/blog', '/contact'].map((path) => `
+  const staticUrls = ['', '/about', '/courses', '/blog', '/contact', '/quiz'].map((path) => `
   <url>
     <loc>${base}${path}</loc>
     <changefreq>weekly</changefreq>
@@ -107,6 +110,7 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/enrollments', enrollmentsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/daily-quiz', dailyQuizRoutes);
 // Specific sub-routes must be mounted BEFORE the generic /api/admin and /api/student
 // routers — otherwise Express hits the generic router first (which runs auth), finds no
 // matching route, then hits the specific router (which runs auth again): double DB query.
@@ -117,6 +121,7 @@ app.use('/api/student/exams', studentExamsRoutes);
 app.use('/api/student/attendance', studentAttendanceRoutes);
 app.use('/api/student/announcements', studentAnnouncementsRoutes);
 app.use('/api/student/checkin', studentCheckinRoutes);
+app.use('/api/student/daily-quiz', studentDailyQuizRoutes);
 app.use('/api/student', studentRoutes);
 
 app.use('/api/admin/students', adminStudentsRoutes);
@@ -127,6 +132,7 @@ app.use('/api/admin/attendance', adminAttendanceRoutes);
 app.use('/api/admin/exports', exportsRoutes);
 app.use('/api/admin/announcements', adminAnnouncementsRoutes);
 app.use('/api/admin/checkins', adminCheckinRoutes);
+app.use('/api/admin/daily-quizzes', adminDailyQuizzesRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use('/api/content', siteContentRoutes);

@@ -6,7 +6,7 @@ import { useStudentAuth } from '../../context/StudentAuthContext';
 import {
   LayoutDashboard, BookOpen, User, LogOut, Sprout,
   MessageCircle, ClipboardList, ClipboardCheck,
-  BarChart2, CalendarCheck, Megaphone, Bell,
+  BarChart2, CalendarCheck, CalendarClock, Megaphone, Bell,
   MoreHorizontal, ArrowLeft, X,
 } from 'lucide-react';
 
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/student/courses',      label: 'My Courses',   icon: BookOpen },
   { to: '/student/assignments',  label: 'Assignments',  icon: ClipboardList },
   { to: '/student/exams',        label: 'Exams',        icon: ClipboardCheck },
+  { to: '/student/daily-quiz',   label: 'Daily Quiz',   icon: CalendarClock },
   { to: '/student/announcements',label: 'Announcements',icon: Megaphone },
   { to: '/student/attendance',   label: 'Attendance',   icon: CalendarCheck },
   { to: '/student/progress',     label: 'My Progress',  icon: BarChart2 },
@@ -33,6 +34,7 @@ const CORE_TABS = [
 /* Items surfaced in the "More" sheet */
 const MORE_ITEMS = [
   { to: '/student/exams',         label: 'Exams',        icon: ClipboardCheck },
+  { to: '/student/daily-quiz',    label: 'Daily Quiz',   icon: CalendarClock },
   { to: '/student/announcements', label: 'Announcements',icon: Megaphone },
   { to: '/student/attendance',    label: 'Attendance',   icon: CalendarCheck },
   { to: '/student/progress',      label: 'My Progress',  icon: BarChart2 },

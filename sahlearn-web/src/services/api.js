@@ -22,6 +22,12 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       const url = err.config?.url || '';
+      // Public daily quiz endpoints carry their own short-lived attempt token.
+      // A 401 there means that attempt expired, not that a dashboard session did,
+      // so it must not clear tokens or redirect.
+      if (url.startsWith('/api/daily-quiz/')) {
+        return Promise.reject(err);
+      }
       if (url.includes('/student/')) {
         const hadToken = !!localStorage.getItem('sahlearn_student_token');
         localStorage.removeItem('sahlearn_student_token');
