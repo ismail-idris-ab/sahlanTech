@@ -12,8 +12,8 @@ Run both dev servers first: `sahlearn-api` and `sahlearn-web`.
 1. **Log in to the admin dashboard.** You should land on the dashboard and see
    a **Daily Quiz** entry in the sidebar.
 2. **Create today's quiz.** Daily Quizzes → New quiz. The date should pre-fill
-   with today's date in Nigerian time. Add a title and **5 to 10** questions,
-   each with 2–4 options and one marked correct. Fewer than 5 questions should
+   with today's date in Nigerian time. Add a title and **1 to 10** questions,
+   each with 2–4 options and one marked correct. A quiz with no questions should
    be refused with a clear message.
 3. **Delete an option that sits above the correct answer.** Mark option B
    correct, then delete option A. B must stay marked correct. This was a real

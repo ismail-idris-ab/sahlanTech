@@ -37,10 +37,19 @@ describe('admin daily quizzes', () => {
     expect(res.body.data.totalPoints).toBe(5);
   });
 
-  test('422 for fewer than 5 questions', async () => {
+  test('creates a quiz with a single question', async () => {
     const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
-      title: 'Too short',
-      questions: makeQuestions(3),
+      title: 'One question only',
+      questions: makeQuestions(1),
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.data.questions).toHaveLength(1);
+  });
+
+  test('422 for a quiz with no questions', async () => {
+    const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
+      title: 'Empty',
+      questions: [],
     });
     expect(res.status).toBe(422);
   });

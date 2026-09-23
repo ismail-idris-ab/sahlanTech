@@ -16,16 +16,22 @@ describe('DailyQuiz model', () => {
     expect(quiz.totalPoints).toBe(7); // 3 + 1 + 1 + 1 + 1
   });
 
-  test('rejects fewer than 5 questions', async () => {
+  test('accepts a single-question quiz', async () => {
+    const quiz = await DailyQuiz.create({ date: '2026-09-22', title: 'One only', questions: makeQuestions(1) });
+    expect(quiz.questions).toHaveLength(1);
+    expect(quiz.totalPoints).toBe(1);
+  });
+
+  test('rejects a quiz with no questions', async () => {
     await expect(
-      DailyQuiz.create({ date: '2026-09-22', title: 'Too short', questions: makeQuestions(4) })
-    ).rejects.toThrow(/between 5 and 10/);
+      DailyQuiz.create({ date: '2026-09-22', title: 'Empty', questions: [] })
+    ).rejects.toThrow(/between 1 and 10/);
   });
 
   test('rejects more than 10 questions', async () => {
     await expect(
       DailyQuiz.create({ date: '2026-09-22', title: 'Too long', questions: makeQuestions(11) })
-    ).rejects.toThrow(/between 5 and 10/);
+    ).rejects.toThrow(/between 1 and 10/);
   });
 
   test('rejects a question with fewer than 2 options', async () => {

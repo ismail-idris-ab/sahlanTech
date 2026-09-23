@@ -16,8 +16,8 @@ const {
 router.use(authMiddleware);
 
 const questionsValidator = body('questions')
-  .isArray({ min: 5, max: 10 })
-  .withMessage('A daily quiz needs between 5 and 10 questions');
+  .isArray({ min: 1, max: 10 })
+  .withMessage('A daily quiz needs between 1 and 10 questions');
 
 // Length alone doesn't catch malformed elements (e.g. questions: [1,2,3,4,5] or
 // objects missing required fields) — those would otherwise reach Mongoose and
@@ -89,8 +89,8 @@ router.patch(
     body('title').optional().isString().bail().trim().notEmpty().isLength({ max: 200 }),
     body('description').optional().isString().bail().isLength({ max: 2000 }),
     body('isPublished').optional().isBoolean(),
-    body('questions').optional().isArray({ min: 5, max: 10 })
-      .withMessage('A daily quiz needs between 5 and 10 questions'),
+    body('questions').optional().isArray({ min: 1, max: 10 })
+      .withMessage('A daily quiz needs between 1 and 10 questions'),
     ...optionalQuestionShapeValidators,
   ],
   validate,

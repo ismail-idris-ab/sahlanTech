@@ -29,7 +29,7 @@ Success criteria:
 | Timer | Recorded, not enforced. No time limit |
 | After submit | Score, time, correct answers revealed, plus public leaderboard |
 | Scope | One general quiz per day for all students. Not per-course |
-| Question format | MCQ only, 5–10 questions per quiz |
+| Question format | MCQ only, 1–10 questions per quiz |
 
 ### Accepted risk: ID-only access
 
@@ -56,7 +56,7 @@ Two new Mongoose models in `sahlearn-api/src/models/`.
 date          String  'YYYY-MM-DD' in Africa/Lagos   — required, unique index
 title         String  required, max 200
 description   String  max 2000
-questions     [questionSchema]                        — 5..10 entries
+questions     [questionSchema]                        — 1..10 entries
 totalPoints   Number  computed pre-save
 isPublished   Boolean default false                   — indexed
 publishedAt   Date
@@ -72,7 +72,7 @@ correctIndex  Number  required, 0 <= correctIndex < options.length
 points        Number  default 1, min 1
 ```
 
-Validation: `questions.length` between 5 and 10 on save.
+Validation: `questions.length` between 1 and 10 on save (relaxed from 5 on 2026-09-23 at the owner's request).
 
 ### `DailyQuizAttempt`
 

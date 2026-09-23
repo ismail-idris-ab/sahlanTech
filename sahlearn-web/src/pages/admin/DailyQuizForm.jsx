@@ -5,7 +5,7 @@ import McqQuestionEditor, { emptyMcqQuestion } from '../../components/admin/McqQ
 import { Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const MIN_QUESTIONS = 5;
+const MIN_QUESTIONS = 1;
 const MAX_QUESTIONS = 10;
 
 // Mirrors sahlearn-api/src/utils/dateKey.js — the backend keys daily quizzes
@@ -71,7 +71,7 @@ export default function DailyQuizForm() {
 
   const validate = () => {
     if (questions.length < MIN_QUESTIONS) {
-      toast.error(`Add at least ${MIN_QUESTIONS} questions`);
+      toast.error(`Add at least ${MIN_QUESTIONS} question${MIN_QUESTIONS === 1 ? '' : 's'}`);
       return false;
     }
     if (questions.length > MAX_QUESTIONS) {

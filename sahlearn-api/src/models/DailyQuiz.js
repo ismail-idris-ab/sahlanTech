@@ -48,8 +48,8 @@ const dailyQuizSchema = new mongoose.Schema(
     questions: {
       type: [questionSchema],
       validate: {
-        validator: (v) => v.length >= 5 && v.length <= 10,
-        message: 'A daily quiz must have between 5 and 10 questions',
+        validator: (v) => v.length >= 1 && v.length <= 10,
+        message: 'A daily quiz must have between 1 and 10 questions',
       },
     },
     totalPoints: { type: Number, default: 0 },
