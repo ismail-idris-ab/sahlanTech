@@ -29,6 +29,7 @@ const adminAnnouncementsRoutes = require('./routes/admin.announcements.routes');
 const studentAnnouncementsRoutes = require('./routes/student.announcements.routes');
 const siteContentRoutes = require('./routes/siteContent.routes');
 const studentCheckinRoutes = require('./routes/student.checkin.routes');
+const studentDailyQuizRoutes = require('./routes/student.dailyQuiz.routes');
 const adminCheckinRoutes = require('./routes/admin.checkin.routes');
 const dailyQuizRoutes = require('./routes/dailyQuiz.routes');
 
@@ -119,6 +120,7 @@ app.use('/api/student/exams', studentExamsRoutes);
 app.use('/api/student/attendance', studentAttendanceRoutes);
 app.use('/api/student/announcements', studentAnnouncementsRoutes);
 app.use('/api/student/checkin', studentCheckinRoutes);
+app.use('/api/student/daily-quiz', studentDailyQuizRoutes);
 app.use('/api/student', studentRoutes);
 
 app.use('/api/admin/students', adminStudentsRoutes);
