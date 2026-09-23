@@ -6,7 +6,8 @@ const DailyQuizAttempt = require('../models/DailyQuizAttempt');
 const Student = require('../models/Student');
 const { lagosDateKey } = require('../utils/dateKey');
 const { success } = require('../utils/apiResponse');
-const { signAttemptToken, hashIp } = require('../utils/attemptToken');
+const { signAttemptToken, verifyAttemptToken, hashIp } = require('../utils/attemptToken');
+const { scoreQuiz } = require('../utils/scoreQuiz');
 
 const findTodaysQuiz = () => DailyQuiz.findOne({ date: lagosDateKey(), isPublished: true });
 
@@ -91,4 +92,57 @@ const startAttempt = async (req, res) => {
   );
 };
 
-module.exports = { getToday, startAttempt, findTodaysQuiz, publicQuestions };
+/* ── POST /api/daily-quiz/submit ── */
+const submitAttempt = async (req, res) => {
+  const payload = verifyAttemptToken(req.body.attemptToken);
+  if (!payload) {
+    return res.status(401).json({ status: 'error', message: 'Your quiz session has expired. Start again.' });
+  }
+
+  const attempt = await DailyQuizAttempt.findById(payload.attemptId);
+  if (!attempt) {
+    return res.status(404).json({ status: 'error', message: 'Attempt not found.' });
+  }
+  if (attempt.status === 'submitted') {
+    return res.status(409).json({ status: 'error', message: 'This attempt was already submitted.' });
+  }
+
+  // Re-check the student: /start validated them, but that was up to 3 hours ago.
+  const student = await Student.findById(attempt.student);
+  if (!student || !student.isActive) {
+    return res.status(403).json({ status: 'error', message: 'This account can no longer take the quiz.' });
+  }
+
+  // Score against the attempt's own quiz, never "today's" — a token can cross
+  // midnight Lagos.
+  const quiz = await DailyQuiz.findById(attempt.quiz);
+  if (!quiz) {
+    return res.status(404).json({ status: 'error', message: 'This quiz is no longer available.' });
+  }
+
+  const { score, maxScore, results } = scoreQuiz(quiz.questions, req.body.answers);
+
+  const submittedAt = new Date();
+  attempt.answers = results.map((r) => ({
+    questionIndex: r.questionIndex,
+    selectedIndex: r.selectedIndex,
+  }));
+  attempt.score = score;
+  attempt.maxScore = maxScore;
+  attempt.submittedAt = submittedAt;
+  // Computed from the stored startedAt. Anything the client sent is ignored.
+  attempt.durationMs = submittedAt.getTime() - attempt.startedAt.getTime();
+  attempt.status = 'submitted';
+  await attempt.save();
+
+  success(res, {
+    date: attempt.quizDate,
+    score,
+    maxScore,
+    durationMs: attempt.durationMs,
+    submittedAt: submittedAt.toISOString(),
+    results,
+  });
+};
+
+module.exports = { getToday, startAttempt, submitAttempt, findTodaysQuiz, publicQuestions };
