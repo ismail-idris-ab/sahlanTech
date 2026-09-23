@@ -22,12 +22,31 @@ const questionsValidator = body('questions')
 // Length alone doesn't catch malformed elements (e.g. questions: [1,2,3,4,5] or
 // objects missing required fields) — those would otherwise reach Mongoose and
 // throw a ValidationError/CastError that the central handler turns into a 500.
+// correctIndex and options are each valid on their own (0-3, 2-4 entries) but the
+// model additionally requires correctIndex < options.length for THAT question — a
+// two-option question with correctIndex 2 or 3 passes both isInt and isArray checks
+// individually and only fails Mongoose's cross-field validator, which throws a
+// ValidationError the central handler turns into a 500. Check the relationship here,
+// where both fields of the same question are visible together.
+const correctIndexWithinOptions = (questions) => {
+  if (!Array.isArray(questions)) return true; // shape already reported by isArray() above
+  questions.forEach((q, i) => {
+    const options = q?.options;
+    if (!Array.isArray(options)) return; // shape already reported by questions.*.options
+    if (!Number.isInteger(q?.correctIndex) || q.correctIndex >= options.length) {
+      throw new Error(`Question ${i + 1}: the correct answer must be one of its options`);
+    }
+  });
+  return true;
+};
+
 const questionShapeValidators = [
   body('questions.*.text').trim().notEmpty().withMessage('Each question needs text').isLength({ max: 1000 }),
   body('questions.*.options').isArray({ min: 2, max: 4 }).withMessage('Each question needs 2-4 options'),
   body('questions.*.options.*').trim().notEmpty().withMessage('Options cannot be blank'),
   body('questions.*.correctIndex').isInt({ min: 0, max: 3 }).withMessage('Each question needs a correct answer'),
   body('questions.*.points').optional().isInt({ min: 1 }),
+  body('questions').custom(correctIndexWithinOptions),
 ];
 
 // PATCH may omit `questions` entirely (e.g. a title-only edit), in which case these
@@ -46,6 +65,7 @@ const optionalQuestionShapeValidators = [
   body('questions.*.options.*').if(hasQuestionsField).trim().notEmpty().withMessage('Options cannot be blank'),
   body('questions.*.correctIndex').if(hasQuestionsField).isInt({ min: 0, max: 3 }).withMessage('Each question needs a correct answer'),
   body('questions.*.points').if(hasQuestionsField).optional().isInt({ min: 1 }),
+  body('questions').if(hasQuestionsField).custom(correctIndexWithinOptions),
 ];
 
 router.get('/', listQuizzes);

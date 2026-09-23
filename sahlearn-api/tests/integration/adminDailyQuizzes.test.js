@@ -82,6 +82,48 @@ describe('admin daily quizzes', () => {
     expect(res.status).toBe(422);
   });
 
+  test('422 for correctIndex one past the end of options', async () => {
+    const questions = makeQuestions();
+    questions[0].options = ['A', 'B'];
+    questions[0].correctIndex = 2;
+    const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
+      title: 'Off by one',
+      questions,
+    });
+    expect(res.status).toBe(422);
+  });
+
+  test('422 for correctIndex within the global 0-3 range but past this question\'s options', async () => {
+    const questions = makeQuestions();
+    questions[0].options = ['A', 'B'];
+    questions[0].correctIndex = 3;
+    const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
+      title: 'Still out of range',
+      questions,
+    });
+    expect(res.status).toBe(422);
+  });
+
+  test('201 for correctIndex at the valid boundary of a two-option question', async () => {
+    const questions = makeQuestions();
+    questions[0].options = ['A', 'B'];
+    questions[0].correctIndex = 1;
+    const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
+      title: 'Valid two-option question',
+      questions,
+    });
+    expect(res.status).toBe(201);
+  });
+
+  test('422 for correctIndex past options.length on PATCH', async () => {
+    const quiz = await createQuiz();
+    const questions = makeQuestions();
+    questions[0].options = ['A', 'B'];
+    questions[0].correctIndex = 3;
+    const res = await auth(request(app).patch(`/api/admin/daily-quizzes/${quiz.id}`)).send({ questions });
+    expect(res.status).toBe(422);
+  });
+
   test('409 for a duplicate date', async () => {
     await createQuiz({ date: '2026-09-22' });
     const res = await auth(request(app).post('/api/admin/daily-quizzes')).send({
