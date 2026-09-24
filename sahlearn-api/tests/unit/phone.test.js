@@ -40,13 +40,17 @@ describe('phoneKey', () => {
 });
 
 describe('maskPhone', () => {
-  test('shows the first four and last four digits only', () => {
-    expect(maskPhone('2348012345678')).toBe('0801***5678');
+  test('shows the last three digits only', () => {
+    expect(maskPhone('2348012345678')).toBe('***678');
   });
 
-  test('never leaks the middle digits', () => {
-    expect(maskPhone('2348012345678')).not.toContain('234');
-    expect(maskPhone('2348019995678')).not.toContain('999');
+  test('leaks no more than three digits, including the network prefix', () => {
+    const masked = maskPhone('2348012345678');
+    // The prefix is as identifying as any other digit when the name is next to
+    // it on a public page, so it must not be shown either.
+    expect(masked).not.toContain('0801');
+    expect(masked).not.toContain('2345');
+    expect(masked.replace(/\D/g, '')).toHaveLength(3);
   });
 
   test('returns an empty string for anything that is not a key', () => {

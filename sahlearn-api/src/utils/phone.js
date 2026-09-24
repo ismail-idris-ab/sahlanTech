@@ -19,13 +19,16 @@ function phoneKey(raw) {
 
 const isValidPhone = (raw) => phoneKey(raw) !== null;
 
-// Public display form: first four and last four digits of the local number,
-// e.g. '0801***5678'. Enough to tell two people with the same name apart
-// without publishing a reachable number.
+// Public display form: the last three digits only, e.g. '***678'.
+//
+// Deliberately not the network prefix as well. This is published on an
+// unauthenticated page next to the person's full name, and showing
+// '0801***5678' would leave only three unknown digits — about a thousand
+// guesses away from a working number. Three digits is still enough to tell two
+// people with the same name apart, which is all it is for.
 function maskPhone(key) {
   if (typeof key !== 'string' || !/^234[789][01]\d{8}$/.test(key)) return '';
-  const local = `0${key.slice(3)}`; // 234801... -> 0801...
-  return `${local.slice(0, 4)}***${local.slice(-4)}`;
+  return `***${key.slice(-3)}`;
 }
 
 module.exports = { phoneKey, isValidPhone, maskPhone, NIGERIAN_PHONE };

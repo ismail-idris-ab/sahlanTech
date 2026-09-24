@@ -116,6 +116,77 @@ describe('POST /api/daily-quiz/start', () => {
       expect(await DailyQuizAttempt.countDocuments()).toBe(2);
     });
 
+    // Regression: the resume path used to hand back the existing attempt
+    // untouched, so a student ID supplied on the second try was validated and
+    // then thrown away, and the score never reached their dashboard.
+    test('a student ID added on resume is attached to the existing attempt', async () => {
+      await createQuiz();
+      const student = await createStudent();
+      const phone = uniquePhone();
+
+      await start({ fullName: 'Late Identifier', phone });
+      const second = await start({ fullName: 'Late Identifier', phone, studentId: student.studentId });
+
+      expect(second.status).toBe(200);
+      const attempt = await DailyQuizAttempt.findOne({ 'participant.phoneKey': `234${phone.slice(1)}` });
+      expect(String(attempt.student)).toBe(String(student._id));
+      expect(await DailyQuizAttempt.countDocuments()).toBe(1);
+    });
+
+    test('a corrected name on resume is kept', async () => {
+      await createQuiz();
+      const phone = uniquePhone();
+
+      await start({ fullName: 'Msua Ibrahim', phone }); // typo
+      await start({ fullName: 'Musa Ibrahim', phone });
+
+      const attempt = await DailyQuizAttempt.findOne({});
+      expect(attempt.participant.fullName).toBe('Musa Ibrahim');
+    });
+
+    // Regression: the existing-attempt lookup matched on phone only, so a
+    // student returning on a second number fell through to an insert that the
+    // unique index rejected — surfacing as a raw E11000 and a 500.
+    test('409, not 500, when a student starts again on a different phone', async () => {
+      await createQuiz();
+      const student = await createStudent();
+
+      const first = await start({
+        fullName: 'Two Phones',
+        phone: uniquePhone(),
+        studentId: student.studentId,
+      });
+      expect(first.status).toBe(201);
+
+      const second = await start({
+        fullName: 'Two Phones',
+        phone: uniquePhone(), // different number, same student
+        studentId: student.studentId,
+      });
+
+      expect(second.status).toBe(200); // resumed their in-progress attempt
+      expect(await DailyQuizAttempt.countDocuments()).toBe(1);
+    });
+
+    test('409 with the result when a submitted student returns on a different phone', async () => {
+      const quiz = await createQuiz();
+      const student = await createStudent();
+      await start({ fullName: 'Done On Phone One', phone: uniquePhone(), studentId: student.studentId });
+
+      const attempt = await DailyQuizAttempt.findOne({ quizDate: quiz.date });
+      attempt.set({ submittedAt: new Date(), durationMs: 1000, score: 3, maxScore: 5, status: 'submitted' });
+      await attempt.save();
+
+      const res = await start({
+        fullName: 'Done On Phone One',
+        phone: uniquePhone(),
+        studentId: student.studentId,
+      });
+
+      expect(res.status).toBe(409);
+      expect(res.body.data).toMatchObject({ score: 3, maxScore: 5 });
+    });
+
     test('adding a student ID the second time does not buy a second attempt', async () => {
       await createQuiz();
       const student = await createStudent();
