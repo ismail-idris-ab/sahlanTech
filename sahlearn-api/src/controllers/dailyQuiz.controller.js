@@ -18,8 +18,9 @@ const LEADERBOARD_SIZE = 20;
 const publicQuestions = (quiz) =>
   quiz.questions.map((q) => ({
     id: String(q._id),
+    type: q.type || 'mcq',
     text: q.text,
-    options: q.options,
+    options: q.type === 'essay' ? [] : q.options,
     points: q.points,
   }));
 
@@ -34,6 +35,7 @@ const getToday = async (_req, res) => {
     title: quiz.title,
     description: quiz.description || '',
     questionCount: quiz.questions.length,
+    essayCount: quiz.questions.filter((q) => q.type === 'essay').length,
     totalPoints: quiz.totalPoints,
   });
 };
@@ -67,6 +69,7 @@ const startAttempt = async (req, res) => {
       data: {
         score: existing.score,
         maxScore: existing.maxScore,
+        pendingEssays: existing.pendingEssays || 0,
         durationMs: existing.durationMs,
         submittedAt: existing.submittedAt,
       },
@@ -127,15 +130,19 @@ const submitAttempt = async (req, res) => {
     return res.status(404).json({ status: 'error', message: 'This quiz is no longer available.' });
   }
 
-  const { score, maxScore, results } = scoreQuiz(quiz.questions, req.body.answers);
+  const { score, maxScore, pendingEssays, results } = scoreQuiz(quiz.questions, req.body.answers);
 
   const submittedAt = new Date();
   attempt.answers = results.map((r) => ({
     questionIndex: r.questionIndex,
-    selectedIndex: r.selectedIndex,
+    selectedIndex: r.type === 'essay' ? undefined : r.selectedIndex,
+    text: r.type === 'essay' ? r.text : undefined,
+    awardedPoints: r.awardedPoints,
+    graded: r.graded,
   }));
   attempt.score = score;
   attempt.maxScore = maxScore;
+  attempt.pendingEssays = pendingEssays;
   attempt.submittedAt = submittedAt;
   // Computed from the stored startedAt. Anything the client sent is ignored.
   attempt.durationMs = submittedAt.getTime() - attempt.startedAt.getTime();
@@ -146,6 +153,7 @@ const submitAttempt = async (req, res) => {
     date: attempt.quizDate,
     score,
     maxScore,
+    pendingEssays,
     durationMs: attempt.durationMs,
     submittedAt: submittedAt.toISOString(),
     results,
@@ -171,7 +179,7 @@ const getLeaderboard = async (req, res) => {
     .sort({ score: -1, durationMs: 1 })
     .limit(LEADERBOARD_SIZE)
     .populate('student', 'fullName')
-    .select('score maxScore durationMs student')
+    .select('score maxScore durationMs pendingEssays student')
     .lean();
 
   success(res, {
@@ -182,6 +190,9 @@ const getLeaderboard = async (req, res) => {
       score: a.score,
       maxScore: a.maxScore,
       durationMs: a.durationMs,
+      // This row can still move: essays on it are not marked yet. The client
+      // labels it so a student does not read a provisional rank as final.
+      pending: (a.pendingEssays || 0) > 0,
     })),
   });
 };

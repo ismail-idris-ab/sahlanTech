@@ -75,6 +75,7 @@ export default function DailyQuizResults() {
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Score</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Time</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Submitted at</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 text-right">Answers</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-100">
@@ -83,10 +84,27 @@ export default function DailyQuizResults() {
                   <td className="px-5 py-3.5 font-semibold text-ink-900">{entry.rank}</td>
                   <td className="px-5 py-3.5 text-ink-700">{entry.fullName}</td>
                   <td className="px-5 py-3.5 text-ink-500 font-mono hidden sm:table-cell">{entry.studentId}</td>
-                  <td className="px-5 py-3.5 text-ink-900 font-semibold">{entry.score} / {entry.maxScore}</td>
+                  <td className="px-5 py-3.5 text-ink-900 font-semibold">
+                    {entry.score} / {entry.maxScore}
+                    {entry.pendingEssays > 0 && (
+                      <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap">
+                        {entry.pendingEssays} to mark
+                      </span>
+                    )}
+                  </td>
                   <td className="px-5 py-3.5 text-ink-500 hidden md:table-cell">{formatDuration(entry.durationMs)}</td>
                   <td className="px-5 py-3.5 text-ink-500 hidden lg:table-cell">
                     {entry.submittedAt ? new Date(entry.submittedAt).toLocaleString('en-NG', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <Link
+                      to={`/admin/daily-quizzes/${id}/attempts/${entry.id}`}
+                      className={`text-xs font-medium hover:underline ${
+                        entry.pendingEssays > 0 ? 'text-amber-700' : 'text-brand-primary'
+                      }`}
+                    >
+                      {entry.pendingEssays > 0 ? 'Mark' : 'View'}
+                    </Link>
                   </td>
                 </tr>
               ))}

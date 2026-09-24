@@ -23,7 +23,8 @@ export default function DailyQuiz() {
   // attemptToken lives only here, in memory — never in localStorage. The
   // attempt is resumable from the student ID alone if the page refreshes.
   const [attempt, setAttempt] = useState(null); // { attemptToken, date, title, description, startedAt, questions }
-  const [answers, setAnswers] = useState({}); // { [questionIndex]: selectedIndex }
+  // { [questionIndex]: { selectedIndex } } for mcq, { [questionIndex]: { text } } for essay
+  const [answers, setAnswers] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -66,16 +67,20 @@ export default function DailyQuiz() {
   }, []);
 
   const handleSelect = (optionIndex) => {
-    setAnswers((prev) => ({ ...prev, [currentIndex]: optionIndex }));
+    setAnswers((prev) => ({ ...prev, [currentIndex]: { selectedIndex: optionIndex } }));
+  };
+
+  const handleType = (text) => {
+    setAnswers((prev) => ({ ...prev, [currentIndex]: { text } }));
   };
 
   const handleSubmit = async () => {
     if (!attempt || submitting) return;
     setSubmitting(true);
     try {
-      const answersArray = Object.entries(answers).map(([questionIndex, selectedIndex]) => ({
+      const answersArray = Object.entries(answers).map(([questionIndex, given]) => ({
         questionIndex: Number(questionIndex),
-        selectedIndex,
+        ...given,
       }));
       const submitResult = await submitQuiz(attempt.attemptToken, answersArray);
       setResult(submitResult);
@@ -142,6 +147,13 @@ export default function DailyQuiz() {
             {today?.questionCount} question{today?.questionCount === 1 ? '' : 's'} · {today?.totalPoints}{' '}
             points total
           </p>
+          {today?.essayCount > 0 && (
+            <p className="text-sm text-ink-500 bg-surface-100 border border-ink-300/40 rounded-xl px-4 py-3">
+              {today.essayCount} of these {today.essayCount === 1 ? 'is a written question' : 'are written questions'}.
+              Your teacher marks {today.essayCount === 1 ? 'it' : 'them'} after you submit, so part of your score
+              arrives later.
+            </p>
+          )}
           <QuizIdForm onStarted={handleStarted} onAlreadySubmitted={handleAlreadySubmitted} />
         </div>
       )}
@@ -162,8 +174,10 @@ export default function DailyQuiz() {
             question={currentQuestion}
             index={currentIndex}
             total={totalQuestions}
-            selectedIndex={answers[currentIndex] ?? null}
+            selectedIndex={answers[currentIndex]?.selectedIndex ?? null}
+            answerText={answers[currentIndex]?.text ?? ''}
             onSelect={handleSelect}
+            onType={handleType}
           />
 
           <div className="flex items-center justify-between gap-3">

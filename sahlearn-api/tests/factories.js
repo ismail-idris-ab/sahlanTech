@@ -15,6 +15,25 @@ const makeQuestions = (n = 5) =>
     points: 1,
   }));
 
+const makeEssayQuestions = (n = 1, points = 5) =>
+  Array.from({ length: n }, (_, i) => ({
+    type: 'essay',
+    text: `Essay question ${i + 1}`,
+    points,
+  }));
+
+// A quiz that mixes both kinds: `mcq` auto-scored questions worth 1 each,
+// followed by `essay` questions worth `essayPoints` each.
+const createMixedQuiz = ({ mcq = 2, essay = 1, essayPoints = 5, ...overrides } = {}) =>
+  DailyQuiz.create({
+    date: lagosDateKey(),
+    title: 'Mixed quiz',
+    questions: [...makeQuestions(mcq), ...makeEssayQuestions(essay, essayPoints)],
+    isPublished: true,
+    publishedAt: new Date(),
+    ...overrides,
+  });
+
 const createQuiz = (overrides = {}) =>
   DailyQuiz.create({
     date: lagosDateKey(),
@@ -52,4 +71,12 @@ const createAdminToken = async () => {
 const createStudentToken = (student) =>
   jwt.sign({ id: student._id, role: 'student' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-module.exports = { makeQuestions, createQuiz, createStudent, createAdminToken, createStudentToken };
+module.exports = {
+  makeQuestions,
+  makeEssayQuestions,
+  createQuiz,
+  createMixedQuiz,
+  createStudent,
+  createAdminToken,
+  createStudentToken,
+};

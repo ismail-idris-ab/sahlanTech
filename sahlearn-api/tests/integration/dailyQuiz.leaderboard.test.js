@@ -96,6 +96,7 @@ describe('GET /api/daily-quiz/leaderboard', () => {
       score: 5,
       maxScore: quiz.totalPoints,
       durationMs: 1000,
+      pending: false,
     });
     expect(attempt).toBeDefined();
   });

@@ -118,7 +118,14 @@ export default function DailyQuizHistory() {
                   <tr key={r.id} className="hover:bg-surface-50 transition-colors">
                     <td className="px-6 py-3 text-ink-600">{r.date}</td>
                     <td className="px-6 py-3 text-ink-900 font-medium">{r.title}</td>
-                    <td className="px-6 py-3 text-ink-900 font-semibold">{r.score} / {r.maxScore}</td>
+                    <td className="px-6 py-3 text-ink-900 font-semibold">
+                      {r.score} / {r.maxScore}
+                      {r.pendingEssays > 0 && (
+                        <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap">
+                          Awaiting marking
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-3 text-ink-600">{formatDuration(r.durationMs)}</td>
                   </tr>
                 ))}

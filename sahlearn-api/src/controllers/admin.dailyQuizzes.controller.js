@@ -4,6 +4,7 @@ const DailyQuiz = require('../models/DailyQuiz');
 const DailyQuizAttempt = require('../models/DailyQuizAttempt');
 const { lagosDateKey } = require('../utils/dateKey');
 const { success, successList } = require('../utils/apiResponse');
+const { totalAwarded, countPendingEssays } = require('../utils/scoreQuiz');
 
 const badId = (res) => res.status(400).json({ status: 'error', message: 'Invalid quiz id' });
 const missing = (res) => res.status(404).json({ status: 'error', message: 'Quiz not found' });
@@ -133,9 +134,140 @@ const getResults = async (req, res) => {
       maxScore: a.maxScore,
       durationMs: a.durationMs,
       submittedAt: a.submittedAt,
+      pendingEssays: a.pendingEssays || 0,
     })),
     { page, limit, total, totalPages: Math.ceil(total / limit) }
   );
 };
 
-module.exports = { listQuizzes, createQuiz, getQuiz, updateQuiz, deleteQuiz, getResults };
+/* ── GET /api/admin/daily-quizzes/:id/attempts/:attemptId ── */
+// One student's attempt, question by question, for the grading screen. Admin
+// only, so unlike every public endpoint this one DOES carry correctIndex.
+const getAttempt = async (req, res) => {
+  const { id, attemptId } = req.params;
+  if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(attemptId)) return badId(res);
+
+  const quiz = await DailyQuiz.findById(id).lean();
+  if (!quiz) return missing(res);
+
+  const attempt = await DailyQuizAttempt.findOne({ _id: attemptId, quiz: quiz._id })
+    .populate('student', 'fullName studentId')
+    .lean();
+  if (!attempt) {
+    return res.status(404).json({ status: 'error', message: 'Attempt not found' });
+  }
+
+  const byIndex = new Map((attempt.answers || []).map((a) => [a.questionIndex, a]));
+
+  success(res, {
+    id: attempt._id,
+    quizId: quiz._id,
+    quizTitle: quiz.title,
+    date: attempt.quizDate,
+    fullName: attempt.student?.fullName || '—',
+    studentId: attempt.student?.studentId || '—',
+    score: attempt.score,
+    maxScore: attempt.maxScore,
+    durationMs: attempt.durationMs,
+    submittedAt: attempt.submittedAt,
+    pendingEssays: attempt.pendingEssays || 0,
+    questions: quiz.questions.map((q, questionIndex) => {
+      const a = byIndex.get(questionIndex);
+      const type = q.type || 'mcq';
+      return {
+        questionIndex,
+        type,
+        text: q.text,
+        points: q.points || 1,
+        options: type === 'essay' ? [] : q.options,
+        correctIndex: type === 'essay' ? null : q.correctIndex,
+        selectedIndex: a?.selectedIndex ?? null,
+        answerText: a?.text || '',
+        awardedPoints: a?.awardedPoints ?? null,
+        graded: !!a?.graded,
+      };
+    }),
+  });
+};
+
+/* ── PATCH /api/admin/daily-quizzes/:id/attempts/:attemptId/grades ── */
+const gradeAttempt = async (req, res) => {
+  const { id, attemptId } = req.params;
+  if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(attemptId)) return badId(res);
+
+  const quiz = await DailyQuiz.findById(id).lean();
+  if (!quiz) return missing(res);
+
+  const attempt = await DailyQuizAttempt.findOne({ _id: attemptId, quiz: quiz._id });
+  if (!attempt) {
+    return res.status(404).json({ status: 'error', message: 'Attempt not found' });
+  }
+  if (attempt.status !== 'submitted') {
+    return res.status(409).json({ status: 'error', message: 'This attempt has not been submitted yet.' });
+  }
+
+  // Validate every mark before writing any of them, so a bad third mark cannot
+  // leave the first two applied.
+  const errors = [];
+  for (const { questionIndex, awardedPoints } of req.body.grades) {
+    const question = quiz.questions[questionIndex];
+    if (!question) {
+      errors.push({ field: `grades.${questionIndex}`, message: `Question ${questionIndex + 1} is not part of this quiz` });
+      continue;
+    }
+    if ((question.type || 'mcq') !== 'essay') {
+      errors.push({
+        field: `grades.${questionIndex}`,
+        message: `Question ${questionIndex + 1} is multiple choice and is marked automatically`,
+      });
+      continue;
+    }
+    const max = question.points || 1;
+    if (awardedPoints > max) {
+      errors.push({
+        field: `grades.${questionIndex}`,
+        message: `Question ${questionIndex + 1} is worth at most ${max} point${max === 1 ? '' : 's'}`,
+      });
+    }
+  }
+
+  if (errors.length) {
+    return res.status(422).json({ status: 'error', message: 'Validation failed', errors });
+  }
+
+  for (const { questionIndex, awardedPoints } of req.body.grades) {
+    let answer = attempt.answers.find((a) => a.questionIndex === questionIndex);
+    if (!answer) {
+      // The student skipped this essay outright, so no answer row was written.
+      // Marking it still has to be possible — usually to zero.
+      attempt.answers.push({ questionIndex, text: '', awardedPoints, graded: true });
+      continue;
+    }
+    answer.awardedPoints = awardedPoints;
+    answer.graded = true;
+  }
+
+  // Recomputed from what is actually recorded rather than incremented, so
+  // re-marking a question cannot drift the total.
+  attempt.score = totalAwarded(attempt.answers);
+  attempt.pendingEssays = countPendingEssays(attempt.answers);
+  await attempt.save();
+
+  success(res, {
+    id: attempt._id,
+    score: attempt.score,
+    maxScore: attempt.maxScore,
+    pendingEssays: attempt.pendingEssays,
+  });
+};
+
+module.exports = {
+  listQuizzes,
+  createQuiz,
+  getQuiz,
+  updateQuiz,
+  deleteQuiz,
+  getResults,
+  getAttempt,
+  gradeAttempt,
+};

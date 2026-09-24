@@ -52,6 +52,7 @@ describe('POST /api/daily-quiz/start', () => {
     expect(res.body.data.questions).toHaveLength(5);
     expect(res.body.data.questions[0]).toEqual({
       id: expect.any(String),
+      type: 'mcq',
       text: 'Question 1',
       options: ['A', 'B', 'C', 'D'],
       points: 1,
