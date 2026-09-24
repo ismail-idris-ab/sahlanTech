@@ -7,6 +7,22 @@ const { lagosDateKey } = require('../src/utils/dateKey');
 let counter = 0;
 const uniq = () => `${Date.now()}${(counter += 1)}`;
 
+// Attempts are unique per phone per day, so every taker in a test needs a
+// distinct number. '0801' + 7 digits satisfies the Nigerian mobile format.
+let phoneCounter = 0;
+const uniquePhone = () => {
+  phoneCounter += 1;
+  return `0801${String(phoneCounter).padStart(7, '0')}`;
+};
+
+// The body POST /api/daily-quiz/start now expects. Pass a student to link the
+// attempt to their dashboard, or omit it to take the quiz as a guest.
+const startBody = ({ student, fullName, phone } = {}) => ({
+  fullName: fullName || student?.fullName || 'Guest Taker',
+  phone: phone || uniquePhone(),
+  ...(student ? { studentId: student.studentId } : {}),
+});
+
 const makeQuestions = (n = 5) =>
   Array.from({ length: n }, (_, i) => ({
     text: `Question ${i + 1}`,
@@ -72,6 +88,8 @@ const createStudentToken = (student) =>
   jwt.sign({ id: student._id, role: 'student' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
 module.exports = {
+  uniquePhone,
+  startBody,
   makeQuestions,
   makeEssayQuestions,
   createQuiz,

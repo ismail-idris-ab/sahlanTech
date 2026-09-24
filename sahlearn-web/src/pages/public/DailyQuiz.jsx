@@ -3,14 +3,16 @@ import toast from 'react-hot-toast';
 import { getTodayQuiz, submitQuiz, formatDuration } from '../../services/dailyQuiz.service';
 import SEO from '../../components/common/SEO';
 import Button from '../../components/common/Button';
-import QuizIdForm from '../../components/quiz/QuizIdForm';
+import QuizStartForm from '../../components/quiz/QuizStartForm';
+import QuizScoreLookup from '../../components/quiz/QuizScoreLookup';
 import QuizQuestion from '../../components/quiz/QuizQuestion';
 import QuizResult from '../../components/quiz/QuizResult';
 import QuizLeaderboard from '../../components/quiz/QuizLeaderboard';
 
 const SEO_PROPS = {
   title: 'Daily Quiz',
-  description: "Take today's Sahlearn daily quiz. Five to ten quick questions, instant score.",
+  description:
+    "Take today's Sahlearn daily quiz. Open to everyone — just your name and phone number, and you get your score straight away.",
   url: '/quiz',
 };
 
@@ -122,6 +124,9 @@ export default function DailyQuiz() {
         <div className="bg-white rounded-2xl border border-ink-300/40 p-8 text-center mb-8">
           <p className="text-ink-700">{loadError || 'No quiz today. Check back tomorrow.'}</p>
         </div>
+        <div className="mb-8">
+          <QuizScoreLookup />
+        </div>
         <QuizLeaderboard date={today?.date} />
       </div>
     );
@@ -154,7 +159,8 @@ export default function DailyQuiz() {
               arrives later.
             </p>
           )}
-          <QuizIdForm onStarted={handleStarted} onAlreadySubmitted={handleAlreadySubmitted} />
+          <QuizStartForm onStarted={handleStarted} onAlreadySubmitted={handleAlreadySubmitted} />
+          <QuizScoreLookup />
         </div>
       )}
 

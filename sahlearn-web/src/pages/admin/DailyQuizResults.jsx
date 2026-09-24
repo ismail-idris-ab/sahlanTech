@@ -71,7 +71,8 @@ export default function DailyQuizResults() {
               <tr className="border-b border-surface-200 bg-surface-50 text-left">
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Rank</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Name</th>
-                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">Student ID</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">Phone</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Student ID</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Score</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Time</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Submitted at</th>
@@ -82,8 +83,16 @@ export default function DailyQuizResults() {
               {results.map((entry) => (
                 <tr key={entry.id} className="hover:bg-surface-50 transition-colors">
                   <td className="px-5 py-3.5 font-semibold text-ink-900">{entry.rank}</td>
-                  <td className="px-5 py-3.5 text-ink-700">{entry.fullName}</td>
-                  <td className="px-5 py-3.5 text-ink-500 font-mono hidden sm:table-cell">{entry.studentId}</td>
+                  <td className="px-5 py-3.5 text-ink-700">
+                    {entry.fullName}
+                    {!entry.isStudent && (
+                      <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-surface-100 text-ink-500">
+                        Guest
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5 text-ink-500 font-mono hidden sm:table-cell">{entry.phone || '—'}</td>
+                  <td className="px-5 py-3.5 text-ink-500 font-mono hidden md:table-cell">{entry.studentId}</td>
                   <td className="px-5 py-3.5 text-ink-900 font-semibold">
                     {entry.score} / {entry.maxScore}
                     {entry.pendingEssays > 0 && (

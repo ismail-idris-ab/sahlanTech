@@ -334,3 +334,57 @@ marking completes.
 
 **Still out of scope:** per-question marking guidance for the admin, partial
 credit on MCQ, and any bulk-marking screen.
+
+---
+
+## Addendum — open access (2026-09-23)
+
+The quiz is no longer limited to registered students. Anyone can take it with a
+name and a Nigerian phone number.
+
+**Identity is the phone number.** `utils/phone.js` normalizes `08012345678`,
+`+2348012345678` and `2348012345678` to one key, `234XXXXXXXXXX`. A student ID
+is optional and is the only thing that links a score to a dashboard; a wrong ID
+is refused with a 404 rather than silently downgraded to guest, so a typo cannot
+cost a student their dashboard credit without telling them.
+
+`DailyQuizAttempt.student` becomes optional and a `participant`
+`{ fullName, phone, phoneKey }` subdocument is added.
+
+**Decisions taken** (owner, 2026-09-23):
+
+| Question | Decision |
+|---|---|
+| Fields asked for | Name + phone, with an optional student ID |
+| Retake rule | One attempt per phone per day |
+| Leaderboard | One board for everyone: name + masked phone |
+| Guest history | Lookup by phone on the public page |
+
+**The index change is the operational risk.** The old plain unique index on
+`{ quizDate, student }` rejects the *second* guest of any day, because MongoDB
+treats every null as the same value. It is replaced by two partial unique
+indexes — one on `{ quizDate, participant.phoneKey }`, one on
+`{ quizDate, student }` — plus a lookup index. Mongoose does not rewrite an
+existing index, so `src/migrations/2026-09-23-open-quiz-indexes.js` must be run
+once against the database before this deploys. The migration is idempotent, has
+a `--dry-run` mode, and its logic is covered by
+`tests/integration/openQuizIndexMigration.test.js`, which seeds the old index
+and first proves the bug exists before proving the fix works.
+
+**Accepted risk, restated.** The original spec's ID-only risk is now wider: a
+phone number is self-declared and unlimited, so one person can enter repeatedly
+with different numbers and the leaderboard can be stuffed. This was raised and
+accepted. The mitigations are the per-IP rate limits, the one-attempt-per-phone
+rule, the stored `ipHash`, and the `verified: false` flag that a future
+password-backed flow can flip.
+
+**Privacy.** The full number never appears on a public endpoint — the board
+shows `0801***5678`. `participant.phoneKey` is stripped in the model's `toJSON`.
+`POST /api/daily-quiz/my-scores` is a POST so numbers stay out of logs and
+Referer headers, returns no name, is rate limited at 10/hour/IP, and returns an
+identical empty response for an unknown number and a known number with no
+attempts, so it cannot be used to test which numbers exist.
+
+**Still out of scope:** non-Nigerian phone numbers, any verification that the
+number belongs to the person (no OTP), and merging a guest's past attempts into
+a student account they create later.

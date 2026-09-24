@@ -4,7 +4,7 @@ process.env.TEST_RATE_LIMIT = '1';
 
 const request = require('supertest');
 const app = require('../../src/app');
-const { createQuiz } = require('../factories');
+const { createQuiz, startBody, uniquePhone } = require('../factories');
 
 afterAll(() => {
   delete process.env.TEST_RATE_LIMIT;
@@ -15,7 +15,7 @@ describe('daily quiz rate limits', () => {
     await createQuiz();
     let last;
     for (let i = 0; i < 11; i += 1) {
-      last = await request(app).post('/api/daily-quiz/start').send({ studentId: 'SAH/does-not-exist' });
+      last = await request(app).post('/api/daily-quiz/start').send(startBody({ fullName: 'Rate Limited', phone: uniquePhone(), studentId: 'SAH/does-not-exist' }));
     }
     expect(last.status).toBe(429);
     expect(last.body.status).toBe('error');

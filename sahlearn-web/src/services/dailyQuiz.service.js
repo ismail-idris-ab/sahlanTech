@@ -7,8 +7,15 @@ const studentHeader = () => ({
 export const getTodayQuiz = () =>
   api.get('/api/daily-quiz/today').then((r) => r.data.data);
 
-export const startQuiz = (studentId) =>
-  api.post('/api/daily-quiz/start', { studentId }).then((r) => r.data.data);
+// { fullName, phone, studentId? } — studentId is optional and only links the
+// score to a student dashboard.
+export const startQuiz = (payload) =>
+  api.post('/api/daily-quiz/start', payload).then((r) => r.data.data);
+
+// POST, not GET: a phone number in a query string ends up in server logs and
+// browser history.
+export const getScoresByPhone = (phone) =>
+  api.post('/api/daily-quiz/my-scores', { phone }).then((r) => r.data.data);
 
 export const submitQuiz = (attemptToken, answers) =>
   api.post('/api/daily-quiz/submit', { attemptToken, answers }).then((r) => r.data.data);

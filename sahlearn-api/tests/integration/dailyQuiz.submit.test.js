@@ -4,7 +4,7 @@ const app = require('../../src/app');
 const DailyQuiz = require('../../src/models/DailyQuiz');
 const DailyQuizAttempt = require('../../src/models/DailyQuizAttempt');
 const Student = require('../../src/models/Student');
-const { createQuiz, createStudent, createStudentToken, makeQuestions } = require('../factories');
+const { createQuiz, createStudent, createStudentToken, makeQuestions, startBody } = require('../factories');
 const { signAttemptToken } = require('../../src/utils/attemptToken');
 
 // The factory sets correctIndex = i % 4, so all-correct answers are i % 4.
@@ -12,7 +12,7 @@ const correctAnswers = (n = 5) =>
   Array.from({ length: n }, (_, i) => ({ questionIndex: i, selectedIndex: i % 4 }));
 
 const startFor = async (student) => {
-  const res = await request(app).post('/api/daily-quiz/start').send({ studentId: student.studentId });
+  const res = await request(app).post('/api/daily-quiz/start').send(startBody({ student }));
   return res.body.data.attemptToken;
 };
 
