@@ -13,6 +13,13 @@ export default function ReceiptView({ receipt }) {
         </p>
       )}
 
+      {/* Kept inside the printable area, so a receipt printed from this page
+          carries the logo the same way the PDF does. */}
+      <div className="flex items-center justify-between gap-4 border-b border-ink-300/30 pb-4">
+        <img src="/sahlearn-logo.svg" alt="Sahlearn" className="h-10 w-auto" />
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-400">Payment receipt</p>
+      </div>
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs text-ink-400">Receipt</p>
