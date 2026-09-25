@@ -12,6 +12,7 @@ const {
   recordPayment,
   voidPayment,
 } = require('../controllers/admin.sales.controller');
+const { getAdminReceiptPdf } = require('../controllers/receipts.controller');
 
 router.use(authMiddleware);
 
@@ -118,6 +119,7 @@ router.post(
 const paymentsRouter = express.Router();
 paymentsRouter.use(authMiddleware);
 paymentsRouter.post('/:id/void', reasonValidator, validate, voidPayment);
+paymentsRouter.get('/:id/pdf', getAdminReceiptPdf);
 
 module.exports = router;
 module.exports.paymentsRouter = paymentsRouter;

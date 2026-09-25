@@ -32,6 +32,7 @@ const studentCheckinRoutes = require('./routes/student.checkin.routes');
 const studentDailyQuizRoutes = require('./routes/student.dailyQuiz.routes');
 const adminCheckinRoutes = require('./routes/admin.checkin.routes');
 const dailyQuizRoutes = require('./routes/dailyQuiz.routes');
+const receiptsRoutes = require('./routes/receipts.routes');
 const adminDailyQuizzesRoutes = require('./routes/admin.dailyQuizzes.routes');
 const adminSalesRoutes = require('./routes/admin.sales.routes');
 
@@ -112,6 +113,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/enrollments', enrollmentsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/daily-quiz', dailyQuizRoutes);
+app.use('/api/receipts', receiptsRoutes);
 // Specific sub-routes must be mounted BEFORE the generic /api/admin and /api/student
 // routers — otherwise Express hits the generic router first (which runs auth), finds no
 // matching route, then hits the specific router (which runs auth again): double DB query.
