@@ -62,7 +62,7 @@ duplicate. Step 9 is what catches this if the migration was skipped.
     real bug.
 9. **Take it a third time with a third phone number** and get a different score.
 10. **Check the leaderboard on `/quiz`.** All three listed, higher score first,
-    each with a masked phone like `0801***5678`. On a tie, the faster time
+    each with a masked phone like `***678`. On a tie, the faster time
     should rank first. The full number must appear nowhere on the page — view
     source and search for it.
 10a. **Use "Check my past scores"** with one of those numbers. You should see

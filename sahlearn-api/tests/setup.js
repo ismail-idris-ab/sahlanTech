@@ -14,6 +14,14 @@ beforeAll(async () => {
     uri = memoryServer.getUri();
   }
   await mongoose.connect(uri);
+
+  // Build every model's indexes before any test runs.
+  //
+  // Without this, unique indexes simply do not exist in the test database, so
+  // the suite cannot see a constraint violation that production would raise.
+  // That gap hid a real bug: a duplicate insert returned 500 in production
+  // while every test passed.
+  await Promise.all(mongoose.modelNames().map((name) => mongoose.model(name).syncIndexes()));
 });
 
 afterEach(async () => {

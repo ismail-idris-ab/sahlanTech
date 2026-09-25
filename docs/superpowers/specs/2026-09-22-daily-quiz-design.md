@@ -379,7 +379,7 @@ rule, the stored `ipHash`, and the `verified: false` flag that a future
 password-backed flow can flip.
 
 **Privacy.** The full number never appears on a public endpoint — the board
-shows `0801***5678`. `participant.phoneKey` is stripped in the model's `toJSON`.
+shows `***678` — the last three digits only. `participant.phoneKey` is stripped in the model's `toJSON`.
 `POST /api/daily-quiz/my-scores` is a POST so numbers stay out of logs and
 Referer headers, returns no name, is rate limited at 10/hour/IP, and returns an
 identical empty response for an unknown number and a known number with no

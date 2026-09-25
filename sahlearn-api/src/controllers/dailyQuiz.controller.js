@@ -80,39 +80,75 @@ const startAttempt = async (req, res) => {
     }
   }
 
-  // Keyed on the phone, so one person cannot take it twice by adding or
-  // dropping their student ID the second time.
-  const existing = await DailyQuizAttempt.findOne({
-    quizDate: quiz.date,
-    'participant.phoneKey': key,
-  });
+  // Matched on the phone OR the linked student, because the database enforces
+  // both. Looking at the phone alone would miss a student who already has an
+  // attempt today under a different number, and the insert would then be
+  // rejected by the unique index as a raw duplicate-key error.
+  const identityMatch = [{ 'participant.phoneKey': key }];
+  if (student) identityMatch.push({ student: student._id });
 
-  if (existing?.status === 'submitted') {
-    return res.status(409).json({
+  const findExisting = () =>
+    DailyQuizAttempt.findOne({ quizDate: quiz.date, $or: identityMatch });
+
+  const existing = await findExisting();
+
+  const alreadySubmitted = (a) =>
+    res.status(409).json({
       status: 'error',
       message: "You already took today's quiz.",
       data: {
-        score: existing.score,
-        maxScore: existing.maxScore,
-        pendingEssays: existing.pendingEssays || 0,
-        durationMs: existing.durationMs,
-        submittedAt: existing.submittedAt,
+        score: a.score,
+        maxScore: a.maxScore,
+        pendingEssays: a.pendingEssays || 0,
+        durationMs: a.durationMs,
+        submittedAt: a.submittedAt,
       },
     });
-  }
+
+  if (existing?.status === 'submitted') return alreadySubmitted(existing);
 
   // Resuming: keep the original startedAt so a refresh cannot reset the clock.
-  const attempt =
-    existing ||
-    (await DailyQuizAttempt.create({
-      quiz: quiz._id,
-      quizDate: quiz.date,
-      student: student ? student._id : null,
-      participant: { fullName: fullName.trim(), phone: phone.trim(), phoneKey: key },
-      startedAt: new Date(),
-      maxScore: quiz.totalPoints,
-      ipHash: hashIp(req.ip),
-    }));
+  let attempt = existing;
+
+  if (attempt) {
+    // They came back and filled in a student ID this time. Without this the ID
+    // is validated and then thrown away, and the score never reaches their
+    // dashboard. An attempt already linked to an account is left alone — the
+    // phone matched, so it is the same person either way.
+    let changed = false;
+    if (student && !attempt.student) {
+      attempt.student = student._id;
+      changed = true;
+    }
+    const name = fullName.trim();
+    if (name && attempt.participant?.fullName !== name) {
+      attempt.participant.fullName = name;
+      changed = true;
+    }
+    if (changed) await attempt.save();
+  } else {
+    try {
+      attempt = await DailyQuizAttempt.create({
+        quiz: quiz._id,
+        quizDate: quiz.date,
+        student: student ? student._id : null,
+        participant: { fullName: fullName.trim(), phone: phone.trim(), phoneKey: key },
+        startedAt: new Date(),
+        maxScore: quiz.totalPoints,
+        ipHash: hashIp(req.ip),
+      });
+    } catch (err) {
+      // The unique indexes are the last word on "one attempt per day". A
+      // duplicate here means a second request beat this one between the lookup
+      // and the insert. Without this catch it surfaces as a raw E11000 and the
+      // central handler turns it into a 500.
+      if (err?.code !== 11000) throw err;
+      const clash = await findExisting();
+      if (!clash) throw err;
+      if (clash.status === 'submitted') return alreadySubmitted(clash);
+      attempt = clash;
+    }
+  }
 
   success(
     res,

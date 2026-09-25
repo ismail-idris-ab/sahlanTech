@@ -59,7 +59,7 @@ describe('open access — anyone can take the quiz', () => {
       const res = await request(app).get('/api/daily-quiz/leaderboard');
       const entry = res.body.data.entries[0];
 
-      expect(entry.maskedPhone).toBe('0801***5678');
+      expect(entry.maskedPhone).toBe('***678');
       const body = JSON.stringify(res.body);
       expect(body).not.toContain('08012345678');
       expect(body).not.toContain('2348012345678');
