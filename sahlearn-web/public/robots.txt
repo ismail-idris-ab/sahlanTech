@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 
 Disallow: /admin/
+Disallow: /receipt/
 
 Sitemap: https://sahlearn.com/sitemap.xml

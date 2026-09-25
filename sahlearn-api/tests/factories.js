@@ -98,3 +98,16 @@ module.exports = {
   createAdminToken,
   createStudentToken,
 };
+
+// Body for POST /api/admin/sales. Default sale totals 50000.
+const saleBody = (overrides = {}) => {
+  const { fullName, phone, items, ...rest } = overrides;
+  return {
+    fullName: fullName || 'Musa Ibrahim',
+    phone: phone === undefined ? '08012345678' : phone,
+    items: items || [{ description: 'Full Stack Course', quantity: 1, unitPrice: 50000 }],
+    ...rest,
+  };
+};
+
+module.exports.saleBody = saleBody;

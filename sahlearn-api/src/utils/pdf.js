@@ -204,6 +204,73 @@ const generateAttendanceRegister = (res, { session, roster }) => {
   doc.end();
 };
 
+// ── Receipt ─────────────────────────────────────────────────────────────────
+const naira = (n) => `NGN ${Number(n || 0).toLocaleString('en-NG')}`;
+
+// `receipt` is the object built by receipts.controller.buildReceipt — the same
+// shape the public JSON endpoint returns, so the PDF and the web page can never
+// disagree about what a receipt says.
+const generateReceipt = (res, receipt) => {
+  const doc = new PDFDocument({ size: 'A4', margin: 40, bufferPages: true });
+  sendPDF(res, doc, `${receipt.receiptNo.replace(/\//g, '-')}.pdf`);
+
+  drawHeader(doc, 'Payment Receipt', receipt.receiptNo);
+
+  if (receipt.void) {
+    doc.rect(40, doc.y, doc.page.width - 80, 24).fill('#FDE8E8');
+    doc
+      .fillColor('#B42318')
+      .fontSize(11)
+      .font('Helvetica-Bold')
+      .text(`VOID — ${receipt.voidReason || 'cancelled'}`, 48, doc.y + 6);
+    doc.moveDown(2);
+    doc.fillColor(DARK);
+  }
+
+  sectionHeading(doc, 'Customer');
+  infoRow(doc, 'Name', receipt.customerName);
+  infoRow(doc, 'Date', new Date(receipt.paidAt).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' }));
+  infoRow(doc, 'Sale', receipt.saleNo);
+  infoRow(doc, 'Method', receipt.method);
+  if (receipt.reference) infoRow(doc, 'Reference', receipt.reference);
+
+  sectionHeading(doc, 'Items');
+  const cols = [
+    { label: 'Description', width: 240 },
+    { label: 'Qty', width: 50 },
+    { label: 'Unit', width: 110 },
+    { label: 'Amount', width: 115 },
+  ];
+  tableHeader(doc, cols);
+  receipt.items.forEach((item, i) => {
+    tableRow(
+      doc,
+      cols,
+      [item.description, item.quantity, naira(item.unitPrice), naira(item.lineTotal)],
+      i % 2 === 0
+    );
+  });
+
+  doc.moveDown(1);
+  sectionHeading(doc, 'Summary');
+  infoRow(doc, 'Subtotal', naira(receipt.subtotal));
+  if (receipt.discountAmount > 0) {
+    const label = receipt.discountReason ? `Discount (${receipt.discountReason})` : 'Discount';
+    infoRow(doc, label, `- ${naira(receipt.discountAmount)}`);
+  }
+  infoRow(doc, 'Total', naira(receipt.total));
+  infoRow(doc, 'Paid on this receipt', naira(receipt.amountThisPayment));
+  infoRow(doc, 'Paid to date', naira(receipt.totalPaid));
+  infoRow(doc, 'Balance', naira(receipt.balance));
+
+  const range = doc.bufferedPageRange();
+  for (let i = range.start; i < range.start + range.count; i++) {
+    doc.switchToPage(i);
+    drawFooter(doc);
+  }
+  doc.end();
+};
+
 // ════════════════════════════════════════════════════════════════════════════
 // CSV helpers
 // ════════════════════════════════════════════════════════════════════════════
@@ -221,4 +288,4 @@ const sendCSV = (res, filename, headers, rows) => {
   res.send(lines);
 };
 
-module.exports = { generateReportCard, generateAttendanceRegister, sendCSV };
+module.exports = { generateReportCard, generateAttendanceRegister, generateReceipt, sendCSV };

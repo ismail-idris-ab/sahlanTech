@@ -26,6 +26,8 @@ const quizStartLimiter = makeRateLimiter(60, 60, 'Too many quiz attempts from th
 const quizSubmitLimiter = makeRateLimiter(20, 60, 'Too many submissions. Try again later.');
 // Tighter than the other public quiz routes: this one takes a phone number as
 // input, so it is the one an attacker would grind to probe numbers.
+const receiptReadLimiter = makeRateLimiter(60, 15, 'Too many requests. Please slow down.');
+const receiptPdfLimiter = makeRateLimiter(20, 15, 'Too many downloads. Try again shortly.');
 const quizLookupLimiter = makeRateLimiter(10, 60, 'Too many lookups. Try again later.');
 
 module.exports = {
@@ -38,4 +40,6 @@ module.exports = {
   quizStartLimiter,
   quizSubmitLimiter,
   quizLookupLimiter,
+  receiptReadLimiter,
+  receiptPdfLimiter,
 };

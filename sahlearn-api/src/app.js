@@ -30,9 +30,12 @@ const studentAnnouncementsRoutes = require('./routes/student.announcements.route
 const siteContentRoutes = require('./routes/siteContent.routes');
 const studentCheckinRoutes = require('./routes/student.checkin.routes');
 const studentDailyQuizRoutes = require('./routes/student.dailyQuiz.routes');
+const studentReceiptsRoutes = require('./routes/student.receipts.routes');
 const adminCheckinRoutes = require('./routes/admin.checkin.routes');
 const dailyQuizRoutes = require('./routes/dailyQuiz.routes');
+const receiptsRoutes = require('./routes/receipts.routes');
 const adminDailyQuizzesRoutes = require('./routes/admin.dailyQuizzes.routes');
+const adminSalesRoutes = require('./routes/admin.sales.routes');
 
 const app = express();
 
@@ -111,6 +114,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/enrollments', enrollmentsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/daily-quiz', dailyQuizRoutes);
+app.use('/api/receipts', receiptsRoutes);
 // Specific sub-routes must be mounted BEFORE the generic /api/admin and /api/student
 // routers — otherwise Express hits the generic router first (which runs auth), finds no
 // matching route, then hits the specific router (which runs auth again): double DB query.
@@ -122,6 +126,7 @@ app.use('/api/student/attendance', studentAttendanceRoutes);
 app.use('/api/student/announcements', studentAnnouncementsRoutes);
 app.use('/api/student/checkin', studentCheckinRoutes);
 app.use('/api/student/daily-quiz', studentDailyQuizRoutes);
+app.use('/api/student/receipts', studentReceiptsRoutes);
 app.use('/api/student', studentRoutes);
 
 app.use('/api/admin/students', adminStudentsRoutes);
@@ -133,6 +138,8 @@ app.use('/api/admin/exports', exportsRoutes);
 app.use('/api/admin/announcements', adminAnnouncementsRoutes);
 app.use('/api/admin/checkins', adminCheckinRoutes);
 app.use('/api/admin/daily-quizzes', adminDailyQuizzesRoutes);
+app.use('/api/admin/sales', adminSalesRoutes);
+app.use('/api/admin/payments', adminSalesRoutes.paymentsRouter);
 app.use('/api/admin', adminRoutes);
 
 app.use('/api/content', siteContentRoutes);
