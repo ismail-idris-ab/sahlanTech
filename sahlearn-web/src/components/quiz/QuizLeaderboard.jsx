@@ -37,9 +37,9 @@ export default function QuizLeaderboard({ date }) {
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-ink-400 font-medium w-6 flex-shrink-0">{entry.rank}</span>
                 <span className="text-ink-900 truncate">{entry.fullName}</span>
-                {/* Tells two people with the same name apart. Never the full number. */}
+                {/* Tells two people with the same name apart. Never the full
+                    number — three digits, so it stays on phones too. */}
                 {entry.maskedPhone && (
-                  {/* Short enough now to keep on phones too. */}
                   <span className="text-xs text-ink-400 flex-shrink-0">{entry.maskedPhone}</span>
                 )}
               </div>
