@@ -206,7 +206,9 @@ function MoreSheet({ open, onClose, onLogout }) {
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 inset-x-0 z-[101] lg:hidden rounded-t-2xl overflow-hidden"
+        // Capped and column-laid-out so the 10-item grid scrolls rather than
+        // being clipped by overflow-hidden on a short screen (landscape).
+        className="fixed bottom-0 inset-x-0 z-[101] lg:hidden flex max-h-[85dvh] flex-col rounded-t-2xl overflow-hidden"
         style={{ background: '#013F4A', boxShadow: '0 -8px 32px rgba(0,0,0,0.35)' }}
       >
         {/* Header */}
@@ -222,7 +224,7 @@ function MoreSheet({ open, onClose, onLogout }) {
         </div>
 
         {/* Nav grid */}
-        <nav className="grid grid-cols-3 gap-2 p-4">
+        <nav className="grid grid-cols-3 gap-2 p-4 overflow-y-auto overscroll-contain">
           {MORE_ITEMS.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
