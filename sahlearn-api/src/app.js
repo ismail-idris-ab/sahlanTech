@@ -30,6 +30,7 @@ const studentAnnouncementsRoutes = require('./routes/student.announcements.route
 const siteContentRoutes = require('./routes/siteContent.routes');
 const studentCheckinRoutes = require('./routes/student.checkin.routes');
 const studentDailyQuizRoutes = require('./routes/student.dailyQuiz.routes');
+const studentReceiptsRoutes = require('./routes/student.receipts.routes');
 const adminCheckinRoutes = require('./routes/admin.checkin.routes');
 const dailyQuizRoutes = require('./routes/dailyQuiz.routes');
 const receiptsRoutes = require('./routes/receipts.routes');
@@ -125,6 +126,7 @@ app.use('/api/student/attendance', studentAttendanceRoutes);
 app.use('/api/student/announcements', studentAnnouncementsRoutes);
 app.use('/api/student/checkin', studentCheckinRoutes);
 app.use('/api/student/daily-quiz', studentDailyQuizRoutes);
+app.use('/api/student/receipts', studentReceiptsRoutes);
 app.use('/api/student', studentRoutes);
 
 app.use('/api/admin/students', adminStudentsRoutes);

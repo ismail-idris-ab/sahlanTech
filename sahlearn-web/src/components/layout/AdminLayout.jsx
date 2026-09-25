@@ -7,7 +7,7 @@ import {
   MessageSquare, Users, UserCog,
   LogOut, Sprout, Bell, GraduationCap, MessageCircle,
   ClipboardList, ClipboardCheck, CalendarCheck, Megaphone, Globe,
-  MoreHorizontal, ArrowLeft, X, CalendarClock,
+  MoreHorizontal, ArrowLeft, X, CalendarClock, Receipt,
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -23,6 +23,7 @@ const SIDEBAR_MANAGE = [
   { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
   { to: '/admin/exams', label: 'Exams', icon: ClipboardCheck },
   { to: '/admin/daily-quizzes', label: 'Daily Quiz', icon: CalendarClock },
+  { to: '/admin/sales', label: 'Sales', icon: Receipt },
   { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
   { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/admin/students', label: 'Students', icon: GraduationCap },
@@ -46,6 +47,7 @@ const MORE_ITEMS = [
   { to: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
   { to: '/admin/exams', label: 'Exams', icon: ClipboardCheck },
   { to: '/admin/daily-quizzes', label: 'Daily Quiz', icon: CalendarClock },
+  { to: '/admin/sales', label: 'Sales', icon: Receipt },
   { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
   { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { to: '/admin/student-messages', label: 'Student Messages', icon: MessageCircle },
@@ -62,6 +64,7 @@ const PAGE_TITLES = {
   '/admin/assignments': 'Assignments',
   '/admin/exams': 'Exams',
   '/admin/daily-quizzes': 'Daily Quiz',
+  '/admin/sales': 'Sales & Receipts',
   '/admin/attendance': 'Attendance',
   '/admin/announcements': 'Announcements',
   '/admin/students': 'Students',

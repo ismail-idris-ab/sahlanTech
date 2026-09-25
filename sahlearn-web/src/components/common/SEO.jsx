@@ -12,6 +12,9 @@ export default function SEO({
   url,
   type = 'website',
   jsonLd,
+  // Pages reachable by link but not meant for search results, such as a
+  // customer's receipt.
+  noindex = false,
 }) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Practical Digital Skills`;
   const canonical = url ? `${SITE_URL}${url}` : undefined;
@@ -20,6 +23,7 @@ export default function SEO({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      {noindex && <meta name="robots" content="noindex, nofollow" />}
       {canonical && <link rel="canonical" href={canonical} />}
 
       {/* Open Graph */}

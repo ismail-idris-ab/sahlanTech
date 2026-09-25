@@ -36,6 +36,10 @@ const AdminExams = lazy(() => import('../pages/admin/Exams'));
 const AdminExamForm = lazy(() => import('../pages/admin/ExamForm'));
 const AdminExamDetail = lazy(() => import('../pages/admin/ExamDetail'));
 const AdminDailyQuizzes = lazy(() => import('../pages/admin/DailyQuizzes'));
+const AdminSales = lazy(() => import('../pages/admin/Sales'));
+const AdminSaleForm = lazy(() => import('../pages/admin/SaleForm'));
+const AdminSaleDetail = lazy(() => import('../pages/admin/SaleDetail'));
+const PublicReceipt = lazy(() => import('../pages/public/Receipt'));
 const AdminDailyQuizForm = lazy(() => import('../pages/admin/DailyQuizForm'));
 const AdminDailyQuizResults = lazy(() => import('../pages/admin/DailyQuizResults'));
 const AdminDailyQuizGrade = lazy(() => import('../pages/admin/DailyQuizGrade'));
@@ -56,6 +60,7 @@ const StudentExamTake = lazy(() => import('../pages/student/ExamTake'));
 const StudentProgress = lazy(() => import('../pages/student/Progress'));
 const StudentAttendance = lazy(() => import('../pages/student/Attendance'));
 const StudentDailyQuiz = lazy(() => import('../pages/student/DailyQuizHistory'));
+const StudentPayments = lazy(() => import('../pages/student/Payments'));
 const AdminDailyCheckIns = lazy(() => import('../pages/admin/DailyCheckIns'));
 const AdminAnnouncements = lazy(() => import('../pages/admin/Announcements'));
 const AdminSiteContent = lazy(() => import('../pages/admin/SiteContent'));
@@ -108,6 +113,7 @@ export default function AppRouter() {
               <Route path="/enroll/:courseSlug" element={<Enroll />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/quiz" element={<DailyQuizPage />} />
+              <Route path="/receipt/:token" element={<PublicReceipt />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 
@@ -150,6 +156,9 @@ export default function AppRouter() {
               <Route path="daily-quizzes/:id/edit" element={<AdminDailyQuizForm />} />
               <Route path="daily-quizzes/:id/results" element={<AdminDailyQuizResults />} />
               <Route path="daily-quizzes/:id/attempts/:attemptId" element={<AdminDailyQuizGrade />} />
+              <Route path="sales" element={<AdminSales />} />
+              <Route path="sales/new" element={<AdminSaleForm />} />
+              <Route path="sales/:id" element={<AdminSaleDetail />} />
               <Route path="attendance" element={<AdminDailyCheckIns />} />
               <Route path="announcements" element={<AdminAnnouncements />} />
               <Route path="site-content" element={<AdminSiteContent />} />
@@ -182,6 +191,7 @@ export default function AppRouter() {
               <Route path="progress" element={<StudentProgress />} />
               <Route path="attendance" element={<StudentAttendance />} />
               <Route path="daily-quiz" element={<StudentDailyQuiz />} />
+              <Route path="payments" element={<StudentPayments />} />
               <Route path="announcements" element={<StudentAnnouncements />} />
             </Route>
           </Routes>
