@@ -5,6 +5,10 @@ const validate = require('../middleware/validate');
 const authMiddleware = require('../middleware/auth');
 const {
   listSales,
+  exportSales,
+  exportSale,
+  bulkDeleteSales,
+  deleteSale,
   createSale,
   getSale,
   updateSale,
@@ -60,6 +64,9 @@ const reasonValidator = [
 ];
 
 router.get('/', listSales);
+// Above '/:id', or Express reads 'export' as a sale id.
+router.get('/export', exportSales);
+router.post('/bulk-delete', bulkDeleteSales);
 router.post(
   '/',
   [
@@ -85,6 +92,7 @@ router.post(
   createSale
 );
 router.get('/:id', getSale);
+router.get('/:id/export', exportSale);
 router.patch(
   '/:id',
   [
@@ -102,6 +110,7 @@ router.patch(
   updateSale
 );
 router.post('/:id/void', reasonValidator, validate, voidSale);
+router.delete('/:id', deleteSale);
 router.post(
   '/:id/payments',
   [

@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getSale, recordPayment, voidPayment, voidSale } from '../../services/adminSales.service';
+import { FileSpreadsheet } from 'lucide-react';
+import {
+  getSale,
+  recordPayment,
+  voidPayment,
+  voidSale,
+  exportSaleCsv,
+} from '../../services/adminSales.service';
 import { formatNaira } from '../../services/receipts.service';
 import ShareReceiptButtons from '../../components/receipt/ShareReceiptButtons';
 
@@ -24,6 +31,7 @@ export default function SaleDetail() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ amount: 0, method: 'cash', reference: '' });
   const [amountError, setAmountError] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -38,6 +46,17 @@ export default function SaleDetail() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportSaleCsv(id);
+    } catch {
+      toast.error('Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handlePay = async (e) => {
     e.preventDefault();
@@ -234,7 +253,19 @@ export default function SaleDetail() {
       )}
 
       <section className={card}>
-        <h2 className="font-semibold text-ink-900 mb-3">Receipts</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h2 className="font-semibold text-ink-900">Receipts</h2>
+          {/* One spreadsheet for the whole sale: its details, every item and
+              every receipt. */}
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-surface-100 text-ink-700 hover:bg-surface-200 transition disabled:opacity-60 print:hidden"
+          >
+            <FileSpreadsheet size={14} /> {exporting ? 'Exporting...' : 'Excel (CSV)'}
+          </button>
+        </div>
         {sale.payments.length === 0 ? (
           <p className="text-sm text-ink-500">No payments recorded yet.</p>
         ) : (

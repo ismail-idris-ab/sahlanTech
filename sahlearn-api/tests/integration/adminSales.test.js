@@ -232,3 +232,247 @@ describe('POST /api/admin/sales/:id/void', () => {
     expect(res.status).toBe(409);
   });
 });
+
+describe('DELETE /api/admin/sales/:id', () => {
+  const del = (id) => auth(request(app).delete(`/api/admin/sales/${id}`));
+
+  test('401 without a token', async () => {
+    const sale = await newSale();
+    expect((await request(app).delete(`/api/admin/sales/${sale.id}`)).status).toBe(401);
+  });
+
+  test('deletes a sale', async () => {
+    const sale = await newSale();
+    const res = await del(sale.id);
+    expect(res.status).toBe(200);
+    expect(await Sale.findById(sale.id)).toBeNull();
+  });
+
+  // Chosen behaviour: delete is unconditional and takes the receipts with it.
+  test('deletes a paid sale and its receipts', async () => {
+    const sale = await newSale();
+    await pay(sale, { amount: 10000, method: 'cash' });
+
+    const res = await del(sale.id);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.receiptsDeleted).toBe(1);
+    expect(await Sale.findById(sale.id)).toBeNull();
+    expect(await Payment.countDocuments({ sale: sale.id })).toBe(0);
+  });
+
+  test('404 for an id that does not exist', async () => {
+    expect((await del('64b7f1c2a4d3e5f6a7b8c9d0')).status).toBe(404);
+  });
+
+  test('400 for a malformed id', async () => {
+    expect((await del('not-an-id')).status).toBe(400);
+  });
+});
+
+describe('POST /api/admin/sales/bulk-delete', () => {
+  const bulk = (body) => auth(request(app).post('/api/admin/sales/bulk-delete')).send(body);
+
+  test('401 without a token', async () => {
+    const res = await request(app).post('/api/admin/sales/bulk-delete').send({ ids: [] });
+    expect(res.status).toBe(401);
+  });
+
+  test('deletes every selected sale and leaves the rest', async () => {
+    const a = await newSale({ fullName: 'Customer A' });
+    const b = await newSale({ fullName: 'Customer B' });
+    const keep = await newSale({ fullName: 'Customer C' });
+
+    const res = await bulk({ ids: [a.id, b.id] });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.deleted).toBe(2);
+    expect(await Sale.countDocuments()).toBe(1);
+    expect(await Sale.findById(keep.id)).not.toBeNull();
+  });
+
+  test('takes the receipts of the selected sales with them', async () => {
+    const a = await newSale();
+    await pay(a, { amount: 10000, method: 'cash' });
+    const keep = await newSale();
+    await pay(keep, { amount: 5000, method: 'cash' });
+
+    const res = await bulk({ ids: [a.id] });
+
+    expect(res.body.data.receiptsDeleted).toBe(1);
+    expect(await Payment.countDocuments({ sale: a.id })).toBe(0);
+    expect(await Payment.countDocuments({ sale: keep.id })).toBe(1);
+  });
+
+  test('422 for an empty selection', async () => {
+    expect((await bulk({ ids: [] })).status).toBe(422);
+  });
+
+  test('422 when ids is missing', async () => {
+    expect((await bulk({})).status).toBe(422);
+  });
+
+  test('422 above the 100 id limit', async () => {
+    const ids = Array.from({ length: 101 }, () => '64b7f1c2a4d3e5f6a7b8c9d0');
+    expect((await bulk({ ids })).status).toBe(422);
+  });
+
+  // A bad id would otherwise reach Mongoose and come back as a 500.
+  test('400 for a malformed id, and nothing is deleted', async () => {
+    const sale = await newSale();
+    const res = await bulk({ ids: [sale.id, 'not-an-id'] });
+    expect(res.status).toBe(400);
+    expect(await Sale.countDocuments()).toBe(1);
+  });
+
+  test('400 when ids holds a non-string', async () => {
+    expect((await bulk({ ids: [{ $ne: null }] })).status).toBe(400);
+  });
+
+  test('ignores an id that no longer exists', async () => {
+    const res = await bulk({ ids: ['64b7f1c2a4d3e5f6a7b8c9d0'] });
+    expect(res.status).toBe(200);
+    expect(res.body.data.deleted).toBe(0);
+  });
+});
+
+describe('GET /api/admin/sales/:id/export', () => {
+  const get = (id) => auth(request(app).get(`/api/admin/sales/${id}/export`));
+
+  test('401 without a token', async () => {
+    const sale = await newSale();
+    expect((await request(app).get(`/api/admin/sales/${sale.id}/export`)).status).toBe(401);
+  });
+
+  test('exports the sale details, its items and its receipts', async () => {
+    const sale = await newSale({
+      fullName: 'Musa Ibrahim',
+      items: [
+        { description: 'HP EliteBook', quantity: 2, unitPrice: 185000 },
+        { description: 'Mouse', quantity: 1, unitPrice: 5000 },
+      ],
+    });
+    const paid = await pay(sale, { amount: 100000, method: 'transfer', reference: 'TRX-1' });
+
+    const res = await get(sale.id);
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/text\/csv/);
+    expect(res.text).toContain('"Musa Ibrahim"');
+    expect(res.text).toContain('"HP EliteBook","2","185000","370000"');
+    expect(res.text).toContain('"Mouse"');
+    expect(res.text).toContain('"Total","375000"');
+    expect(res.text).toContain('"Balance","275000"');
+    expect(res.text).toContain(`"${paid.body.data.payment.receiptNo}"`);
+    expect(res.text).toContain('"Transfer","TRX-1","100000","Valid"');
+  });
+
+  test('names the file after the sale, with the slashes stripped', async () => {
+    const sale = await newSale();
+    const res = await get(sale.id);
+    expect(res.headers['content-disposition']).toMatch(/filename="SAH-S-\d{4}-\d{4}\.csv"/);
+  });
+
+  test('marks a voided receipt as void', async () => {
+    const sale = await newSale();
+    const paid = await pay(sale, { amount: 10000, method: 'cash' });
+    const voided = await auth(
+      request(app).post(`/api/admin/payments/${paid.body.data.payment.id}/void`)
+    ).send({ reason: 'wrong amount' });
+    expect(voided.status).toBe(200);
+
+    const res = await get(sale.id);
+    expect(res.text).toContain('"10000","Void"');
+  });
+
+  test('a sale with no receipts still exports', async () => {
+    const sale = await newSale();
+    const res = await get(sale.id);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('"Receipt no"');
+  });
+
+  test('404 for an id that does not exist', async () => {
+    expect((await get('64b7f1c2a4d3e5f6a7b8c9d0')).status).toBe(404);
+  });
+
+  test('400 for a malformed id', async () => {
+    expect((await get('not-an-id')).status).toBe(400);
+  });
+});
+
+describe('GET /api/admin/sales/export', () => {
+  const get = (query = '') => auth(request(app).get(`/api/admin/sales/export${query}`));
+
+  test('401 without a token', async () => {
+    expect((await request(app).get('/api/admin/sales/export')).status).toBe(401);
+  });
+
+  test('returns a CSV attachment with a header row and one row per sale', async () => {
+    await newSale({ fullName: 'Musa Ibrahim' });
+    await newSale({ fullName: 'Aisha Bello' });
+
+    const res = await get();
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/text\/csv/);
+    expect(res.headers['content-disposition']).toMatch(/attachment; filename="sahlearn-sales-/);
+
+    const lines = res.text.trim().split('\r\n');
+    expect(lines).toHaveLength(3);
+    expect(lines[0]).toContain('"Sale no"');
+    expect(res.text).toContain('"Musa Ibrahim"');
+    expect(res.text).toContain('"Aisha Bello"');
+  });
+
+  // 'export' must not be read as a sale id by the '/:id' route below it.
+  test('is not swallowed by the get-one route', async () => {
+    const res = await get();
+    expect(res.headers['content-type']).toMatch(/text\/csv/);
+  });
+
+  test('honours the status filter', async () => {
+    const sale = await newSale({ fullName: 'Voided Customer' });
+    await auth(request(app).post(`/api/admin/sales/${sale.id}/void`)).send({ reason: 'x' });
+    await newSale({ fullName: 'Live Customer' });
+
+    const res = await get('?status=void');
+
+    expect(res.text).toContain('"Voided Customer"');
+    expect(res.text).not.toContain('"Live Customer"');
+  });
+
+  test('honours the search box', async () => {
+    await newSale({ fullName: 'Musa Ibrahim' });
+    await newSale({ fullName: 'Aisha Bello' });
+
+    const res = await get('?q=Aisha');
+
+    expect(res.text).toContain('"Aisha Bello"');
+    expect(res.text).not.toContain('"Musa Ibrahim"');
+  });
+
+  test('a regex metacharacter in the search box does not throw', async () => {
+    await newSale();
+    const res = await get('?q=%28%5B');
+    expect(res.status).toBe(200);
+  });
+
+  test('summarises the items into one cell', async () => {
+    await newSale({
+      items: [
+        { description: 'HP EliteBook', quantity: 2, unitPrice: 185000 },
+        { description: 'Mouse', quantity: 1, unitPrice: 5000 },
+      ],
+    });
+
+    const res = await get();
+    expect(res.text).toContain('"2 x HP EliteBook; 1 x Mouse"');
+  });
+
+  test('exports an empty list as a header row only', async () => {
+    const res = await get();
+    expect(res.status).toBe(200);
+    expect(res.text.trim().split('\r\n')).toHaveLength(1);
+  });
+});

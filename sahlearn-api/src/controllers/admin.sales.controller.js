@@ -5,6 +5,8 @@ const Student = require('../models/Student');
 const { nextSaleNo, nextReceiptNo } = require('../utils/docNumber');
 const { success, successList } = require('../utils/apiResponse');
 const { recomputeSale, outstandingBalance } = require('../services/sales.service');
+const { toCsv, toCsvRows, sendCsv } = require('../utils/csv');
+const { lagosDateKey } = require('../utils/dateKey');
 
 const badId = (res, what = 'sale') =>
   res.status(400).json({ status: 'error', message: `Invalid ${what} id` });
@@ -16,19 +18,26 @@ const voided = (res) =>
 // throwing, and stops a pathological pattern pinning the database.
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const listSales = async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const limit = Math.min(100, parseInt(req.query.limit, 10) || 20);
-
+// The list and the CSV export must agree on what "the current view" means, so
+// they read the same query string through one builder.
+const buildFilter = (query) => {
   const filter = {};
-  if (['unpaid', 'part_paid', 'paid', 'void'].includes(req.query.status)) {
-    filter.status = req.query.status;
+  if (['unpaid', 'part_paid', 'paid', 'void'].includes(query.status)) {
+    filter.status = query.status;
   }
-  const q = (req.query.q || '').trim();
+  const q = (query.q || '').trim();
   if (q) {
     const rx = new RegExp(escapeRegex(q), 'i');
     filter.$or = [{ 'customer.fullName': rx }, { 'customer.phone': rx }, { saleNo: rx }];
   }
+  return filter;
+};
+
+const listSales = async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(100, parseInt(req.query.limit, 10) || 20);
+
+  const filter = buildFilter(req.query);
 
   const [total, sales] = await Promise.all([
     Sale.countDocuments(filter),
@@ -40,6 +49,95 @@ const listSales = async (req, res) => {
     sales.map((s) => ({ ...s, id: s._id })),
     { page, limit, total, totalPages: Math.ceil(total / limit) }
   );
+};
+
+const STATUS_LABEL = {
+  unpaid: 'Unpaid',
+  part_paid: 'Part paid',
+  paid: 'Paid',
+  void: 'Void',
+};
+
+const EXPORT_LIMIT = 5000;
+
+const EXPORT_HEADERS = [
+  'Sale no',
+  'Date',
+  'Customer',
+  'Phone',
+  'Items',
+  'Subtotal',
+  'Discount',
+  'Total',
+  'Paid',
+  'Balance',
+  'Status',
+];
+
+const exportSales = async (req, res) => {
+  const filter = buildFilter(req.query);
+  const sales = await Sale.find(filter).sort({ createdAt: -1 }).limit(EXPORT_LIMIT).lean();
+
+  const rows = sales.map((s) => [
+    s.saleNo,
+    lagosDateKey(s.createdAt),
+    s.customer?.fullName || '',
+    s.customer?.phone || '',
+    // One cell, so the row stays one row: '2 x HP EliteBook; 1 x Mouse'.
+    (s.items || []).map((i) => `${i.quantity} x ${i.description}`).join('; '),
+    s.subtotal,
+    s.discountAmount,
+    s.total,
+    s.amountPaid,
+    s.balance,
+    STATUS_LABEL[s.status] || s.status,
+  ]);
+
+  sendCsv(res, `sahlearn-sales-${lagosDateKey()}.csv`, toCsv(EXPORT_HEADERS, rows));
+};
+
+const METHOD_LABEL = { cash: 'Cash', transfer: 'Transfer', pos: 'POS', other: 'Other' };
+
+// One sale, one file: its details, every item, then every receipt — the sheet
+// you would hand an accountant for a single customer.
+const exportSale = async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return badId(res);
+  const sale = await Sale.findById(req.params.id).lean();
+  if (!sale) return missing(res);
+
+  const payments = await Payment.find({ sale: sale._id }).sort({ paidAt: 1 }).lean();
+
+  const rows = [
+    ['Sale', sale.saleNo],
+    ['Date', lagosDateKey(sale.createdAt)],
+    ['Customer', sale.customer?.fullName || ''],
+    ['Phone', sale.customer?.phone || ''],
+    ['Status', STATUS_LABEL[sale.status] || sale.status],
+    [],
+    ['Items'],
+    ['Description', 'Quantity', 'Unit price', 'Line total'],
+    ...(sale.items || []).map((i) => [i.description, i.quantity, i.unitPrice, i.lineTotal]),
+    [],
+    ['Subtotal', sale.subtotal],
+    ['Discount', sale.discountAmount],
+    ['Total', sale.total],
+    ['Paid', sale.amountPaid],
+    ['Balance', sale.balance],
+    [],
+    ['Receipts'],
+    ['Receipt no', 'Date', 'Method', 'Reference', 'Amount', 'Status'],
+    ...payments.map((p) => [
+      p.receiptNo,
+      lagosDateKey(p.paidAt),
+      METHOD_LABEL[p.method] || p.method,
+      p.reference || '',
+      p.amount,
+      p.voidedAt ? 'Void' : 'Valid',
+    ]),
+  ];
+
+  // The sale number carries slashes; sendCsv strips them out of the filename.
+  sendCsv(res, `${sale.saleNo}.csv`, toCsvRows(rows));
 };
 
 const createSale = async (req, res) => {
@@ -154,6 +252,52 @@ const voidSale = async (req, res) => {
   success(res, sale);
 };
 
+// Delete is unconditional by product decision: any sale, paid or not, can be
+// removed. Its receipts go with it, which means a receipt link already in a
+// customer's hand stops resolving. Void remains the reversible alternative and
+// is what the detail page offers first.
+const purgeSales = async (ids) => {
+  const receipts = await Payment.deleteMany({ sale: { $in: ids } });
+  const sales = await Sale.deleteMany({ _id: { $in: ids } });
+  return { deleted: sales.deletedCount || 0, receiptsDeleted: receipts.deletedCount || 0 };
+};
+
+const deleteSale = async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return badId(res);
+  const sale = await Sale.findById(req.params.id).lean();
+  if (!sale) return missing(res);
+
+  const counts = await purgeSales([sale._id]);
+  success(res, { id: sale._id, saleNo: sale.saleNo, ...counts });
+};
+
+const BULK_DELETE_LIMIT = 100;
+
+const bulkDeleteSales = async (req, res) => {
+  const ids = req.body.ids;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(422).json({
+      status: 'error',
+      message: 'Select at least one sale to delete.',
+      errors: [{ field: 'ids', message: 'Select at least one sale' }],
+    });
+  }
+  if (ids.length > BULK_DELETE_LIMIT) {
+    return res.status(422).json({
+      status: 'error',
+      message: `Delete at most ${BULK_DELETE_LIMIT} sales at a time.`,
+      errors: [{ field: 'ids', message: `At most ${BULK_DELETE_LIMIT} at a time` }],
+    });
+  }
+  // One bad id would otherwise throw a CastError the handler turns into a 500.
+  if (!ids.every((id) => typeof id === 'string' && mongoose.isValidObjectId(id))) {
+    return badId(res);
+  }
+
+  const counts = await purgeSales(ids.map((id) => new mongoose.Types.ObjectId(id)));
+  success(res, counts);
+};
+
 const recordPayment = async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) return badId(res);
   const sale = await Sale.findById(req.params.id);
@@ -212,6 +356,10 @@ const voidPayment = async (req, res) => {
 
 module.exports = {
   listSales,
+  exportSales,
+  exportSale,
+  bulkDeleteSales,
+  deleteSale,
   createSale,
   getSale,
   updateSale,
