@@ -66,16 +66,88 @@ export default function DailyQuizResults() {
             description="Nobody has taken this quiz yet."
           />
         ) : (
-          <table className="w-full text-sm">
+          <>
+            {/* Mobile: one card per submission, so phone, ID, time and submitted-at stay visible. */}
+            <ul className="lg:hidden divide-y divide-surface-100">
+              {results.map((entry) => (
+                <li key={entry.id} className="p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-surface-100 text-ink-700 text-xs font-bold flex items-center justify-center">
+                      {entry.rank}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-semibold text-ink-900 break-words">
+                          {entry.fullName}
+                          {!entry.isStudent && (
+                            <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-surface-100 text-ink-500">
+                              Guest
+                            </span>
+                          )}
+                        </p>
+                        <span className="flex-shrink-0 text-sm font-bold text-ink-900">
+                          {entry.score}/{entry.maxScore}
+                        </span>
+                      </div>
+
+                      <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                        <div className="flex gap-1.5 min-w-0">
+                          <dt className="text-ink-400">Phone</dt>
+                          <dd className="font-mono text-ink-600 truncate">{entry.phone || '—'}</dd>
+                        </div>
+                        <div className="flex gap-1.5 min-w-0">
+                          <dt className="text-ink-400">ID</dt>
+                          <dd className="font-mono text-ink-600 truncate">{entry.studentId || '—'}</dd>
+                        </div>
+                        <div className="flex gap-1.5 min-w-0">
+                          <dt className="text-ink-400">Time</dt>
+                          <dd className="text-ink-600">{formatDuration(entry.durationMs)}</dd>
+                        </div>
+                        <div className="flex gap-1.5 min-w-0">
+                          <dt className="text-ink-400">Sent</dt>
+                          <dd className="text-ink-600 truncate">
+                            {entry.submittedAt
+                              ? new Date(entry.submittedAt).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                              : '—'}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        {entry.pendingEssays > 0 ? (
+                          <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                            {entry.pendingEssays} to mark
+                          </span>
+                        ) : (
+                          <span />
+                        )}
+                        <Link
+                          to={`/admin/daily-quizzes/${id}/attempts/${entry.id}`}
+                          className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${
+                            entry.pendingEssays > 0
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-surface-100 text-ink-600 border-surface-300'
+                          }`}
+                        >
+                          {entry.pendingEssays > 0 ? 'Mark' : 'View'}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+          <table className="w-full text-sm hidden lg:table">
             <thead>
               <tr className="border-b border-surface-200 bg-surface-50 text-left">
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Rank</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Name</th>
-                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">Phone</th>
-                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Student ID</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Phone</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Student ID</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Score</th>
-                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Time</th>
-                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Submitted at</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Time</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Submitted at</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 text-right">Answers</th>
               </tr>
             </thead>
@@ -91,8 +163,8 @@ export default function DailyQuizResults() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3.5 text-ink-500 font-mono hidden sm:table-cell">{entry.phone || '—'}</td>
-                  <td className="px-5 py-3.5 text-ink-500 font-mono hidden md:table-cell">{entry.studentId}</td>
+                  <td className="px-5 py-3.5 text-ink-500 font-mono">{entry.phone || '—'}</td>
+                  <td className="px-5 py-3.5 text-ink-500 font-mono">{entry.studentId}</td>
                   <td className="px-5 py-3.5 text-ink-900 font-semibold">
                     {entry.score} / {entry.maxScore}
                     {entry.pendingEssays > 0 && (
@@ -101,8 +173,8 @@ export default function DailyQuizResults() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3.5 text-ink-500 hidden md:table-cell">{formatDuration(entry.durationMs)}</td>
-                  <td className="px-5 py-3.5 text-ink-500 hidden lg:table-cell">
+                  <td className="px-5 py-3.5 text-ink-500">{formatDuration(entry.durationMs)}</td>
+                  <td className="px-5 py-3.5 text-ink-500">
                     {entry.submittedAt ? new Date(entry.submittedAt).toLocaleString('en-NG', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
                   <td className="px-5 py-3.5 text-right">
@@ -119,6 +191,7 @@ export default function DailyQuizResults() {
               ))}
             </tbody>
           </table>
+          </>
         )}
         <Pagination
           page={page}

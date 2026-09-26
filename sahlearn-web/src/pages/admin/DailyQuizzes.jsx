@@ -76,13 +76,54 @@ export default function DailyQuizzes() {
             description="No quizzes yet — create today's."
           />
         ) : (
-          <table className="w-full text-sm">
+          <>
+            {/* Mobile: one card per quiz — the table hides too many columns to be useful here. */}
+            <ul className="md:hidden divide-y divide-surface-100">
+              {quizzes.map((quiz) => (
+                <li key={quiz.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-ink-900 break-words">{quiz.title}</p>
+                      <p className="text-xs text-ink-400 mt-0.5">{quiz.date}</p>
+                    </div>
+                    <StatusBadge status={quiz.isPublished ? 'published' : 'draft'} />
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-ink-500">
+                    <span>{quiz.questionCount ?? 0} question{quiz.questionCount === 1 ? '' : 's'}</span>
+                    <span>{quiz.attemptCount ?? 0} attempt{quiz.attemptCount === 1 ? '' : 's'}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Link
+                      to={`/admin/daily-quizzes/${quiz.id}/results`}
+                      className="inline-flex items-center justify-center gap-1 text-xs font-semibold px-2 py-2 rounded-lg"
+                      style={{ background: 'rgba(6,133,98,0.08)', color: '#068562', border: '1px solid rgba(6,133,98,0.15)' }}
+                    >
+                      <ListChecks size={13} /> Results
+                    </Link>
+                    <Link
+                      to={`/admin/daily-quizzes/${quiz.id}/edit`}
+                      className="inline-flex items-center justify-center gap-1 text-xs font-semibold px-2 py-2 rounded-lg bg-surface-100 text-ink-600 border border-surface-300 hover:bg-surface-200 transition"
+                    >
+                      <Pencil size={13} /> Edit
+                    </Link>
+                    <button
+                      onClick={() => setPendingDelete(quiz)}
+                      className="inline-flex items-center justify-center gap-1 text-xs font-semibold px-2 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition"
+                    >
+                      <Trash2 size={13} /> Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+          <table className="w-full text-sm hidden md:table">
             <thead>
               <tr className="border-b border-surface-200 bg-surface-50 text-left">
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Date</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Title</th>
-                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden sm:table-cell">Questions</th>
-                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden md:table-cell">Status</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Questions</th>
+                <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400">Status</th>
                 <th className="px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-ink-400 hidden lg:table-cell">Attempts</th>
                 <th className="px-5 py-3" />
               </tr>
@@ -92,8 +133,8 @@ export default function DailyQuizzes() {
                 <tr key={quiz.id} className="hover:bg-surface-50 transition-colors">
                   <td className="px-5 py-3.5 font-semibold text-ink-900">{quiz.date}</td>
                   <td className="px-5 py-3.5 text-ink-700">{quiz.title}</td>
-                  <td className="px-5 py-3.5 text-ink-500 hidden sm:table-cell">{quiz.questionCount ?? 0}</td>
-                  <td className="px-5 py-3.5 hidden md:table-cell">
+                  <td className="px-5 py-3.5 text-ink-500">{quiz.questionCount ?? 0}</td>
+                  <td className="px-5 py-3.5">
                     <StatusBadge status={quiz.isPublished ? 'published' : 'draft'} />
                   </td>
                   <td className="px-5 py-3.5 text-ink-600 hidden lg:table-cell">{quiz.attemptCount ?? 0}</td>
@@ -124,6 +165,7 @@ export default function DailyQuizzes() {
               ))}
             </tbody>
           </table>
+          </>
         )}
         <Pagination
           page={page}
