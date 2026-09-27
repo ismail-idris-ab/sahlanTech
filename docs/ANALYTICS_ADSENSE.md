@@ -7,25 +7,17 @@ account access).
 
 ## 1. Google Analytics (GA4)
 
-**In the code:** `index.html` loads gtag only when `VITE_GA_ID` is set.
-`src/hooks/usePageTracking.js` sends a `page_view` on every client-side route
-change, mounted once as `<Analytics />` in `src/routes/AppRouter.jsx`. Without
-it GA would only ever record the page a visitor landed on.
+**In the code:** measurement ID `G-86BFQ6G0VR` is loaded by the gtag snippet at the
+bottom of `index.html`. It is skipped on `localhost`, so development traffic never
+reaches the property. `src/hooks/usePageTracking.js` sends a `page_view` on every
+client-side route change, mounted once as `<Analytics />` in
+`src/routes/AppRouter.jsx` — without it GA would only ever record the page a
+visitor landed on, because a React Router navigation is not a page load.
 
-**Your steps:**
-
-1. analytics.google.com → create a property for Sahlearn → a **Web** data stream
-   for `https://www.sahlearn.com`.
-2. Copy the Measurement ID (`G-XXXXXXXXXX`).
-3. Vercel → project → Settings → Environment Variables → add `VITE_GA_ID` for
-   Production (and Preview, if you want preview traffic counted separately).
-4. Redeploy. Vite bakes env vars at build time, so a new value needs a new build.
-5. Verify: open the site, then GA → Reports → **Realtime**. Click through two or
-   three pages and confirm each one appears. If only the landing page shows,
-   `VITE_GA_ID` did not reach the build.
-
-Set the same value in local `sahlearn-web/.env` only if you want to count your own
-development traffic — normally leave it blank there.
+**Nothing to configure.** To verify after a deploy: open the site, then GA →
+Reports → **Realtime**, and click through two or three pages. Each one should
+appear as its own page view. If nothing appears at all, an ad blocker on your own
+browser is the first thing to rule out — most block gtag.
 
 ## 2. Google Search Console
 

@@ -24,11 +24,15 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <!-- Google Analytics — set VITE_GA_ID in .env to activate -->
+    <!-- Google Analytics (GA4). The measurement ID is public, like the AdSense
+         one, so it is committed rather than left to a deploy-time env var.
+         Skipped on localhost so development traffic never reaches the property;
+         window.gtag then stays undefined and usePageTracking no-ops. -->
     <script>
       (function () {
-        var id = '%VITE_GA_ID%';
-        if (!id || id === '%VITE_GA_ID%') return;
+        var id = 'G-86BFQ6G0VR';
+        var host = location.hostname;
+        if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') return;
         var s = document.createElement('script');
         s.async = true;
         s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
