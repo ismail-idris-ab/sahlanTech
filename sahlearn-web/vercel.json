@@ -16,7 +16,7 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "destination": "https://sahlearn-api.onrender.com/sitemap.xml"
+      "destination": "https://sahlantech.onrender.com/sitemap.xml"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

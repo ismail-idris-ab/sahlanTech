@@ -146,7 +146,11 @@ export default function Footer() {
 
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-ink-500">
           <p>© {year} Sahlearn. All rights reserved.</p>
-          <Link to="/admin/login" className="hover:text-ink-300 transition-colors">Admin</Link>
+          <div className="flex items-center gap-4">
+            <Link to="/privacy" className="hover:text-ink-300 transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-ink-300 transition-colors">Terms</Link>
+            <Link to="/admin/login" className="hover:text-ink-300 transition-colors">Admin</Link>
+          </div>
         </div>
       </div>
     </footer>

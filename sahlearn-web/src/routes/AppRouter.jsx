@@ -1,9 +1,17 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
+import usePageTracking from '../hooks/usePageTracking';
+
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
+// Google Analytics only sees the landing page on its own; this reports the rest.
+function Analytics() {
+  usePageTracking();
   return null;
 }
 import { AuthProvider } from '../context/AuthContext';
@@ -77,6 +85,8 @@ const Contact = lazy(() => import('../pages/public/Contact'));
 const Enroll = lazy(() => import('../pages/public/Enroll'));
 const FAQ = lazy(() => import('../pages/public/FAQ'));
 const DailyQuizPage = lazy(() => import('../pages/public/DailyQuiz'));
+const Privacy = lazy(() => import('../pages/public/Privacy'));
+const Terms = lazy(() => import('../pages/public/Terms'));
 
 const PageSpinner = () => (
   <div className="flex justify-center py-24">
@@ -96,6 +106,7 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <Analytics />
       <AuthProvider>
         <StudentAuthProvider>
         <Suspense fallback={<PageSpinner />}>
@@ -113,6 +124,8 @@ export default function AppRouter() {
               <Route path="/enroll/:courseSlug" element={<Enroll />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/quiz" element={<DailyQuizPage />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="/receipt/:token" element={<PublicReceipt />} />
               <Route path="*" element={<NotFound />} />
             </Route>
