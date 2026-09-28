@@ -1,6 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 
-const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://sahlearn.com';
+// www, not the apex: the apex 308-redirects to it, so a canonical tag or an og:url
+// pointing at the apex makes every page advertise a URL that is not the one served.
+const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://www.sahlearn.com';
 const SITE_NAME = 'Sahlearn';
 const DEFAULT_DESC = 'Practical digital skills, taught simply. Courses in Design, Office, AI, and Marketing.';
 const DEFAULT_IMG = `${SITE_URL}/og-default.jpg`;

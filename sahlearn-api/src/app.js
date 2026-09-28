@@ -68,7 +68,12 @@ app.get('/api/health', (_req, res) => {
 app.get('/sitemap.xml', async (_req, res) => {
   const Course = require('./models/Course');
   const Post = require('./models/Post');
-  const base = process.env.CORS_ORIGIN?.split(',')[0]?.trim().replace(/\/$/, '') || 'https://sahlearn.com';
+  // SITE_URL, not the first CORS origin: the apex redirects to www, so deriving
+  // the base from the allowlist put a 308 on every URL in the sitemap. CORS_ORIGIN
+  // stays the fallback for an environment that has not set SITE_URL yet.
+  const base = (process.env.SITE_URL || process.env.CORS_ORIGIN?.split(',')[0] || 'https://www.sahlearn.com')
+    .trim()
+    .replace(/\/$/, '');
 
   const [courses, posts] = await Promise.all([
     Course.find({ isPublished: true }).select('slug updatedAt').lean(),
